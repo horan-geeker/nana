@@ -1,6 +1,22 @@
 local cjson = require('cjson')
 local conf = require('config.app')
 local Model = require('models.model')
+local request = require('lib.request')
+local validator = require('lib.validator')
+
+--use request to get all http args
+ngx.say(cjson.encode(request))
+--curl "localhost:8001?id=1" -d name=foo     
+--{"name":"foo","id":"1"}
+
+local ok,msg = validator:check({
+	name = {require=1,max=6,min=4},
+	id = {require=0}},
+	request)
+
+if not ok then
+	ngx.say(msg)
+end
 
 local User = Model:new('users')
 ngx.say('where demo:\n',cjson.encode(User:where('username','=','cgreen'):where('password','=','7c4a8d09ca3762af61e59520943dc26494f8941b'):get()))

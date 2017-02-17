@@ -1,6 +1,6 @@
 local Database = require('models.database')
 
-Model = {table = nil,query_sql = nil}
+local Model = {table = nil,query_sql = nil}
 
 function Model:all()
     return Database:query('select * from '..self.table)

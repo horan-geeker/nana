@@ -14,7 +14,7 @@ end
 function Validator:check(rules,data)
 	for var,rule in pairs(rules) do
         if type(var) == 'number' then
-            if not data[rule] then
+            if not data[rule] or data[rule]=="" then
             	return false,rule..' arg not exists'
             end
         else
@@ -45,6 +45,10 @@ function Validator:check(rules,data)
 		end
 	end
 	return true,'ok'
+end
+
+function Validator:is_empty(t) 
+    return _G.next(t) == nil
 end
 
 return Validator

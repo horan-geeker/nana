@@ -8,7 +8,6 @@ function Database:connect()
 
     --全局变量实现单例模式
     DB = nil
-    ngx.say('Database connect!!!')
 
     DB, error_msg = mysql:new()
     if not DB then
@@ -42,7 +41,7 @@ function Database:query(sql)
     local res, err, errno, sqlstate = DB:query(sql, 10)
     if not res then
         ngx.log(ngx.WARN,"bad result: ", err, ": ", errno, ": ", sqlstate, ".")
-        return
+        return nil
     else
         return res
     end

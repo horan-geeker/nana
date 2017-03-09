@@ -1,4 +1,5 @@
 local Database = require('models.database')
+local Validator = require("lib.validator")
 
 local Model = {table = nil,query_sql = nil}
 
@@ -33,7 +34,12 @@ function Model:get()
 	end
 	local sql = self.query_sql
 	self.query_sql = nil
-	return Database:query(sql) or ''
+	local res = Database:query(sql)
+	if Validator:is_empty(res) then
+		return nil
+	else
+		return res
+	end
 end
 
 function Model:find(id,column)

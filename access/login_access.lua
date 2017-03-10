@@ -7,4 +7,6 @@ local ok,msg = validator:check({
 
 if not ok then
 	ngx.say(msg)
+    ngx.log(ngx.ERR,"access not exit")
+    ngx.exit(ngx.OK)
 end

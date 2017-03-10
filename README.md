@@ -8,27 +8,35 @@
 
 these content also in controller index.lua
 
-```
-local cjson = require('cjson')
-local conf = require('config.app')
-local Model = require('models.model')
-local request = require('lib.request')
-local validator = require('lib.validator')
 
+request 对象包含了get或post请求的所有数据
+```
 --use request to get all http args
+local request = require('lib.request')
 ngx.say(cjson.encode(request))
 --curl "localhost:8001?id=1" -d name=foo     
 --{"name":"foo","id":"1"}
-
+```
+validator:check 方法支持对数据的校验和反馈
+'id' 表示只校验是否存在该值（结合request）
+也可以带着条件 max,min,表示校验的字符串长度，included={1,2,3}表示校验该值在此范围内
+```
+local validator = require('lib.validator')
 local ok,msg = validator:check({
-	name = {require=1,max=6,min=4},
-	id = {require=0}},
-	request)
+	name = {max=6,min=4},
+	'password',
+	'id'
+	},request)
 
 if not ok then
 	ngx.say(msg)
 end
-
+```
+Model 对象支持灵活的数据库操作
+where方法可以结合get方法链式调用来取一条或多条数据
+update结合where方法来更新一条或多条数据
+```
+local Model = require('models.model')
 local User = Model:new('users')
 ngx.say('where demo:\n',cjson.encode(User:where('username','=','cgreen'):where('password','=','7c4a8d09ca3762af61e59520943dc26494f8941b'):get()))
 -- {"password":"7c4a8d09ca3762af61e59520943dc26494f8941b","gender":"?","id":99,"username":"cgreen","email":"jratke@yahoo.com"}

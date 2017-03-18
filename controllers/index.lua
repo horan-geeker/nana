@@ -1,9 +1,9 @@
 local cjson = require('cjson')
 local conf = require('config.app')
 local Model = require('models.model')
-local request = require('lib.request')
 local validator = require('lib.validator')
 
+local request = ngx.req.get_uri_args()
 --use request to get all http args
 ngx.say('request args: ',cjson.encode(request))
 --curl "localhost:8001?id=1" -d name=foo     

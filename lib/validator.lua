@@ -17,12 +17,12 @@ function Validator:check(rules,data)
 	end
 	for var,rule in pairs(rules) do
         if type(var) == 'number' then
-            if data[rule]==true or data[rule]=="" then
+            if not data[rule] or data[rule]==true or data[rule]=="" then
             	return false,rule..' arg not exists'
             end
         else
 			for condition,info in pairs(rule) do
-                if data[var] == '' or data[var] == {} or data[var]== true then
+                if not data[var] or data[var] == '' or data[var] == {} or data[var]== true then
                     return false,var..' arg value is empty'
 	            elseif condition == 'max' then
 					if #data[var] > info then
@@ -46,6 +46,9 @@ function Validator:check(rules,data)
 end
 
 function Validator:is_empty(t) 
+    if not t then
+        return false
+    end
     return _G.next(t) == nil
 end
 

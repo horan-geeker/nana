@@ -1,5 +1,5 @@
 local validator = require('lib.validator')
-local request = require('lib.request')
+local request = ngx.req.get_uri_args()
 
 local ok,msg = validator:check({
     'sex',

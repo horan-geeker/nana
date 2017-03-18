@@ -9,10 +9,9 @@
 these content also in controller index.lua
 
 
-request 对象包含了get或post请求的所有数据
 ```
 --use request to get all http args
-local request = require('lib.request')
+local request = ngx.req.get_uri_args()
 ngx.say(cjson.encode(request))
 --curl "localhost:8001?id=1" -d name=foo     
 --{"name":"foo","id":"1"}

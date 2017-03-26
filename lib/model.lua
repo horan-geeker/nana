@@ -1,4 +1,4 @@
-local Database = require('models.database')
+local Database = require('lib.database')
 local Validator = require("lib.validator")
 
 local Model = {table = nil,query_sql = nil}

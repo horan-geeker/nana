@@ -4,7 +4,6 @@ local conf = require('config.app')
 local Database = {}
 
 function Database:connect()
-
     local client, error_msg = mysql:new()
     if not client then
         ngx.log('fail to instantiate mysql: ', error_msg)

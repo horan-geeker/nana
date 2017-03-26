@@ -1,23 +1,21 @@
 local request = require("lib.request")
 local common = require("lib.common")
 local redis = require("models.redis")
-local Model = require("models.model")
+local User = require("models.user")
 local validator = require("lib.validator")
-local request = ngx.req.get_uri_args()
 
-local password = redis:get(request.login_id)
+local args = request:all()
+local password = redis:get(args.login_id)
 
 if not password then
-	local User = Model:new('users')
-	local user = User:where("username","=",request.login_id):where("password","=",request.password):get()
-	
-	if not user then
+	local ok,user = User:verifyPassword(args.login_id,args.password)
+	if not ok then
 		common:response('user not exists')
 	else
-		local ok,msg = redis:set(request.login_id,request.password)
+		local ok,msg = redis:set(args.login_id,args.password)
 	end
 else
-	if password ~= request.password then
+	if password ~= args.password then
 		common:response('password error')
 	end
 end

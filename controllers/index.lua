@@ -1,6 +1,7 @@
 local cjson = require('cjson')
 local conf = require('config.app')
-local Model = require('models.model')
+local Model = require('lib.model')
+local User = require('models.user')
 local validator = require('lib.validator')
 
 local request = ngx.req.get_uri_args()
@@ -10,7 +11,6 @@ ngx.say('request args: ',cjson.encode(request))
 --{"name":"foo","id":"1"}
 
 
-local User = Model:new('users')
 ngx.say('\nwhere demo:\n',cjson.encode(User:where('username','=','cgreen'):where('password','=','7c4a8d09ca3762af61e59520943dc26494f8941b'):get()))
 -- {"password":"7c4a8d09ca3762af61e59520943dc26494f8941b","gender":"?","id":99,"username":"cgreen","email":"jratke@yahoo.com"}
 
@@ -29,7 +29,7 @@ Admin:update({
 	}):where('id','=',3):query()
 
 Admin:insert({
-	id=3,
+	id=4,
 	password='123456',
 	name='horanaaa',
 	email='horangeeker@geeker.com',

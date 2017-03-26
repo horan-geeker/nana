@@ -4,9 +4,8 @@ local request = ngx.req.get_uri_args()
 local ok,msg = validator:check({
     'sex',
     'age',
-	name = {required=1,max=6,min=4,included={'fooba','hejunwei'}},
-	id = {required=1}},
-	request)
+	name = {max=6,min=4,included={'fooba','hejunwei'}},
+	},request)
 
 if not ok then
 	ngx.say('\nvalidate result: ',msg)

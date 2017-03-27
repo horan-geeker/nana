@@ -1,47 +1,136 @@
-local mysql = require('resty.mysql')
-local conf = require('config.app')
+local mysql_c = require("resty.mysql")
 
-local Database = {}
+local _M = { _VERSION = '0.01' }
 
-function Database:connect()
-    local client, error_msg = mysql:new()
-    if not client then
-        ngx.log('fail to instantiate mysql: ', error_msg)
-        return
+local mt = { __index = _M }
+
+--[[    先从连接池取连接,如果没有再建立连接.
+        返回:
+        false,出错信息.
+        true,数据库连接
+--]]
+
+function _M.get_connect(self)
+
+    if ngx.ctx.MYSQL then
+        return true, ngx.ctx.MYSQL
     end
     
-    client:set_timeout(1000) --1 sec
+    local client, errmsg = mysql_c:new()
+    if not client then
+        return false, "mysql.socket_failed: " .. (errmsg or "nil")
+    end
 
-    local ok, error_msg, error_code, sqlstate = client:connect{
-        host = conf['host'],
-        port = conf['port'],
-        database = conf['database'],
-        user = conf['user'],
-        password = conf['password'],
-        max_packet_size = 1024*1024
+    client:set_timeout(self.db_timeout)
+
+    local options = {
+        host = self.db_host,
+        port = self.db_port,
+        user = self.db_user,
+        password = self.db_password,
+        database = self.db_name
     }
 
-    if not ok then
-        ngx.log(ngx.ERR,'fail to connect: ', error_msg, ': ', error_code, sqlstate)
-        return 
+    local result, errmsg, errno, sqlstate = client:connect(options)
+
+    if not result then
+        return false, errmsg
     end
-    
-    --ctx变量实现单例模式
+
+    local query = "SET NAMES "..self.db_charset
+    local result, errmsg, errno, sqlstate = client:query(query)
+    if not result then
+        return false, errmsg
+    end
+
     ngx.ctx.MYSQL = client
-    return true
+    ngx.log(ngx.INFO,'mysql connect')
+    return true, ngx.ctx.MYSQL
+
 end
 
-function Database:query(sql)
-    if not ngx.ctx.MYSQL then
-        self:connect()
+--[[    把连接返回到连接池
+        用set_keepalive代替close() 将开启连接池特性,可以为每个nginx工作进程，指定连接最大空闲时间，和连接池最大连接数
+--]]
+
+function _M.close(self)
+    if ngx.ctx.MYSQL then
+        ngx.ctx.MYSQL:set_keepalive(self.db_pool_timeout,self.db_pool_size)
+        ngx.ctx.MYSQL = nil
+        ngx.log(ngx.INFO,'mysql pooled')
     end
-    local res, err, errno, sqlstate = ngx.ctx.MYSQL:query(sql, 10)
-    if not res then
-        ngx.log(ngx.WARN,"bad result: ", err, ": ", errno, ": ", sqlstate, ".")
+end
+
+-- --[[    查询有结果数据集时返回结果数据集
+--         无数据数据集时返回查询影响返回:
+--         false,出错信息,sqlstate结构.
+--         true,结果集,sqlstate结构.
+-- --]]
+
+function _M.mysql_query(self, sql)
+    local ret, client = self:get_connect()
+    if not ret then
+        return false, client, nil
+    end
+
+    local result, errmsg, errno, sqlstate = client:query(sql)
+
+    if not result then
+        errmsg = concat_db_errmsg("mysql.query_failed:", errno, errmsg, sqlstate)
+        return false, errmsg, sqlstate
+    end
+
+    self:close()
+
+    return true, result, sqlstate
+end
+
+function _M.query(self, sql)
+
+    local ret, res, _ = self:mysql_query(sql)
+    if not ret then
+        ngx.log(ngx.ERR, "query db error. res: " .. (res or "nil"))
         return nil
-    else
-        return res
     end
+
+    return res[1]
 end
 
-return Database
+function _M.execute(self, sql)
+
+    local ret, res, sqlstate = self:mysql_query(sql)
+    if not ret then
+        ngx.log(ngx.ERR, "mysql.execute_failed. res: " .. (res or 'nil') .. ",sql_state: " .. (sqlstate or 'nil'))
+        return -1
+    end
+
+    return res.affected_rows
+
+end
+
+function _M.new(self, opts)
+    opts = opts or {}
+    local db_host = opts.host or '127.0.0.1'
+    local db_port = opts.port or 3306
+    local db_user = opts.user or 'root'
+    local db_password = opts.password or ' '
+    local db_name = opts.db_name or 'test'
+    local db_timeout =  opts.db_timeout or 10000
+    local db_pool_timeout = opts.pool_timeout or 1000
+    local db_pool_size = opts.pool_size or 1000
+    local db_charset = opts.charset or 'utf8'
+
+    return setmetatable({
+            db_host = db_host,
+            db_port = db_port,
+            db_user = db_user,
+            db_password = db_password,
+            db_name = db_name,
+            db_timeout = db_timeout,
+            db_charset = db_charset, 
+            db_pool_timeout = db_pool_timeout, 
+            db_pool_size = db_pool_size, 
+            }, mt)
+end
+
+return _M

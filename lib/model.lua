@@ -1,13 +1,18 @@
 local Database = require('lib.database')
-local Validator = require("lib.validator")
+local Validator = require('lib.validator')
+local conf = require('config.app')
 
-local Model = {table = nil,query_sql = nil}
+local _M = {}
 
-function Model:all()
+local mt = { __index = _M }
+
+Database = Database:new(conf)
+
+function _M:all()
     return Database:query('select * from '..self.table)
 end
 
-function Model:where(column,operator,value)
+function _M:where(column,operator,value)
 	if not self.query_sql then
 		self.query_sql = 'select * from '..self.table..' where '..column..operator..ngx.quote_sql_str(value)
 	elseif string.sub(self.query_sql,1,6) == 'update' then
@@ -18,7 +23,7 @@ function Model:where(column,operator,value)
 	return self
 end
 
-function Model:orwhere(column,operator,value)
+function _M:orwhere(column,operator,value)
 	if not self.query_sql then
 		return ngx.log(ngx.ERROR,'orwhere function need a query_sql prefix')
 	else
@@ -27,27 +32,22 @@ function Model:orwhere(column,operator,value)
 	return self
 end
 
-function Model:get()
+function _M:get()
 	if not self.query_sql then
 		ngx.log(ngx.ERROR,'do not have query sql str')
 		return
 	end
 	local sql = self.query_sql
 	self.query_sql = nil
-	local res = Database:query(sql)
-	if Validator:is_empty(res) then
-		return nil
-	else
-		return res
-	end
+	return Database:query(sql)
 end
 
-function Model:find(id,column)
+function _M:find(id,column)
     column = column or 'id'
     return Database:query('select * from '..self.table..' where '..column..'='..ngx.quote_sql_str(id)..' limit 1')
 end
 
-function Model:insert(data)
+function _M:insert(data)
 	local columns,values
 	for column,value in pairs(data) do
 		if not columns then
@@ -58,10 +58,10 @@ function Model:insert(data)
 			values = values..','..ngx.quote_sql_str(value)
 		end
 	end
-	return Database:query('insert ignore into '..self.table..'('..columns..') values('..values..')')
+	return Database:execute('insert ignore into '..self.table..'('..columns..') values('..values..')')
 end
 
-function Model:update(data)
+function _M:update(data)
 	local str = nil
 	if not self.query_sql then
 		for column,value in pairs(data) do
@@ -77,19 +77,21 @@ function Model:update(data)
 	return ngx.log(ngx.ERROR,'update function have to called first')
 end
 
-function Model:query(sql)
+function _M:query(sql)
 	if not sql then
 		if not self.query_sql then
 			return ngx.log(ngx.ERROR,'query() function need sql to query')
 		end
-		return Database:query(self.query_sql)
+		return Database:execute(self.query_sql)
 	end
-	return Database:query(sql)
+	return Database:execute(sql)
 end
 
-function Model:new(table)
-	Model.table = table
-	return self
+function _M:new(table)
+	return setmetatable({
+		table = table,
+		query_sql = nil
+		},mt)
 end
 
-return Model
+return _M

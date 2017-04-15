@@ -92,7 +92,6 @@ function _M.query(self, sql)
         ngx.log(ngx.ERR, "query db error. res: " .. (res or "nil"))
         return nil
     end
-
     return res[1]
 end
 

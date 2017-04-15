@@ -1,1 +1,1 @@
-ngx.say('hello')
+ngx.say('users')

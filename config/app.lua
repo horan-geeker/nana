@@ -1,6 +1,6 @@
 return {
-    host = '10.163.179.210',
-    port = 4040,
+    host = '10.26.174.51',
+    port = 3306,
     db_name = 'weibo',
     user = 'root',
     password = 'root',

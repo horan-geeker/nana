@@ -6,5 +6,5 @@ return {
     password = 'root',
     db_timeout = 10000,
     pool_timeout = 10000,
-    pool_size = 1000
+    pool_size = 10000
 }

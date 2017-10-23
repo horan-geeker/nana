@@ -10,13 +10,13 @@ local password = redis:get(args.login_id)
 if not password then
 	local ok,user = User:verifyPassword(args.login_id,args.password)
 	if not ok then
-		common:response('user not exists')
+		common:response(2, 'user not exists')
 	else
 		local ok,msg = redis:set(args.login_id,args.password)
 	end
 else
 	if password ~= args.password then
-		common:response('password error')
+		common:response(3, 'password error')
 	end
 end
-common:response('login success')
+common:response(0)

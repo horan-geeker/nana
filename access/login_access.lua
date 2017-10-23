@@ -9,7 +9,6 @@ local ok,msg = validator:check({
 	},args)
 
 if not ok then
-	ngx.say(msg)
-	ngx.log(ngx.ERR,"args not exit")
-	ngx.exit(ngx.OK)
+	common:log('args not exit')
+	common:response(1, msg)
 end

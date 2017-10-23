@@ -1,7 +1,8 @@
 return {
-    host = '10.26.174.51',
+	env = 'dev',
+    host = '127.0.0.1',
     port = 3306,
-    db_name = 'weibo',
+    db_name = 'hippo',
     user = 'root',
     password = 'root',
     db_timeout = 10000,

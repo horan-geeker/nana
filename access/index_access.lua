@@ -1,4 +1,5 @@
 local validator = require('lib.validator')
+local common = require('lib.common')
 local request = ngx.req.get_uri_args()
 
 local ok,msg = validator:check({
@@ -8,6 +9,5 @@ local ok,msg = validator:check({
 	},request)
 
 if not ok then
-	ngx.say('\nvalidate result: ',msg)
-    ngx.exit(ngx.HTTP_BAD_REQUEST)
+	common:response(1, msg)
 end

@@ -1,5 +1,17 @@
-local User = require('models.user')
-local common = require('lib.common')
-local cjson = require('cjson')
-local Tag = require('models.tag')
-common:response(Tag:find(6))
+local function test1()
+    return true
+end
+
+local function test2()
+    return true
+end
+
+if test1()==true then
+    ngx.say('test1')
+    return 'test1'
+end
+
+if test2()==true then
+    ngx.say('test2')
+    return 'test2'
+end

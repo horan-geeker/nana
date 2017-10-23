@@ -76,7 +76,7 @@ function _M.mysql_query(self, sql)
     local result, errmsg, errno, sqlstate = client:query(sql)
 
     if not result then
-        errmsg = concat_db_errmsg("mysql.query_failed:", errno, errmsg, sqlstate)
+        errmsg = "mysql.query_failed:" .. errno .. errmsg .. sqlstate
         return false, errmsg, sqlstate
     end
 

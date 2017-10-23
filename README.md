@@ -8,13 +8,6 @@
 
 these content also in controller index.lua
 
-
-```
---use request to get all http args
-local request = ngx.req.get_uri_args()
-ngx.say(cjson.encode(request))
---curl "localhost:8001?id=1" -d name=foo     
---{"name":"foo","id":"1"}
 ```
 validator:check 方法支持对数据的校验和反馈
 'id' 表示只校验是否存在该值（结合request）

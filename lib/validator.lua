@@ -11,7 +11,7 @@ function Validator:in_table(item,table)
 	return false
 end
 
-function Validator:check(rules,data)
+function Validator:check(data,rules)
 	if self:is_empty(data) then
 		return false,"data for check is empty"
 	end

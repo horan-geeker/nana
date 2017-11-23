@@ -1,12 +1,13 @@
 local Database = require('lib.database')
 local Validator = require('lib.validator')
-local conf = require('config.app')
+local config = require('config.app')
+local common = require("lib.common")
 
 local _M = {}
 
 local mt = { __index = _M }
 
-Database = Database:new(conf)
+Database = Database:new(config)
 
 function _M:all()
     return Database:query('select * from '..self.table)
@@ -32,14 +33,20 @@ function _M:orwhere(column,operator,value)
 	return self
 end
 
-function _M:get()
+function _M:first()
 	if not self.query_sql then
 		ngx.log(ngx.ERROR,'do not have query sql str')
 		return
 	end
 	local sql = self.query_sql
+	-- common:log(sql)
 	self.query_sql = nil
-	return Database:query(sql)
+	res = Database:query(sql)
+	if table.getn(res) > 0 then
+		return res[1]
+	else
+		return false
+	end
 end
 
 function _M:find(id,column)

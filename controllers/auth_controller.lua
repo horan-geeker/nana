@@ -35,7 +35,10 @@ function _M:login()
 end
 
 function _M:logout()
-    local ok = auth_service:clear_token()
+    local ok,err = auth_service:clear_token()
+    if not ok then
+        ngx.log(ngx.ERR, err)
+    end
     return common:response(0)
 end
 

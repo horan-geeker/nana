@@ -9,6 +9,7 @@ local function call_action(uri, controller, action)
     if uri == ngx.var.request_uri then
         if middleware_group then
             for _,middleware in ipairs(middleware_group) do
+                common:log('use middleware: '..middleware)
                 require(middleware_prefix..middleware):handle()
             end
         end
@@ -29,19 +30,25 @@ local function post(uri, controller, action)
 end
 
 local function group(middlewares, func)
-    middleware_group = middlewares
+    for _,middleware in ipairs(middlewares) do
+        table.insert(middleware_group, middleware)
+    end
     func()
-    middleware_group = {}
 end
 
 function _M:init()
     post('/login', 'auth_controller', 'login')
+    -- group middleware should in order
     group({
         'authenticate',
         -- 'example_middleware'
     }, function()
         post('/logout', 'auth_controller', 'logout') -- http_method/uri/controller/action
-        get('/hosts', 'host_controller', 'index')
+        group({
+            'token_refresh'
+        }, function()
+            get('/hosts', 'host_controller', 'index')
+        end)
     end)
     ngx.log(ngx.ERR, 'not find method or uri in router.lua, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
 end

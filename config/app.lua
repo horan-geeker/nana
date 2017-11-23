@@ -10,5 +10,6 @@ return {
     pool_timeout = 10000,
     pool_size = 10000,
     session_lifetime = 720, --minutes
+    user_table_name = 'users',
     login_id = 'email' -- login method use email/username/phone...etc
 }

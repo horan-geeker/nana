@@ -1,10 +1,18 @@
 # nana
 
 ## A lua framework for web API
-start with bootstrap.lua, you can write your route in router.lua, not matched route will send free
+start with bootstrap.lua, you can write your route in router.lua, not matched route will send free  
 项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被放过（原因：如果这是一个网关，为下游别的服务提供用户认证，在不影响下游接口的情况下都会放过未匹配到的路由）。
 
 ## ref some PHP framework style
+
+## 参考PHP的框架规范设计（Laravel）
+
+#### middleware
+
+#### 中间件
+middleware can be used in router.lua and you can write middleware in middlewares directory, there is a demo as example_middleware.lua  
+路由中集成了中间件的模式，你可以把你的中间件写到 middlewares 的文件夹下, 该文件夹下已有了一个示例中间件 example_middleware.lua
 
 ## DEMO
 

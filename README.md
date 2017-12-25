@@ -1,6 +1,8 @@
 # nana
 
 ## A lua framework for web API
+start with bootstrap.lua, you can write your route in router.lua, not matched route will send free
+项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被放过（原因：如果这是一个网关，为下游别的服务提供用户认证，在不影响下游接口的情况下都会放过未匹配到的路由）。
 
 ## ref some PHP framework style
 

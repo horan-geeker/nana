@@ -4,6 +4,14 @@ local status_code = require('config.status')
 
 local _M = {}
 
+function _M:remove_slash(target)
+	len = string.len(target)
+	if string.find(target,'/', len) then
+		return string.sub(target, 1, len-1)
+	end
+	return target
+end
+
 function _M:hash(password)
 	return ngx.md5(password)
 end

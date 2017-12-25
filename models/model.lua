@@ -54,9 +54,10 @@ function _M:find(id,column)
     return Database:query('select * from '..self.table..' where '..column..'='..ngx.quote_sql_str(id)..' limit 1')
 end
 
-function _M:insert(data)
+function _M:create(data)
 	local columns,values
 	for column,value in pairs(data) do
+		value = value or '' -- convert nil to ''
 		if not columns then
 			columns = column
 			values = ngx.quote_sql_str(value)

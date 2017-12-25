@@ -6,7 +6,7 @@ local middleware_prefix = 'middlewares.'
 local middleware_group = {}
 
 local function call_action(uri, controller, action)
-    if uri == ngx.var.request_uri then
+    if common:remove_slash(uri) == common:remove_slash(ngx.var.request_uri) then
         if middleware_group then
             for _,middleware in ipairs(middleware_group) do
                 common:log('use middleware: '..middleware)
@@ -47,7 +47,9 @@ function _M:init()
         group({
             'token_refresh'
         }, function()
+            get('/userinfo', 'auth_controller', 'userinfo')
             get('/hosts', 'host_controller', 'index')
+            post('/hosts', 'host_controller', 'store')
         end)
     end)
     ngx.log(ngx.ERR, 'not find method or uri in router.lua, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)

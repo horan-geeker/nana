@@ -9,13 +9,12 @@ local cjson = require("cjson")
 local _M = {}
 
 function _M:login()
-
+    request.bar(request.foo('hi'))
     local args = request:all()
     local ok,msg = validator:check(args, {
         config.login_id,
         'password'
         })
-    
     if not ok then
         common:log('args not exit')
         common:response(1, msg)
@@ -30,8 +29,16 @@ function _M:login()
         auth_service:authorize(user)
     end
     
-    common:response(0)
+    common:response(0, 'ok', user)
     
+end
+
+function _M:userinfo()
+    local data = auth_service:user()
+    if not data then
+        ngx.log(ngx.ERR, 'can not find userinfo')
+    end
+    return common:response(0,'ok',data)
 end
 
 function _M:logout()

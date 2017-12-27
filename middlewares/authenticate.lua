@@ -1,4 +1,4 @@
-local auth_service = require("services.auth_service")
+local auth_service = require("providers.auth_service_provider")
 local common = require("lib.common")
 local _M = {}
 

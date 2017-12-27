@@ -1,58 +1,25 @@
-local common = require('lib.common')
+local route = require('providers.route_service_provider')
 
 local _M = {}
-local controller_prefix = 'controllers.'
-local middleware_prefix = 'middlewares.'
-local middleware_group = {}
-
-local function call_action(uri, controller, action)
-    if common:remove_slash(uri) == common:remove_slash(ngx.var.request_uri) then
-        if middleware_group then
-            for _,middleware in ipairs(middleware_group) do
-                common:log('use middleware: '..middleware)
-                require(middleware_prefix..middleware):handle()
-            end
-        end
-        require(controller_prefix..controller)[action]()
-    end
-end
-
-local function get(uri, controller, action)
-    if 'GET' == ngx.var.request_method then
-        call_action(uri, controller, action)
-    end
-end
-
-local function post(uri, controller, action)
-    if 'POST' == ngx.var.request_method then
-        call_action(uri, controller, action)
-    end
-end
-
-local function group(middlewares, func)
-    for _,middleware in ipairs(middlewares) do
-        table.insert(middleware_group, middleware)
-    end
-    func()
-end
 
 function _M:init()
-    post('/login', 'auth_controller', 'login')
+    route:post('/register', 'auth_controller', 'register')
+    route:post('/login', 'auth_controller', 'login')
     -- group middleware should in order
-    group({
+    route:group({
         'authenticate',
         -- 'example_middleware'
     }, function()
-        post('/logout', 'auth_controller', 'logout') -- http_method/uri/controller/action
-        group({
+        route:post('/logout', 'auth_controller', 'logout') -- http_method/uri/controller/action
+        route:group({
             'token_refresh'
         }, function()
-            get('/userinfo', 'auth_controller', 'userinfo')
-            get('/hosts', 'host_controller', 'index')
-            post('/hosts', 'host_controller', 'store')
+            route:get('/userinfo', 'auth_controller', 'userinfo')
+            route:get('/hosts', 'host_controller', 'index')
+            route:post('/hosts', 'host_controller', 'store')
         end)
     end)
-    ngx.log(ngx.ERR, 'not find method or uri in router.lua, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
+    ngx.log(ngx.WARN, 'not find method or uri in router.lua, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
 end
 
 return _M

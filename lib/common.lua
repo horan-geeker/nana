@@ -29,6 +29,8 @@ function _M:response(status, msg, data)
 		resp.status=3
 	elseif status == status_code.no_authorization then
 		resp.status=4
+	elseif status == status_code.database_error then
+		resp.status=5
 	end
 	if resp.status == status_code.init_code then
 		resp.msg = 'not find status code'
@@ -45,7 +47,7 @@ function _M:log(...)
 		arg = ...
 	end
 	if conf.env == 'dev' then
-		ngx.log(ngx.ERR, cjson.encode(arg))
+		ngx.log(ngx.WARN, cjson.encode(arg))
 	end
 end
 

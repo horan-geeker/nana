@@ -13,4 +13,13 @@ function User:verifyPassword(login_id,password)
     end
 end
 
+function User:findByLoginId(login_id)
+    local user = User:where(config.login_id,"=",login_id):first()
+    if not user then
+    	return false
+    else
+    	return true
+    end
+end
+
 return User

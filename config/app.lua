@@ -11,5 +11,5 @@ return {
     session_lifetime = 3600 * 24 * 30, --sec
     user_table_name = 'users',
     login_id = 'email', -- login method use email/username/phone...etc
-    time_zone = 'beijing',
+    time_zone = 'UTC+8',
 }

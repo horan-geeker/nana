@@ -2,13 +2,13 @@ local common = require("lib.common")
 local redis = require("lib.resty_redis")
 local _M = {}
 
-function _M:set(key,value,time)
+function _M:set(key, value, time)
 	local red = redis:new()
 	local ok, err = red:set(key, value)
 	if not ok then
 	    return common:response("redis failed to set data: " )
 	end
-	if expire then
+	if time then
 		ok,err = red:expire(key, time) -- default expire time is seconds
 		if not ok then
 			return false,err

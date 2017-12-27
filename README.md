@@ -14,8 +14,20 @@ start with bootstrap.lua, you can write your route in router.lua, not matched ro
 middleware can be used in router.lua and you can write middleware in middlewares directory, there is a demo as example_middleware.lua  
 路由中集成了中间件的模式，你可以把你的中间件写到 middlewares 的文件夹下, 该文件夹下已有了一个示例中间件 example_middleware.lua
 
-## DEMO
+#### service provider
 
+#### 服务提供者
+there are auth_service and route_service in providers directory
+目前只有两个服务提供者，用户认证服务和路由服务
+
+## install
+* 配置 nginx 参考项目中的 nginx.conf
+* 配置项目 config 目录下的 app.lua, db_name 是数据库名, user password 是数据库的用户名密码, user_table_name 是用户表名, login_id 是用于登录的列名
+* router.lua 里写入特定路由以及下游需要验证的路由
+
+## 项目还在开发中，目前以及完善的是登录，注册，注销，获取用户基本信息的功能
+
+## 继续开发的 DEMO
 these content also in controller index.lua
 
 ```
@@ -57,7 +69,7 @@ Admin:update({
 		password="111111"
 	}):where('id','=',3):query()
 
-Admin:insert({
+Admin:create({
 	id=3,
 	password='123456',
 	name='horanaaa',

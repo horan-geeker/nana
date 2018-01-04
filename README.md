@@ -2,25 +2,67 @@
 
 ## A lua framework for web API
 start with bootstrap.lua, you can write your route in router.lua, not matched route will send free  
-项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被放过（原因：如果这是一个网关，为下游别的服务提供用户认证，在不影响下游接口的情况下都会放过未匹配到的路由）。
 
 ## ref some PHP framework style
 
-## 参考PHP的框架规范设计（Laravel）
-
 #### middleware
-
-#### 中间件
 middleware can be used in router.lua and you can write middleware in middlewares directory, there is a demo as example_middleware.lua  
-路由中集成了中间件的模式，你可以把你的中间件写到 middlewares 的文件夹下, 该文件夹下已有了一个示例中间件 example_middleware.lua
 
 #### service provider
-
-#### 服务提供者
-there are auth_service and route_service in providers directory
-目前只有两个服务提供者，用户认证服务和路由服务
+there are auth_service and route_service in providers directory  
 
 ## install
+* we already have a nginx.conf in project, you can see it
+* there is a config file in config directory named app.lua, db_name is database name, user & password is database username and password, user_table_name is what table name you want store user data, login_id means username or email or phone no, that can be used to login in
+* write routes in router.lua
+
+## database structure
+users
+```
+CREATE TABLE `users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nickname` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `avatar` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '''''',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+```
+
+id | nickname | email | password | avatar | created_at | updated_at
+---| ---- | --- | --- | -------- | ------ | ---------- | ----------
+ 1 |horan | 13571899655@163.com|3be64**| http://avatar.com | 2017-11-28 07:46:46 | 2017-11-28 07:46:46
+
+account_log
+```
+CREATE TABLE `account_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip` varchar(255) NOT NULL DEFAULT '',
+  `city` varchar(10) NOT NULL DEFAULT '',
+  `type` varchar(255) NOT NULL DEFAULT '',
+  `time_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+```
+
+id | ip | city | type | time_at
+---| ---| ---- | ---- | -------
+ 1 | 1.80.146.218 | Xian | login | 2018-01-04 04:01:02
+
+## 为 api 设计的 lua 框架
+项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被放过（原因：如果这是一个网关，为下游别的服务提供用户认证，在不影响下游接口的情况下都会放过未匹配到的路由）。
+
+## 参考PHP的框架规范设计（Laravel）
+
+#### 中间件
+路由中集成了中间件的模式，你可以把你的中间件写到 middlewares 的文件夹下, 该文件夹下已有了一个示例中间件 example_middleware.lua
+
+#### 服务提供者
+目前只有两个服务提供者，用户认证服务和路由服务
+
+## 安装
 * 配置 nginx 参考项目中的 nginx.conf
 * 配置项目 config 目录下的 app.lua, db_name 是数据库名, user password 是数据库的用户名密码, user_table_name 是用户表名, login_id 是用于登录的列名
 * router.lua 里写入特定路由以及下游需要验证的路由

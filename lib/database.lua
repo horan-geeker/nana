@@ -96,7 +96,7 @@ function _M.query(self, sql)
 end
 
 function _M.execute(self, sql)
-    ngx.log(ngx.ERR, sql)
+    -- ngx.log(ngx.ERR, sql)
     local ret, res, sqlstate = self:mysql_query(sql)
     if not ret then
         ngx.log(ngx.ERR, "mysql execute failed:" .. (res or 'nil') .. ",sql_state: " .. (sqlstate or 'nil'))

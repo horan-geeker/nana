@@ -1,6 +1,7 @@
 local request = require("lib.request")
 local common = require("lib.common")
 local User = require("models.user")
+local AccountLog = require("models.account_log")
 local validator = require("lib.validator")
 local config = require("config.app")
 local auth = require("providers.auth_service_provider")
@@ -20,7 +21,6 @@ function _M:login()
     if not ok then
         common:response(1, msg)
     end
-
     local ok,user = User:verifyPassword(args[config.login_id],args.password)
     if not ok then
         -- login fail
@@ -28,6 +28,11 @@ function _M:login()
     else
         -- login success
         auth:authorize(user)
+        AccountLog:create({
+            ip=ngx.var.remote_addr,
+            city="Xian",
+            type="login"
+        })
     end
     common:response(0, 'ok', user)
     

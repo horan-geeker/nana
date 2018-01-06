@@ -1,7 +1,8 @@
 # nana
 
-## A lua framework for web API
-start with bootstrap.lua, you can write your route in router.lua, not matched route will send free  
+## Focus On User Authenticate & A lua framework for web API
+A middleware to resolve user authenticate, you can use this to login or register and use other language(Java PHP) to process other business logic  
+This framework start with bootstrap.lua, you can write your route in router.lua, not matched route will send free  
 
 ## ref some PHP framework style
 
@@ -51,8 +52,8 @@ id | ip | city | type | time_at
 ---| ---| ---- | ---- | -------
  1 | 1.80.146.218 | Xian | login | 2018-01-04 04:01:02
 
-## 为 api 设计的 lua 框架
-项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被放过（原因：如果这是一个网关，为下游别的服务提供用户认证，在不影响下游接口的情况下都会放过未匹配到的路由）。
+## 致力于用户通行证 & 为 api 设计的 lua 框架
+使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被放过（原因：如果这是一个网关，为下游别的服务提供用户认证，在不影响下游接口的情况下都会放过未匹配到的路由）。
 
 ## 参考PHP的框架规范设计（Laravel）
 

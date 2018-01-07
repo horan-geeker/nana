@@ -8,6 +8,7 @@ local auth = require("providers.auth_service_provider")
 local cjson = require("cjson")
 local register = require("services.register_service")
 local random = require("lib.random")
+local ipLocation = require("lib.ip_location")
 
 local _M = {}
 
@@ -28,9 +29,13 @@ function _M:login()
     else
         -- login success
         auth:authorize(user)
+        -- 每次ip定位都会有 IO 消耗，读ip二进制dat文件
+        local ipObj, err = ipLocation:new(ngx.var.remote_addr)
+        local location, err = ipObj:location()
         AccountLog:create({
             ip=ngx.var.remote_addr,
-            city="Xian",
+            city=location.city,
+            country=location.country,
             type="login"
         })
     end

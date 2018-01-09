@@ -12,5 +12,6 @@ return {
     user_table_name = 'users',
     login_id = 'email', -- login method use email/username/phone...etc
     time_zone = 'UTC+8',
+    app_directory = '/var/www/nana/',
     ip_binary_file_path = '/var/www/nana/lib/17monipdb.dat'
 }

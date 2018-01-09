@@ -71,7 +71,7 @@ function _M:register()
     -- 比较纠结的是你们会选择直接创建账户还是验证码激活,这里先直接创建吧
     local obj = {
         nickname=random.token(8),
-        password=args.password
+        password=common:hash(args.password)
     }
     obj[config.login_id] = args[config.login_id]
     ok = User:create(obj)
@@ -81,20 +81,16 @@ function _M:register()
     common:response(0)
 end
 
-function _M:userinfo()
-    local ok,data = auth:user()
-    if not ok then
-        return common:response(1, data)
-    end
-    return common:response(0,'ok',data)
-end
-
 function _M:logout()
     local ok,err = auth:clear_token()
     if not ok then
         ngx.log(ngx.ERR, err)
     end
     return common:response(0)
+end
+
+function _M:getCaptcha()
+    
 end
 
 return _M

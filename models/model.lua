@@ -15,9 +15,7 @@ end
 
 function _M:where(column,operator,value)
 	if not self.query_sql then
-		self.query_sql = 'select * from '..self.table..' where '..column..operator..ngx.quote_sql_str(value)
-	elseif string.sub(self.query_sql,1,6) == 'update' then
-		self.query_sql = self.query_sql..' where '..column..operator..ngx.quote_sql_str(value)
+		self.query_sql = 'where '..column..operator..ngx.quote_sql_str(value)
 	else
 		self.query_sql = self.query_sql..' and '..column..operator..ngx.quote_sql_str(value)
 	end
@@ -38,8 +36,7 @@ function _M:first()
 		ngx.log(ngx.ERROR,'do not have query sql str')
 		return
 	end
-	local sql = self.query_sql
-	-- common:log(sql)
+	local sql = 'select * from '..self.table..' '..self.query_sql..' limit 1'
 	self.query_sql = nil
 	res = Database:query(sql)
 	if table.getn(res) > 0 then
@@ -70,17 +67,22 @@ function _M:create(data)
 end
 
 function _M:update(data)
+	 -- 拼接需要update的字段
 	local str = nil
-	if not self.query_sql then
-		for column,value in pairs(data) do
-			if not str then
-				str = column..'='..ngx.quote_sql_str(value)
-			else
-				str = str..','..column..'='..ngx.quote_sql_str(value)
-			end
+	for column,value in pairs(data) do
+		if not str then
+			str = column..'='..ngx.quote_sql_str(value)
+		else
+			str = str..','..column..'='..ngx.quote_sql_str(value)
 		end
-		self.query_sql = 'update '..self.table..' set '..str
-		return self
+	end
+	-- 判断是模型自身执行update还是数据库where限定执行
+	if self.query_sql then
+		local sql = 'update '..self.table..' set '..str..' '..self.query_sql
+		self.query_sql = nil
+		return Database:execute(sql)
+	else
+		ngx.log(ngx.ERR, 'not support use update in model right now')
 	end
 	return ngx.log(ngx.ERROR,'update function have to called first')
 end

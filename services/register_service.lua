@@ -5,6 +5,7 @@ function _M:verifyCheckcode(checkcode)
 end
 
 function _M:notifyUser(login_id)
+    -- you can send a message to message queue
     return true
 end
 

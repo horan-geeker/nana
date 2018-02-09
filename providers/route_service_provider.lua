@@ -13,7 +13,11 @@ local function call_action(uri, controller, action)
                 require(middleware_prefix..middleware):handle()
             end
         end
-        require(controller_prefix..controller)[action]()
+        if controller then
+            require(controller_prefix..controller)[action]()
+        else
+            ngx.log(ngx.WARN, 'upsteam api')
+        end
     end
 end
 

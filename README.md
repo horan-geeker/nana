@@ -55,7 +55,7 @@ id | ip | city | type | time_at
 ## 致力于用户通行证 & 为 api 设计的 lua 框架
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被放过（原因：如果这是一个网关，为下游别的服务提供用户认证，在不影响下游接口的情况下都会放过未匹配到的路由）。
 
-## 参考PHP的框架规范设计（Laravel）
+## 参考PHP的框架设计（Laravel）
 
 #### 中间件
 路由中集成了中间件的模式，你可以把你的中间件写到 middlewares 的文件夹下, 该文件夹下已有了一个示例中间件 example_middleware.lua
@@ -68,16 +68,16 @@ id | ip | city | type | time_at
 * 配置项目 config 目录下的 app.lua, db_name 是数据库名, user password 是数据库的用户名密码, user_table_name 是用户表名, login_id 是用于登录的列名
 * router.lua 里写入特定路由以及下游需要验证的路由
 
-## 项目还在开发中，目前以及完善的是登录，注册，注销，获取用户基本信息的功能
+## 项目还在开发中，目前已经完善的是登录，注册，注销，获取用户基本信息，修改密码的功能
 
-## 继续开发的 DEMO
+## 使用 DEMO
 these content also in controller index.lua
 
 ```
 validator:check 方法支持对数据的校验和反馈
 'id' 表示只校验是否存在该值（结合request）
 也可以带着条件 max,min,表示校验的字符串长度，included={1,2,3}表示校验该值在此范围内
-```
+
 local validator = require('lib.validator')
 local ok,msg = validator:check({
 	name = {max=6,min=4},
@@ -88,11 +88,11 @@ local ok,msg = validator:check({
 if not ok then
 	ngx.say(msg)
 end
-```
+
 Model 对象支持灵活的数据库操作
 where方法可以结合get方法链式调用来取一条或多条数据
 update结合where方法来更新一条或多条数据
-```
+
 local Model = require('models.model')
 local User = Model:new('users')
 ngx.say('where demo:\n',cjson.encode(User:where('username','=','cgreen'):where('password','=','7c4a8d09ca3762af61e59520943dc26494f8941b'):get()))

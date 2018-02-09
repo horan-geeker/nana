@@ -6,7 +6,7 @@ function _M:init()
     route:get('/captcha', 'auth_controller', 'getCaptcha')
     route:post('/register', 'auth_controller', 'register')
     route:post('/login', 'auth_controller', 'login')
-    -- group middleware should in order
+    -- group middleware should put at last (after get post function called)
     route:group({
         'authenticate',
         -- 'example_middleware'
@@ -19,6 +19,8 @@ function _M:init()
             route:get('/userinfo', 'user_controller', 'userinfo')
             route:get('/hosts', 'host_controller', 'index')
             route:post('/hosts', 'host_controller', 'store')
+            -- test upsteam usage (suppose /home api write by Java or PHP) use nginx reverse proxy
+            route:get('/home')
         end)
     end)
     ngx.log(ngx.WARN, 'not find method or uri in router.lua, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)

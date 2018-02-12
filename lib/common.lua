@@ -4,8 +4,14 @@ local status_code = require('config.status')
 
 local _M = {}
 
+function _M:purge_uri(uri)
+	local uri = string.gsub(ngx.var.request_uri, "?.*", "")
+	uri = _M:remove_slash(uri)
+	return uri
+end
+
 function _M:remove_slash(target)
-	len = string.len(target)
+	local len = string.len(target)
 	if string.find(target,'/', len) then
 		return string.sub(target, 1, len-1)
 	end
@@ -40,14 +46,14 @@ function _M:response(status, msg, data)
 end
 
 function _M:log(...)
-	local arg = {}
+	local args = {}
 	if #{...}>1 then
-		arg = {...}
+		args = {...}
 	else
-		arg = ...
+		args = ...
 	end
 	if conf.env == 'dev' then
-		ngx.log(ngx.WARN, cjson.encode(arg))
+		ngx.log(ngx.WARN, cjson.encode(args))
 	end
 end
 

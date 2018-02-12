@@ -2,20 +2,20 @@
 
 ## Focus On User Authenticate & A lua framework for web API
 A middleware to resolve user authenticate, you can use this to login or register and use other language(Java PHP) to process other business logic  
-This framework start with bootstrap.lua, you can write your route in router.lua, not matched route will send free  
+The entrance of this framework is bootstrap.lua, and you can write your routes in router.lua. if URL doesn't match any route, it will be processed by downstream program  
 
-## ref some PHP framework style
+## reference some PHP framework styles
 
 #### middleware
-middleware can be used in router.lua and you can write middleware in middlewares directory, there is a demo as example_middleware.lua  
+Middleware can be used in router.lua and you can write middleware in middlewares directory, there is a demo as example_middleware.lua  
 
 #### service provider
-there are auth_service and route_service in providers directory  
+There are auth_service and route_service in `providers` directory.  
 
 ## install
-* we already have a nginx.conf in project, you can see it
-* there is a config file in config directory named app.lua, db_name is database name, user & password is database username and password, user_table_name is what table name you want store user data, login_id means username or email or phone no, that can be used to login in
-* write routes in router.lua
+* We already have a nginx.conf in project, you can see it.
+* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `user_table_name` that represents the table name which you want store user data, `login_id` is a column name which is used for authentication.
+* Write your routes in router.lua.
 
 ## database structure
 users
@@ -33,8 +33,8 @@ CREATE TABLE `users` (
 ```
 
 id | nickname | email | password | avatar | created_at | updated_at
----| ---- | --- | --- | -------- | ------ | ---------- | ----------
- 1 |horan | 13571899655@163.com|3be64**| http://avatar.com | 2017-11-28 07:46:46 | 2017-11-28 07:46:46
+---| -------- | ----- | -------- | ------ | ---------- | ----------
+ 1 | horan | 13571899655@163.com|3be64**| http://avatar.com | 2017-11-28 07:46:46 | 2017-11-28 07:46:46
 
 account_log
 ```
@@ -65,7 +65,7 @@ id | ip | city | type | time_at
 
 ## 安装
 * 配置 nginx 参考项目中的 nginx.conf
-* 配置项目 config 目录下的 app.lua, db_name 是数据库名, user password 是数据库的用户名密码, user_table_name 是用户表名, login_id 是用于登录的列名
+* 项目的配置文件都在 config 目录下，其中的 app.lua 包含多个 key, db_name 是数据库名, user password 是数据库的用户名密码, user_table_name 是用户表名, login_id 是用于登录的列名
 * router.lua 里写入特定路由以及下游需要验证的路由
 
 ## 项目还在开发中，目前已经完善的是登录，注册，注销，获取用户基本信息，修改密码的功能
@@ -75,11 +75,11 @@ these content also in controller index.lua
 
 ```
 validator:check 方法支持对数据的校验和反馈
-'id' 表示只校验是否存在该值（结合request）
+单个的 key 如下边代码中 'id' 表示只校验是否存在该值（结合request）
 也可以带着条件 max,min,表示校验的字符串长度，included={1,2,3}表示校验该值在此范围内
-
 local validator = require('lib.validator')
-local ok,msg = validator:check({
+local args = request:all()
+local ok,msg = validator:check(args, {
 	name = {max=6,min=4},
 	'password',
 	'id'

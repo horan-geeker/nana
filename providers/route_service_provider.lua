@@ -6,7 +6,7 @@ local middleware_prefix = 'middlewares.'
 local middleware_group = {}
 
 local function call_action(uri, controller, action)
-    if common:remove_slash(uri) == common:remove_slash(ngx.var.request_uri) then
+    if common:purge_uri(uri) == common:purge_uri(ngx.var.request_uri) then
         if middleware_group then
             for _,middleware in ipairs(middleware_group) do
                 common:log('use middleware: '..middleware)

@@ -6,6 +6,7 @@ function _M:init()
     route:get('/captcha', 'auth_controller', 'getCaptcha')
     route:post('/register', 'auth_controller', 'register')
     route:post('/login', 'auth_controller', 'login')
+    route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')
     -- group middleware should put at last (after get post function called)
     route:group({
         'authenticate',

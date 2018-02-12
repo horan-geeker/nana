@@ -53,7 +53,7 @@ id | ip | city | type | time_at
  1 | 1.80.146.218 | Xian | login | 2018-01-04 04:01:02
 
 ## 致力于用户通行证 & 为 api 设计的 lua 框架
-![img](http://oqngxmzlf.bkt.clouddn.com/NaNa%20%E6%9E%B6%E6%9E%84%E5%9B%BE.png)  
+![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被交由下游处理（下游可以是其他语言构成的后端项目）。
 
 ## 参考PHP的框架设计（Laravel）

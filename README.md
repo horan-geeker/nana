@@ -1,13 +1,13 @@
 # nana
 
 ## Focus On User Authenticate & A lua framework for web API
-A middleware to resolve user authenticate, you can use this to login or register and use other language(Java PHP) to process other business logic  
-The entrance of this framework is bootstrap.lua, and you can write your routes in router.lua. if URL doesn't match any route, it will be processed by downstream program  
+It is a middleware to resolve user authenticate, you can use this to login or register user, and use other language(Java PHP) as downstream program to process other business logic at the same time. 
+The entrance of this framework is bootstrap.lua, and you can write your routes in `router.lua`. if URL doesn't match any route, it will be processed by downstream program  
 
 ## reference some PHP framework styles
 
 #### middleware
-Middleware can be used in router.lua and you can write middleware in middlewares directory, there is a demo as example_middleware.lua  
+Middleware can be used in `router.lua` and you can write middleware in `middlewares` directory, there is a demo as `example_middleware.lua`  
 
 #### service provider
 There are auth_service and route_service in `providers` directory.  
@@ -53,7 +53,8 @@ id | ip | city | type | time_at
  1 | 1.80.146.218 | Xian | login | 2018-01-04 04:01:02
 
 ## 致力于用户通行证 & 为 api 设计的 lua 框架
-使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被放过（原因：如果这是一个网关，为下游别的服务提供用户认证，在不影响下游接口的情况下都会放过未匹配到的路由）。
+![img](http://oqngxmzlf.bkt.clouddn.com/NaNa%20%E6%9E%B6%E6%9E%84%E5%9B%BE.png)
+使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，项目的入口文件是 bootstrap.lua 你可以把你的路由写入 router.lua 文件，没有匹配到的路由会被交由下游处理（下游可以是其他语言构成的后端项目）。
 
 ## 参考PHP的框架设计（Laravel）
 

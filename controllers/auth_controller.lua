@@ -6,7 +6,7 @@ local validator = require("lib.validator")
 local config = require("config.app")
 local auth = require("providers.auth_service_provider")
 local cjson = require("cjson")
-local register = require("services.register_service")
+local user_service = require("services.user_service")
 local random = require("lib.random")
 local ipLocation = require("lib.ip_location")
 
@@ -27,17 +27,7 @@ function _M:login()
         -- login fail
         common:response(2, config.login_id..' or password error')
     else
-        -- login success
-        auth:authorize(user)
-        -- 每次ip定位都会有 IO 消耗，读ip二进制dat文件
-        local ipObj, err = ipLocation:new(ngx.var.remote_addr)
-        local location, err = ipObj:location()
-        AccountLog:create({
-            ip=ngx.var.remote_addr,
-            city=location.city,
-            country=location.country,
-            type="login"
-        })
+        user_service:authorize(user)
     end
     common:response(0, 'ok', user)
     
@@ -54,7 +44,7 @@ function _M:register()
         common:response(1, msg)
     end
     -- 先校验验证码
-    ok = register:verifyCheckcode(args.checkcode)
+    ok = user_service:verifyCheckcode(args.checkcode)
     if not ok then
         common:response(1, 'invalidate checkcode')
     end
@@ -64,7 +54,7 @@ function _M:register()
         common:response(1, 'login id duplicate')
     end
     -- 发送消息通知用户
-    ok = register:notifyUser(args[config.login_id])
+    ok = user_service:notify(args[config.login_id])
     if not ok then
         common:response(1, 'can not use this '..config.login_id)
     end

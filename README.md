@@ -46,60 +46,36 @@ local ok,msg = validator:check(args, {
 	})
 ```
 
-## 使用 DEMO
-![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
-使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
-
-these content also in controller index.lua
-
+#### 数据库操作 ORM
 ```
-validator:check 方法支持对数据的校验和反馈
-单个的 key 如下边代码中 'id' 表示只校验是否存在该值（结合request）
-也可以带着条件 max,min,表示校验的字符串长度，included={1,2,3}表示校验该值在此范围内
-local validator = require('lib.validator')
-local args = request:all()
-local ok,msg = validator:check(args, {
-	name = {max=6,min=4},
-	'password',
-	'id'
-	},request)
-
-if not ok then
-	ngx.say(msg)
-end
-
-Model 对象支持灵活的数据库操作
-where方法可以结合get方法链式调用来取一条或多条数据
-update结合where方法来更新一条或多条数据
-
 local Model = require('models.model')
-local User = Model:new('users')
-ngx.say('where demo:\n',cjson.encode(User:where('username','=','cgreen'):where('password','=','7c4a8d09ca3762af61e59520943dc26494f8941b'):get()))
--- {"password":"7c4a8d09ca3762af61e59520943dc26494f8941b","gender":"?","id":99,"username":"cgreen","email":"jratke@yahoo.com"}
-
-ngx.say('orwhere demo:\n',cjson.encode(User:where('id','=','1'):orwhere('id','=','2'):get()))
--- {"password":"7c4a8d09ca3762af61e59520943dc26494f8941b","gender":"?","id":1,"username":"hejunwei","email":"hejunweimake@gmail.com"},
--- {"password":"7c4a8d09ca3762af61e59520943dc26494f8941b","gender":"?","id":2,"username":"ward.antonina","email":"hegmann.bettie@wolff.biz"}
-
-local Admin = Model:new('admins')
-local admin = Admin:find(1)
-ngx.say('find demo:\n',cjson.encode(admin))
--- {"password":"d033e22ae348aeb5660fc2140aec35850c4da997","id":1,"email":"hejunwei@gmail.com","name":"admin"}
---Admin:update({name='update demo'}):where('id','=','3'):query()
-Admin:update({
-		name='update test',
-		password="111111"
-	}):where('id','=',3):query()
-
-Admin:create({
+local User = Model:new('users') -- 初始化 `User` 模型,约定俗成 `User` 的模型对应 `users` 表名,当然你也可以修改 `new()` 的参数为其他名称
+local user = User:where('username','=','cgreen'):where('password','=','xxxxxxx'):get() -- 拿到 username 字段的值是 `cgreen` 的，`password` 字段的值是 `xxxxxx` 的一条数据
+local user = User:find(1) -- 拿到 `id` 为 1 的用户
+User:where('name','=','xxx'):orwhere('name','=','yyy'):get() -- 获取 `name` 为 `xxx` 的或者 `yyy` 的 `user`
+-- 创建一个用户
+User:create({
 	id=3,
 	password='123456',
 	name='horanaaa',
 	email='horangeeker@geeker.com',
 })
+-- 更新一个用户
+local ok, err = User:where('id', '=', user.id):update({
+		name='test',
+  })
+if not ok then
+    common:response(5)
+end
+
 ```
 
-## Focus On User Authenticate & A lua framework for web API
+## 使用范例：内置用户认证，包含登录注册等功能
+![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
+使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
+
+
+## Lua framework for web API
 It is a middleware to resolve user authenticate, you can use this to login or register user, and use other language(Java PHP) as downstream program to process other business logic at the same time. 
 The entrance of this framework is bootstrap.lua, and you can write your routes in `router.lua`. if URL doesn't match any route, it will be processed by downstream program  
 
@@ -116,7 +92,7 @@ There are auth_service and route_service in `providers` directory.
 * All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `user_table_name` that represents the table name which you want store user data, `login_id` is a column name which is used for authentication.
 * Write your routes in router.lua.
 
-## database structure
+## database schema
 users
 ```
 CREATE TABLE `users` (

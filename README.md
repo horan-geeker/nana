@@ -51,7 +51,7 @@ local ok,msg = validator:check(args, {
 ```
 local Model = require('models.model')
 local User = Model:new('users') -- 初始化 `User` 模型,约定俗成 `User` 的模型对应 `users` 表名,当然你也可以修改 `new()` 的参数为其他名称
-local user = User:where('username','=','cgreen'):where('password','=','xxxxxxx'):get() -- 拿到 username 字段的值是 `cgreen` 的，`password` 字段的值是 `xxxxxx` 的一条数据
+local user = User:where('username','=','cgreen'):where('password','=','xxxxxxx'):get() -- 拿到 username 字段的值是 `cgreen` 的，`password` 字段的值是 `xxxxxx` 的多条数据，注意返回是数组
 local user = User:find(1) -- 拿到 `id` 为 1 的用户
 User:where('name','=','xxx'):orwhere('name','=','yyy'):get() -- 获取 `name` 为 `xxx` 的或者 `yyy` 的 `user`
 -- 创建一个用户

@@ -47,6 +47,7 @@ local ok,msg = validator:check(args, {
 ```
 
 #### 数据库操作 ORM
+默认的数据库操作都使用了 `ngx.quote_sql_str` 处理了 `sql注入问题`
 ```
 local Model = require('models.model')
 local User = Model:new('users') -- 初始化 `User` 模型,约定俗成 `User` 的模型对应 `users` 表名,当然你也可以修改 `new()` 的参数为其他名称

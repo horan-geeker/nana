@@ -5,7 +5,7 @@ local auth = require("providers.auth_service_provider")
 local User = require("models.user")
 local config = require("config.app")
 
-_M = {}
+local _M = {}
 
 function _M:userinfo()
     local ok,data = auth:user()

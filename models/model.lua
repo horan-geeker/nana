@@ -46,6 +46,21 @@ function _M:first()
 	end
 end
 
+function _M:get()
+	if not self.query_sql then
+		ngx.log(ngx.ERROR,'do not have query sql str')
+		return
+	end
+	local sql = 'select * from '..self.table..' '..self.query_sql
+	self.query_sql = nil
+	res = Database:query(sql)
+	if table.getn(res) > 0 then
+		return res
+	else
+		return false
+	end
+end
+
 function _M:find(id,column)
     column = column or 'id'
     return Database:query('select * from '..self.table..' where '..column..'='..ngx.quote_sql_str(id)..' limit 1')

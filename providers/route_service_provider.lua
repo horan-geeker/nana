@@ -5,7 +5,7 @@ local controller_prefix = 'controllers.'
 local middleware_prefix = 'middlewares.'
 local middleware_group = {}
 
-local function call_action(uri, controller, action)
+function _M:call_action(uri, controller, action)
     if common:purge_uri(uri) == common:purge_uri(ngx.var.request_uri) then
         if middleware_group then
             for _,middleware in ipairs(middleware_group) do
@@ -23,7 +23,7 @@ end
 
 function _M:get(uri, controller, action)
     if 'GET' == ngx.var.request_method then
-        call_action(uri, controller, action)
+        _M:call_action(uri, controller, action)
     end
 end
 

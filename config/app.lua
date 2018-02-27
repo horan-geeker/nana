@@ -2,7 +2,7 @@ return {
     env = 'dev', -- dev/prod
     host = '127.0.0.1',
     port = 3306,
-    db_name = 'hack',
+    db_name = 'nana',
     user = 'root',
     password = 'root',
     db_timeout = 10000,

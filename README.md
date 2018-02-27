@@ -65,7 +65,7 @@ local ok, err = User:where('id', '=', user.id):update({
 		name='test',
   })
 if not ok then
-    common:response(5)
+    ngx.log(ngx.ERR, err)
 end
 
 ```
@@ -74,6 +74,10 @@ end
 ![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
 
+#### qq群 284519473
+
+#### 联系作者 wechat
+![img](http://oqngxmzlf.bkt.clouddn.com/WechatIMG85.jpeg)
 
 ## Lua framework for web API
 It is a middleware to resolve user authenticate, you can use this to login or register user, and use other language(Java PHP) as downstream program to process other business logic at the same time. 

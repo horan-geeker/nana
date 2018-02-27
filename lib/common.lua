@@ -5,9 +5,9 @@ local status_code = require('config.status')
 local _M = {}
 
 function _M:purge_uri(uri)
-	local uri = string.gsub(ngx.var.request_uri, "?.*", "")
-	uri = _M:remove_slash(uri)
-	return uri
+	local uri = string.gsub(uri, "?.*", "")
+	local uri_without_slash = _M:remove_slash(uri)
+	return uri_without_slash
 end
 
 function _M:remove_slash(target)

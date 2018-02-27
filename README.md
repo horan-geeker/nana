@@ -67,7 +67,11 @@ local ok, err = User:where('id', '=', user.id):update({
 if not ok then
     ngx.log(ngx.ERR, err)
 end
-
+-- 删除操作
+ok,err = User:where('id','=','1'):delete()
+	if not ok then
+		ngx.log(ngx.ERR, err)
+	end
 ```
 
 ## 使用范例：内置用户认证，包含登录注册等功能

@@ -81,8 +81,19 @@ function _M:create(data)
 	return Database:execute('insert ignore into '..self.table..'('..columns..') values('..values..')')
 end
 
+function _M:delete()
+	-- 拼接需要delete的字段
+	if self.query_sql then
+		local sql = 'delete from '..self.table..' '..self.query_sql..' limit 1'
+		self.query_sql = nil
+		return Database:execute(sql)
+	end
+	ngx.log(ngx.ERR,'delete function have to called first')
+	return false
+end
+
 function _M:update(data)
-	 -- 拼接需要update的字段
+	-- 拼接需要update的字段
 	local str = nil
 	for column,value in pairs(data) do
 		if not str then
@@ -93,13 +104,12 @@ function _M:update(data)
 	end
 	-- 判断是模型自身执行update还是数据库where限定执行
 	if self.query_sql then
-		local sql = 'update '..self.table..' set '..str..' '..self.query_sql
+		local sql = 'update '..self.table..' set '..str..' '..self.query_sql..' limit 1'
 		self.query_sql = nil
 		return Database:execute(sql)
-	else
-		ngx.log(ngx.ERR, 'not support use update in model right now')
 	end
-	return ngx.log(ngx.ERROR,'update function have to called first')
+	ngx.log(ngx.ERR,'update function have to called first')
+	return false
 end
 
 function _M:query(sql)

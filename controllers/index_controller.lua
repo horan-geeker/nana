@@ -31,14 +31,19 @@ function _M:index()
 	end
 	
 	local ok,err = User:create({
-		id=4,
 		password='123456',
-		name='horanaaa',
+		nickname='horanaaa',
 		email='horangeeker@geeker.com',
 		})
 	if not ok then
 		ngx.log(ngx.ERR, err)
 	end
+
+	ok,err = User:where('id','=','1'):delete()
+	if not ok then
+		ngx.log(ngx.ERR, err)
+	end
+
 end
 
 return _M

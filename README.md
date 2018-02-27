@@ -77,7 +77,7 @@ end
 #### qq群 284519473
 
 #### 联系作者 wechat
-![img](http://oqngxmzlf.bkt.clouddn.com/wechat-avatar.jpeg)
+![img](https://github.com/horan-geeker/hexo/blob/master/imgs/wechat-avatar.jpeg?raw=true)
 
 ## Lua framework for web API
 It is a middleware to resolve user authenticate, you can use this to login or register user, and use other language(Java PHP) as downstream program to process other business logic at the same time. 

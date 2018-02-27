@@ -30,7 +30,6 @@ function _M:login()
         user_service:authorize(user)
     end
     common:response(0, 'ok', user)
-    
 end
 
 function _M:register()

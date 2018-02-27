@@ -74,6 +74,58 @@ ok,err = User:where('id','=','1'):delete()
 	end
 ```
 
+#### cookie
+```
+local cookie_obj = require("lib.cookie")
+local cookie, err = cookie_obj:new()
+config.time_zone -- 取到cookie里的属性，'UTF8'
+-- 封装cookie对象来写入
+local cookie_payload = {
+    key = token_name, value = ''
+}
+cookie_payload.value = 'xxx'
+local ok, err = cookie:set(cookie_payload)
+if not ok then
+    ngx.log(ngx.ERR, err)
+    return false
+end
+```
+#### redis
+```
+local redis = require("lib.redis")
+local ok,err = redis:set('key', 'value', 60) --seconds
+if not ok then
+    return false, err
+end
+local ok,err = redis:expire('key',60) --seconds 延长过期时间
+if not ok then
+    return false, err
+end
+local data = redis:get('key') --get
+local ok,err = redis:del('key') --delete
+if not ok then
+    return false, err
+end
+```
+#### response
+框架使用的 `common` 中的 `response` 方法通过定义数字来代表不同的`response`类型，你也可以直接写 ngx.say ngx.exit(ngx.OK),
+在 `config > status.lua` 中可以增加返回类型
+```
+local common = require("lib.common")
+common:response(1, msg)
+```
+#### 根据ip获取地理位置
+```
+local ipLocation = require("lib.ip_location")
+local ipObj, err = ipLocation:new(ngx.var.remote_addr)
+local location, err = ipObj:location()
+location.city
+location.country
+```
+
+## 推荐的编码风格
+推荐在写一些中大型项目时，`controller` （对应项目中的`controllers文件夹`）里只对http请求进行处理，例如对参数的验证，返回`json`的格式等，而不要去处理商业逻辑，商业逻辑可以写在 `service` 里（对应项目中`services文件夹`），再从 `controller` 中调用，可以写出更清晰的代码，也方便将来单元测试
+
 ## 使用范例：内置用户认证，包含登录注册等功能
 ![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，

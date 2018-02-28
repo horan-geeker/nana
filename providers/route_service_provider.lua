@@ -21,18 +21,18 @@ function _M:call_action(uri, controller, action)
             ngx.log(ngx.WARN, 'upsteam api')
         end
     end
+    middleware_group = {}
 end
 
 function _M:get(uri, controller, action)
     if 'GET' == ngx.var.request_method then
         _M:call_action(uri, controller, action)
-        middleware_group = {}
     end
 end
 
 function _M:post(uri, controller, action)
     if 'POST' == ngx.var.request_method then
-        call_action(uri, controller, action)
+        _M:call_action(uri, controller, action)
     end
 end
 

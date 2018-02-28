@@ -129,6 +129,7 @@ end
 local common = require("lib.common")
 common:response(1) -- 会去 `status.lua` 中找到 `1` 的错误信息，连同错误码 `1` 返回给前端
 common:response(0,'ok') -- 如果你传了第二个参数，会覆盖 `status.lua` 中的原有错误码对应的错误信息
+common:response(0, 'ok', data) -- 第三个参数用来传送数据
 ```
 #### 根据ip获取地理位置
 ```

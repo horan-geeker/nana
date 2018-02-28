@@ -39,7 +39,7 @@ function _M:index()
 	-- if not ok then
 	-- 	ngx.log(ngx.ERR, err)
 	-- end
-	common:response(10,'request args: ', args)
+	common:response(0,'request args', args)
 end
 
 return _M

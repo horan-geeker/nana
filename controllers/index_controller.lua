@@ -9,11 +9,6 @@ local _M = {}
 
 function _M:index()
 	local args = request:all() -- 拿到所有参数
-	--use request to get all http args
-	ngx.say('request args: ',cjson.encode(args))
-	--curl "localhost:8001?id=1" -d name=foo     
-	--{"name":"foo","id":"1"}
-	
 	-- local data = User:where('nickname','=','37zFHoGj'):where('password','=','321'):first()
 	-- if data then
 	-- 	ngx.say('\nwhere demo:\n',cjson.encode(data))
@@ -44,7 +39,7 @@ function _M:index()
 	-- if not ok then
 	-- 	ngx.log(ngx.ERR, err)
 	-- end
-	common:response(10)
+	common:response(10,'request args: ', args)
 end
 
 return _M

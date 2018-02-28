@@ -7,7 +7,6 @@ local middleware_group = {}
 
 function _M:call_action(uri, controller, action)
     if common:purge_uri(uri) == common:purge_uri(ngx.var.request_uri) then
-        ngx.log(ngx.ERR, uri, controller, action)
         if middleware_group then
             for _,middleware in ipairs(middleware_group) do
                 local result, status, message = require(middleware_prefix..middleware):handle()

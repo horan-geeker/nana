@@ -7,15 +7,6 @@ local cookie_obj = require("lib.cookie")
 
 local _M = {}
 local token_name = 'token'
-local cookie, err = cookie_obj:new()
-local cookie_payload = {
-    key = token_name, value = ''
-}
-if config.time_zone == 'UTC+8' then
-    cookie_payload.expires = ngx.cookie_time(ngx.time() + config.session_lifetime + 8 * 3600)
-else
-    cookie_payload.expires = ngx.cookie_time(ngx.time() + config.session_lifetime)
-end
 
 function generate_token(user_payload)
     -- 防止猜测token内容，加上随机数
@@ -23,6 +14,15 @@ function generate_token(user_payload)
 end
 
 local function set_cookie(token)
+    local cookie, err = cookie_obj:new()
+    local cookie_payload = {
+        key = token_name, value = ''
+    }
+    if config.time_zone == 'UTC+8' then
+        cookie_payload.expires = ngx.cookie_time(ngx.time() + config.session_lifetime + 8 * 3600)
+    else
+        cookie_payload.expires = ngx.cookie_time(ngx.time() + config.session_lifetime)
+    end
     if not cookie then
         ngx.log(ngx.ERR, err)
         return false
@@ -37,6 +37,7 @@ local function set_cookie(token)
 end
 
 local function get_token_from_cookie()
+    local cookie, err = cookie_obj:new()
     if not cookie then
         ngx.log(ngx.ERR, err)
         return false

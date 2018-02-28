@@ -1,9 +1,9 @@
 return {
-	ok = 0,
-    validate_error = 1,
-    data_not_found = 2,
-    password_error = 3,
-    no_authorization = 4,
-    database_error = 5,
-    init_code = 100
+	[0] = 'ok',
+    [1] = 'validate_error',
+    [2] = 'data_not_found',
+    [3] = 'password_error',
+    [4] = 'no_authorization',
+    [5] = 'database_error',
+    [10] = 'custom error',
 }

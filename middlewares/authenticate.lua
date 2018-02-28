@@ -4,7 +4,7 @@ local _M = {}
 
 function _M:handle()
     if not auth_service:check() then
-        common:response(4,'no authorized in authenticate')
+        return false, 4, 'no authorized in authenticate'
     end
 end
 

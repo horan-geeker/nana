@@ -123,11 +123,12 @@ if not ok then
 end
 ```
 #### response
-框架使用的 `common` 中的 `response` 方法通过定义数字来代表不同的`response`类型，你也可以直接写 ngx.say ngx.exit(ngx.OK),
+框架使用的 `common` 中的 `response` 方法通过定义数字来代表不同的`response`类型，你也可以直接写 ngx.say('') ngx.exit(ngx.OK),
 在 `config > status.lua` 中可以增加返回类型
 ```
 local common = require("lib.common")
-common:response(1, msg)
+common:response(1) -- 会去 `status.lua` 中找到 `1` 的错误信息，连同错误码 `1` 返回给前端
+common:response(0,'ok') -- 如果你传了第二个参数，会覆盖 `status.lua` 中的原有错误码对应的错误信息
 ```
 #### 根据ip获取地理位置
 ```

@@ -22,24 +22,13 @@ function _M:hash(password)
 	return ngx.md5(password)
 end
 
-function _M:response(status, msg, data)
-	local resp = {status=status_code.init_code, msg=msg, data=data}
-	if status == status_code.ok then
-		resp.status=0
-		resp.msg='ok'
-	elseif status == status_code.validate_error then
-		resp.status=1
-	elseif status == status_code.data_not_found then
-		resp.status=2
-	elseif status == status_code.password_error then
-		resp.status=3
-	elseif status == status_code.no_authorization then
-		resp.status=4
-	elseif status == status_code.database_error then
-		resp.status=5
-	end
-	if resp.status == status_code.init_code then
-		resp.msg = 'not find status code'
+function _M:response(status, message, data)
+	-- you can modify this resp struct as you favor
+	local msg = message or status_code[status]
+	local resp = {status=status, msg=msg, data=data}
+	if not resp.status then
+		resp.status = -1
+		resp.message = 'not find status code'
 	end
     ngx.say(cjson.encode(resp))
     ngx.exit(ngx.OK)

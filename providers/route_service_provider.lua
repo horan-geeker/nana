@@ -10,9 +10,11 @@ function _M:call_action(uri, controller, action)
         ngx.log(ngx.ERR, uri, controller, action)
         if middleware_group then
             for _,middleware in ipairs(middleware_group) do
-                common:log('use middleware: '..middleware)
-                local middleware = require(middleware_prefix..middleware)
-                middleware:handle()
+                local result, status, message = require(middleware_prefix..middleware):handle()
+                if result == false then
+                    middleware_group = {}
+                    common:response(status, message)
+                end
             end
         end
         if controller then

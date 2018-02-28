@@ -3,6 +3,7 @@ local conf = require('config.app')
 local User = require('models.user')
 local validator = require('lib.validator')
 local request = require("lib.request")
+local common = require("lib.common")
 
 local _M = {}
 
@@ -43,7 +44,7 @@ function _M:index()
 	-- if not ok then
 	-- 	ngx.log(ngx.ERR, err)
 	-- end
-
+	common:response(10)
 end
 
 return _M

@@ -12,10 +12,13 @@
 ## 文档
 
 #### 路由
-如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：`route:post('/login', 'auth_controller', 'login')`, 同时也支持路由群组，使用中间件来解决问题，项目的路由文件在根目录下的`router.lua`可以参考里边已有的功能，也可以任意修改里边已有的东西。
-
-#### 中间件
-`中间件` 的设计模式解决了代码的复用，比如说我们的项目中很多地方需要验证用户是否登录，普通情况下我们把验证的代码写在每一个处理`http`请求的`action()`方法里，显得很冗余修改起来也较为困难，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用中间件只需要在路由的地方写一句就ok了，这样就会在调用 `controller` 之前先调用 `middlewares > authenticate.lua` 的 `handle()` 方法：
+> 路由文件在项目根目录 `router.lua`
+如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：
+```
+route:get('/index', 'index_controller', 'index')
+route:post('/login', 'auth_controller', 'login')
+```
+同时也支持路由群组，使用中间件来解决问题，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在路由群组的地方写一句就ok了，这样就会在调用 `controller` 之前先调用 `middlewares > authenticate.lua` 的 `handle()` 方法：
 ```
 route:group({
         'authenticate',
@@ -24,7 +27,19 @@ route:group({
         route:post('/reset-password', 'user_controller', 'resetPassword')
     end)
 ```
-我们在路由中集成了中间件的模式，你可以把你自定义的中间件写到 `middlewares` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
+可以参考`router.lua`里边已有的功能，也可以任意修改里边已有的东西
+
+#### 中间件
+> 中间件都需要写在 `middlewares` 文件夹下，并且需要写上命名为 `handle()` 的方法
+`中间件` 的设计模式解决了代码的复用，我们可以在中间件中自定义自己的东西，如`middlewares > authenticate.lua`
+```
+function _M:handle()
+    if not auth_service:check() then
+        common:response(4,'no authorized in authenticate')
+    end
+end
+```
+你可以把你自定义的中间件写到 `middlewares` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
 
 #### 获取参数
 ```

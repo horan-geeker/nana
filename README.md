@@ -6,8 +6,8 @@
 ## 安装
 * 项目的入口文件是 `bootstrap.lua` 你可以把你的路由写入 `router.lua` 文件,参考项目中的 `nginx.conf` 配置 `nginx` 
 * 复制 `env.example.lua` 到项目根目录下，命名为 `env.lua`，项目中的配置需要使用这个文件，这个文件不包含在版本库里，密码等相关敏感信息可以写在这个文件。 
-* 项目的配置文件都在 `config` 目录下，其中的 `app.lua` 包含多个 key, `db_name` 是数据库名, `user` `password` 是数据库的用户名密码, `user_table_name` 是用户表名, `login_id` 是用于登录的列名。
-* `router.lua` 里写入特定路由以及下游需要验证的路由。
+* 项目的配置文件都在 `config` 目录下，其中的 `app.lua` 包含多个 key, `db_name` 是数据库名, `user` `password` 是数据库的用户名密码, 如果你需要使用项目自带的登录注册等功能，需要配置：`user_table_name` 用户表名, `login_id` 用于登录的列名。
+* `router.lua` 里写入特定路由以及下游需要验证的路由,当然你需要创建自己的 `controller` 文件。。
 
 ## 文档
 
@@ -15,11 +15,10 @@
 如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：`route:post('/login', 'auth_controller', 'login')`, 同时也支持路由群组，使用中间件来解决问题，项目的路由文件在根目录下的`router.lua`可以参考里边已有的功能，也可以任意修改里边已有的东西。
 
 #### 中间件
-`中间件` 的设计模式解决了代码的复用，比如说我们的项目中很多地方需要验证用户是否登录，普通情况下我们把验证的代码写在每一个处理`http`请求的`action()`方法里，显得很冗余修改起来也较为困难，而利用中间件只需要在路由的地方写一句就ok了：
+`中间件` 的设计模式解决了代码的复用，比如说我们的项目中很多地方需要验证用户是否登录，普通情况下我们把验证的代码写在每一个处理`http`请求的`action()`方法里，显得很冗余修改起来也较为困难，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用中间件只需要在路由的地方写一句就ok了，这样就会在调用 `controller` 之前先调用 `middlewares > authenticate.lua` 的 `handle()` 方法：
 ```
 route:group({
         'authenticate',
-        -- 'example_middleware'
     }, function()
         route:post('/logout', 'auth_controller', 'logout') -- http_method/uri/controller/action
         route:post('/reset-password', 'user_controller', 'resetPassword')

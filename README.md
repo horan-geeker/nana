@@ -107,6 +107,7 @@ if not ok then
     return false
 end
 ```
+
 #### redis
 ```
 local redis = require("lib.redis")
@@ -124,6 +125,7 @@ if not ok then
     return false, err
 end
 ```
+
 #### response
 框架使用的 `common` 中的 `response` 方法通过定义数字来代表不同的`response`类型，你也可以直接写 ngx.say('') ngx.exit(ngx.OK),
 在 `config > status.lua` 中可以增加返回类型
@@ -133,6 +135,15 @@ common:response(1) -- 会去 `status.lua` 中找到 `1` 的错误信息，连同
 common:response(0,'ok') -- 如果你传了第二个参数，会覆盖 `status.lua` 中的原有错误码对应的错误信息
 common:response(0, 'ok', data) -- 第三个参数用来传送数据,默认会进行 cjson.encode 所以只需要传数据即可
 ```
+
+#### http请求
+使用了这个开源组件 https://github.com/pintsized/lua-resty-http
+```
+local http = require('lib.http')
+local httpc = http.new()
+local res, err = httpc:request_uri(url, {ssl_verify=false}) -- https 的请求出现异常可以带上这个参数，但是确保你是安全的
+```
+
 #### 根据ip获取地理位置
 ```
 local ipLocation = require("lib.ip_location")

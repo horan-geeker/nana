@@ -1,8 +1,9 @@
+-- github document https://github.com/horan-geeker/nana
+-- author hejunwei
+
 local router = require("router")
 
 local _M = {}
-
--- _M.router = router
 
 function _M:run()
     router:init()

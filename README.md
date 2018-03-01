@@ -27,7 +27,7 @@ route:group({
         route:post('/reset-password', 'user_controller', 'resetPassword')
     end)
 ```
-可以参考`router.lua`里边已有的功能，也可以任意修改里边已有的东西
+可以参考`router.lua`里边已有的路由，也可以任意修改里边已有的东西
 
 #### 中间件
 > 中间件都需要写在 `middlewares` 文件夹下，并且需要写上命名为 `handle()` 的方法

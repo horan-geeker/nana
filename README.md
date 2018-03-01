@@ -14,10 +14,8 @@
 ## 文档
 
 #### 路由
-> 路由文件在项目根目录 `router.lua`
-如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：
+> 路由文件在项目根目录 `router.lua`，如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：
 ```
-route:get('/index', 'index_controller', 'index')
 route:post('/login', 'auth_controller', 'login')
 ```
 同时也支持路由群组，使用中间件来解决问题，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在路由群组的地方写一句就ok了，这样就会在调用 `controller` 之前先调用 `middlewares > authenticate.lua` 的 `handle()` 方法：

@@ -1,5 +1,5 @@
 local common = require('lib.common')
-
+local cjson = require('cjson')
 local _M = {}
 local controller_prefix = 'controllers.'
 local middleware_prefix = 'middlewares.'
@@ -17,6 +17,7 @@ function _M:call_action(uri, controller, action)
             end
         end
         if controller then
+            middleware_group = {}
             require(controller_prefix..controller)[action]()
         else
             ngx.log(ngx.WARN, 'upsteam api')

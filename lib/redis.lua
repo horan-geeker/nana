@@ -36,4 +36,13 @@ function _M:expire(key, time)
 	return true
 end
 
+function _M:incr(key)
+	local red = redis:new()
+	local ok,err = red:incr(key)
+	if not ok then
+		return false, err
+	end
+	return true
+end
+
 return _M

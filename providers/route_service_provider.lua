@@ -1,5 +1,5 @@
 local common = require('lib.common')
-local cjson = require('cjson')
+
 local _M = {}
 local controller_prefix = 'controllers.'
 local middleware_prefix = 'middlewares.'

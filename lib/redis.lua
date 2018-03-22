@@ -1,5 +1,6 @@
 local common = require("lib.common")
 local redis = require("lib.resty_redis")
+
 local _M = {}
 
 function _M:set(key, value, time)

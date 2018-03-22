@@ -6,7 +6,7 @@
 ## 安装
 * `git clone https://github.com/horan-geeker/nana.git`
 * 项目的入口文件是 `bootstrap.lua` 你可以把你的路由写入 `router.lua` 文件,参考项目中的 `nginx.conf` 配置 `openresty` 
-* 项目的配置文件都在 `config` 目录下 `app.lua`,其中 `db_name` 是数据库名, `user` `password` 是数据库的用户名密码, 如果你需要使用项目自带的登录注册等功能，需要配置：`user_table_name` 用户表名, `login_id` 用于登录的列名，并且根据下边的数据库结构进行设计。
+* 项目的配置文件都在 `config` 目录下 `app.lua`,其中 `db_name` 是数据库名, `user` `password` 是数据库的用户名密码, 如果你需要使用项目自带的登录注册等功能。可选配置：`user_table_name` 用户表名, `login_id` 用于登录的列名，并且根据下边的数据库结构进行设计。
 
 #### 非必要的配置
 * 项目跟目录执行 `cp env.example.lua env.lua`，复制 `env.example.lua` 到项目根目录下，命名为 `env.lua`，这个文件不包含在版本库里，密码等相关敏感信息可以写在这个文件。 

@@ -46,4 +46,9 @@ function _M:incr(key)
 	return true
 end
 
+function _M:ttl(key)
+	local red = redis:new()
+	return red:ttl(key)
+end
+
 return _M

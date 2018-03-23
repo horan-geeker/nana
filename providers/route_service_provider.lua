@@ -2,7 +2,7 @@ local common = require('lib.common')
 
 local _M = {}
 local controller_prefix = 'controllers.'
-local middleware_prefix = 'middlewares.'
+local middleware_prefix = 'middleware.'
 local middleware_group = {}
 
 function _M:call_action(uri, controller, action)
@@ -38,9 +38,9 @@ function _M:post(uri, controller, action)
     end
 end
 
-function _M:group(middlewares, func)
-    for _,middleware in ipairs(middlewares) do
-        table.insert(middleware_group, middleware)
+function _M:group(middleware, func)
+    for _,middleware_item in ipairs(middleware) do
+        table.insert(middleware_group, middleware_item)
     end
     func()
 end

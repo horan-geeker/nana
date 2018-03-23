@@ -9,4 +9,6 @@ return {
     [7] = 'redis error',
     [8] = 'shared memory error',
     [10] = 'custom error',
+    [11] = 'http request err',
+    [12] = 'code not expire',
 }

@@ -11,9 +11,10 @@ return {
     session_lifetime = 3600 * 24 * 356, --sec one year
     max_request_per_second = 300,
     user_table_name = 'users',
-    login_id = 'email', -- login method use email/username/phone...etc
+    login_id = 'phone', -- login method use email/username/phone...etc
     time_zone = 'UTC+8',
     app_directory = '/var/www/nana/',
     ip_binary_file_path = '/var/www/nana/lib/17monipdb.dat',
-    app_url = 'www.lua-china.com'
+    app_url = 'www.lua-china.com',
+    phone_code_len = 4
 }

@@ -5,5 +5,11 @@ return {
             secret: 'your secret',
             redirect_uri: 'http://localhost',
         }
+    },
+    sendcloud = {
+        url = 'http://www.sendcloud.net/smsapi/send',
+        smsUser = 'LuaChina',
+        smsKey = 'xxxxxxx',
+        templateId = 1
     }
 }

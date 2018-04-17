@@ -83,23 +83,23 @@ local user = User:find(1) -- 拿到 `id` 为 1 的用户
 User:where('name','=','xxx'):orwhere('name','=','yyy'):get() -- 获取 `name` 为 `xxx` 的或者 `yyy` 的 `user`
 -- 创建一个用户
 User:create({
-	id=3,
-	password='123456',
-	name='horanaaa',
-	email='horangeeker@geeker.com',
+    id=3,
+    password='123456',
+    name='horanaaa',
+    email='horangeeker@geeker.com',
 })
 -- 更新一个用户
 local ok, err = User:where('id', '=', user.id):update({
-		name='test',
+        name='test',
   })
 if not ok then
     ngx.log(ngx.ERR, err)
 end
 -- 删除操作
 ok,err = User:where('id','=','1'):delete()
-	if not ok then
-		ngx.log(ngx.ERR, err)
-	end
+    if not ok then
+        ngx.log(ngx.ERR, err)
+    end
 ```
 
 #### 使用原生 sql 执行
@@ -146,6 +146,11 @@ if not ok then
 end
 ```
 
+#### resty redis
+
+系统也引用了`resty redis`
+`local restyRedis = require('lib.resty_redis')`
+
 ### response
 
 框架使用的 `common` 中的 `response` 方法通过定义数字来代表不同的`response`类型，你也可以直接写 ngx.say('') ngx.exit(ngx.OK),
@@ -174,6 +179,8 @@ local data = cjson.decode(res.body)
 
 ### random
 
+`local random = require('lib.random')`
+
 #### 字母 + 数字
 
 `random.token(10)` -- 长度为10的
@@ -190,6 +197,20 @@ local ipObj, err = ipLocation:new(ngx.var.remote_addr)
 local location, err = ipObj:location()
 location.city
 location.country
+```
+
+### helper function
+
+系统在`bootstrap`默认已经全局加载`lib.helpers.lua`
+
+#### 按 key 排序的迭代器
+
+> lua 中的`hash table`按`key`排序与其他语言不同，我们需要自己实现一个迭代器来遍历排好序的`table`
+
+```
+for k,v in pairsByKeys(hashTable) do
+    ...
+end
 ```
 
 ### 返回 response

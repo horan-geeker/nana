@@ -1,9 +1,9 @@
 -- github document https://github.com/horan-geeker/nana
 -- author hejunwei
 
-local router = require("router")
+local router = require('router')
 --get helper function
-require("lib.helpers")
+require('lib.helpers')
 -- get env config
 env = require('env')
 

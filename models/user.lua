@@ -18,7 +18,7 @@ function User:findByLoginId(login_id)
     if not user then
     	return false
     else
-    	return true
+    	return true, user
     end
 end
 

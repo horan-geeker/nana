@@ -7,6 +7,10 @@ local config = require("config.app")
 
 local _M = {}
 
+function _M:show(id)
+    common:response(0, id)
+end
+
 function _M:userinfo()
     local ok,data = auth:user()
     if not ok then

@@ -39,7 +39,6 @@ local function sendMessageToSendCloud(phone, code, signature, signStr)
             return true
         end
     end
-    return true
 end
 
 function _M:sendSms(phone, code)

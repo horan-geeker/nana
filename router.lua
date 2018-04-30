@@ -20,8 +20,7 @@ function _M:init()
                 'token_refresh'
             }, function()
                 route:get('/userinfo', 'user_controller', 'userinfo')
-                route:get('/hosts', 'host_controller', 'index')
-                route:post('/hosts', 'host_controller', 'store')
+                route:get("/users/(\\d+)/comments/(\\d+)", 'user_controller', 'show')
                 -- test upsteam usage (suppose /home api write by Java or PHP) use nginx reverse proxy
                 route:get('/home')
             end)

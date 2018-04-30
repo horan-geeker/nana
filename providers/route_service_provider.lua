@@ -1,14 +1,16 @@
 local common = require('lib.common')
 local cjson = require('cjson')
-local _M = {}
 local controller_prefix = 'controllers.'
 local middleware_prefix = 'middleware.'
+local _M = {}
 local middleware_group = {}
 
 local function route_match(route_url, current_url)
-    local captures, err = ngx.re.match(current_url, route_url)
-    ngx.log(ngx.ERR, cjson.encode(captures), err, route_url, current_url)
-    if not captures then
+    local new_router_url, n, err = ngx.re.gsub(route_url, '\\{[\\w]+\\}', '(\\d+)')
+    new_router_url = new_router_url .. '$'
+    local captures, err = ngx.re.match(current_url, new_router_url, 'jo')
+    if captures then
+        captures[0] = nil;
         return true, captures
     end
     return false
@@ -28,7 +30,7 @@ function _M:call_action(uri, controller, action)
         end
         if controller then
             middleware_group = {}
-            require(controller_prefix..controller)[action](params)
+            require(controller_prefix..controller)[action](nil, table.unpack(params))
         else
             ngx.log(ngx.WARN, 'upsteam api')
         end

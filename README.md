@@ -35,6 +35,19 @@ route:group({
     end)
 ```
 
+#### 动态路由
+
+使用花括号来代表传递的参数，如：  
+`route:get("/users/{user_id}/comments/{comment_id}", 'user_controller', 'comments')`
+可匹配`/users/1/comments/2`，在`comments action`里，直接写上两个参数即可，命名不进行约束
+
+```
+function _M:comments(user_id, comment_id)
+    ngx.log(ngx.ERR, user_id, comment_id)
+    common:response(0, 'comments', {user_id=user_id, comment_id=comment_id})
+end
+```
+
 可以参考`router.lua`里边已有的路由，也可以任意修改里边已有的东西
 
 ### 中间件

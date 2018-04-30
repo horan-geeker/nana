@@ -7,8 +7,14 @@ local config = require("config.app")
 
 local _M = {}
 
-function _M:show(id)
-    common:response(0, id)
+function _M:show(user_id)
+    ngx.log(ngx.ERR, user_id, comment_id)
+    common:response(0, 'show', {user_id=user_id, comment_id=comment_id})
+end
+
+function _M:comments(user_id, comment_id)
+    ngx.log(ngx.ERR, user_id, comment_id)
+    common:response(0, 'comments', {user_id=user_id, comment_id=comment_id})
 end
 
 function _M:userinfo()

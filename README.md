@@ -123,6 +123,7 @@ ok,err = User:where('id','=','1'):delete()
 #### 分页
 模型支持`paginate(per_page)`方法，需要传入当前页码,`User:paginate(1)`,返回值如下结构：
 ```
+{
     "prev_page": null,
     "total": 64,
     "data": [
@@ -130,13 +131,14 @@ ok,err = User:where('id','=','1'):delete()
         {...},
     ],
     "next_page": 2
+}
 ```
 当不存在下一页时，`next_page`为`null`
 
 #### 使用原生 sql 执行
 
 > 注意需要自己去处理sql注入
-
+`local Database = require('lib.database')`
 * local res = Database:query(sql) -- 执行数据查询语言DQL,返回结果集
 * local affected_rows, err = Database:execute(sql) -- 执行数据操纵语言DML,返回`受影响的行`或`false`和`错误信息`
 

@@ -88,6 +88,8 @@ local ok,msg = validator:check(args, {
 
 ### 数据库操作 ORM
 默认的数据库操作都使用了 `ngx.quote_sql_str` 处理了 `sql注入问题`
+
+#### CURD
 ```
 local Model = require('models.model')
 local User = Model:new('users') -- 初始化 `User` 模型,约定俗成 `User` 的模型对应 `users` 表名,当然你也可以修改 `new()` 的参数为其他名称
@@ -114,6 +116,22 @@ ok,err = User:where('id','=','1'):delete()
         ngx.log(ngx.ERR, err)
     end
 ```
+
+#### 排序
+`orderby(column, option)`方法，第一个参数传入排序的列名，第二个参数默认为`ASC` 也可以传入 `ASC 正序 或 DESC 倒序`(不区分大小写)，`Post:orderby('created_at'):get()`
+
+#### 分页
+模型支持`paginate(per_page)`方法，需要传入当前页码,`User:paginate(1)`,返回值如下结构：
+```
+    "prev_page": null,
+    "total": 64,
+    "data": [
+        {...},
+        {...},
+    ],
+    "next_page": 2
+```
+当不存在下一页时，`next_page`为`null`
 
 #### 使用原生 sql 执行
 

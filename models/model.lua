@@ -2,6 +2,7 @@ local Database = require('lib.database')
 local Validator = require('lib.validator')
 local config = require('config.app')
 local common = require("lib.common")
+local cjson = require('cjson')
 
 local _M = {}
 
@@ -31,6 +32,66 @@ function _M:orwhere(column,operator,value)
 	return self
 end
 
+
+function _M:count()
+	local sql = self.query_sql, res
+	if not sql then
+		sql = 'select count(*) from '..self.table
+	else
+		sql = 'select count(*) from '..self.table..' '..self.query_sql
+	end
+	self.query_sql = nil
+	res = Database:query(sql)
+	if table.getn(res) > 0 then
+		return tonumber(res[1]['count(*)'])
+	else
+		return 0
+	end
+end
+
+function _M:orderby(column,operator)
+	local operator = operator or 'asc'
+	if not self.query_sql then
+		self.query_sql = 'order by '..column.. ' ' ..operator
+	else
+		self.query_sql = self.query_sql..' order by '..column..' '..operator
+	end
+	return self
+end
+
+function _M:paginate(page_num, per_page)
+	per_page = per_page or config.per_page
+	local sql, count_sql, total
+	local data={
+		data = {},
+		next_page = cjson.null,
+		prev_page = cjson.null,
+		total = 0
+	}
+	if not self.query_sql then
+		sql = 'select * from '..self.table..' limit '..per_page*page_num..','..per_page
+		count_sql = 'select count(*) from '..self.table
+	else
+		sql = 'select * from '..self.table..' '..self.query_sql..' limit '..per_page*(page_num-1)..','..per_page
+		count_sql = 'select count(*) from '..self.table..' '..self.query_sql
+	end
+	self.query_sql = nil
+	total = Database:query(count_sql)
+	if not total then
+	else
+		data['total'] = tonumber(total[1]['count(*)'])
+		data['data'] = Database:query(sql)
+	end
+	if (table.getn(data['data']) + ((page_num - 1)* per_page)) < data['total'] then
+		data['next_page'] = page_num + 1
+	end
+	if tonumber(page_num) ~= 1 then
+		data['prev_page'] = page_num - 1
+	end
+
+	return data
+end
+
 function _M:first()
 	if not self.query_sql then
 		ngx.log(ngx.ERROR,'do not have query sql str')
@@ -38,7 +99,7 @@ function _M:first()
 	end
 	local sql = 'select * from '..self.table..' '..self.query_sql..' limit 1'
 	self.query_sql = nil
-	res = Database:query(sql)
+	local res = Database:query(sql)
 	if table.getn(res) > 0 then
 		return res[1]
 	else
@@ -53,7 +114,7 @@ function _M:get()
 	end
 	local sql = 'select * from '..self.table..' '..self.query_sql
 	self.query_sql = nil
-	res = Database:query(sql)
+	local res = Database:query(sql)
 	if table.getn(res) > 0 then
 		return res
 	else

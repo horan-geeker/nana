@@ -1,16 +1,25 @@
 local common = require("lib.common")
 local redis = require("lib.resty_redis")
+local config = require('config.app')
 
-local _M = {}
+local _M = setmetatable({}, {__index=function(self, key)
+	local red = redis:new()
+	local ok,err = red:connect(config.redis_host, config.redis_port)
+	if not ok then
+		ngx.log(ngx.ERR, err)
+	end
+	if key == 'red' then
+		return red
+	end
+end})
 
 function _M:set(key, value, time)
-	local red = redis:new()
-	local ok, err = red:set(key, value)
+	local ok, err = self.red:set(key, value)
 	if not ok then
 	    return common:response("redis failed to set data: " )
 	end
 	if time then
-		ok,err = red:expire(key, time) -- default expire time is seconds
+		ok,err = self.red:expire(key, time) -- default expire time is seconds
 		if not ok then
 			return false,err
 		end
@@ -19,18 +28,15 @@ function _M:set(key, value, time)
 end
 
 function _M:get(key)
-	local red = redis:new()
-	return red:get(key)
+	return self.red:get(key)
 end
 
 function _M:del(key)
-	local red = redis:new()
-	return red:del(key)
+	return self.red:del(key)
 end
 
 function _M:expire(key, time)
-	local red = redis:new()
-	local ok,err = red:expire(key, time) -- default time is seconds
+	local ok,err = self.red:expire(key, time) -- default time is seconds
 	if not ok then
 		return false,err
 	end
@@ -38,8 +44,7 @@ function _M:expire(key, time)
 end
 
 function _M:incr(key)
-	local red = redis:new()
-	local ok,err = red:incr(key)
+	local ok,err = self.red:incr(key)
 	if not ok then
 		return false, err
 	end
@@ -47,8 +52,7 @@ function _M:incr(key)
 end
 
 function _M:ttl(key)
-	local red = redis:new()
-	return red:ttl(key)
+	return self.red:ttl(key)
 end
 
 return _M

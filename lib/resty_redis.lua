@@ -1,227 +1,439 @@
-local redis_c = require "resty.redis"
+-- Copyright (C) Yichun Zhang (agentzh)
+
+
+local sub = string.sub
+local byte = string.byte
+local tcp = ngx.socket.tcp
+local null = ngx.null
+local type = type
+local pairs = pairs
+local unpack = unpack
+local setmetatable = setmetatable
+local tonumber = tonumber
+local tostring = tostring
+local rawget = rawget
+--local error = error
+
 
 local ok, new_tab = pcall(require, "table.new")
 if not ok or type(new_tab) ~= "function" then
     new_tab = function (narr, nrec) return {} end
 end
 
-local _M = new_tab(0, 155)
-_M._VERSION = '0.01'
 
-local commands = {
-    "append",            "auth",              "bgrewriteaof",
-    "bgsave",            "bitcount",          "bitop",
-    "blpop",             "brpop",
-    "brpoplpush",        "client",            "config",
-    "dbsize",
-    "debug",             "decr",              "decrby",
-    "del",               "discard",           "dump",
-    "echo",
-    "eval",              "exec",              "exists",
-    "expire",            "expireat",          "flushall",
-    "flushdb",           "get",               "getbit",
-    "getrange",          "getset",            "hdel",
-    "hexists",           "hget",              "hgetall",
-    "hincrby",           "hincrbyfloat",      "hkeys",
-    "hlen",
-    "hmget",              "hmset",      "hscan",
-    "hset",
-    "hsetnx",            "hvals",             "incr",
-    "incrby",            "incrbyfloat",       "info",
-    "keys",
-    "lastsave",          "lindex",            "linsert",
-    "llen",              "lpop",              "lpush",
-    "lpushx",            "lrange",            "lrem",
-    "lset",              "ltrim",             "mget",
-    "migrate",
-    "monitor",           "move",              "mset",
-    "msetnx",            "multi",             "object",
-    "persist",           "pexpire",           "pexpireat",
-    "ping",              "psetex",            "psubscribe",
-    "pttl",
-    "publish",      --[[ "punsubscribe", ]]   "pubsub",
-    "quit",
-    "randomkey",         "rename",            "renamenx",
-    "restore",
-    "rpop",              "rpoplpush",         "rpush",
-    "rpushx",            "sadd",              "save",
-    "scan",              "scard",             "script",
-    "sdiff",             "sdiffstore",
-    "select",            "set",               "setbit",
-    "setex",             "setnx",             "setrange",
-    "shutdown",          "sinter",            "sinterstore",
-    "sismember",         "slaveof",           "slowlog",
-    "smembers",          "smove",             "sort",
-    "spop",              "srandmember",       "srem",
-    "sscan",
-    "strlen",       --[[ "subscribe",  ]]     "sunion",
-    "sunionstore",       "sync",              "time",
-    "ttl",
-    "type",         --[[ "unsubscribe", ]]    "unwatch",
-    "watch",             "zadd",              "zcard",
-    "zcount",            "zincrby",           "zinterstore",
-    "zrange",            "zrangebyscore",     "zrank",
-    "zrem",              "zremrangebyrank",   "zremrangebyscore",
-    "zrevrange",         "zrevrangebyscore",  "zrevrank",
-    "zscan",
-    "zscore",            "zunionstore",       "evalsha"
+local _M = new_tab(0, 54)
+
+_M._VERSION = '0.26'
+
+
+local common_cmds = {
+    "get",      "set",          "mget",     "mset",
+    "del",      "incr",         "decr",                 -- Strings
+    "llen",     "lindex",       "lpop",     "lpush",
+    "lrange",   "linsert",                              -- Lists
+    "hexists",  "hget",         "hset",     "hmget",
+    --[[ "hmset", ]]            "hdel",                 -- Hashes
+    "smembers", "sismember",    "sadd",     "srem",
+    "sdiff",    "sinter",       "sunion",               -- Sets
+    "zrange",   "zrangebyscore", "zrank",   "zadd",
+    "zrem",     "zincrby",                              -- Sorted Sets
+    "auth",     "eval",         "expire",   "script",
+    "sort"                                              -- Others
 }
+
+
+local sub_commands = {
+    "subscribe", "psubscribe"
+}
+
+
+local unsub_commands = {
+    "unsubscribe", "punsubscribe"
+}
+
 
 local mt = { __index = _M }
 
-local function is_redis_null( res )
-    if type(res) == "table" then
-        for k,v in pairs(res) do
-            if v ~= ngx.null then
-                return false
+
+function _M.new(self)
+    local sock, err = tcp()
+    if not sock then
+        return nil, err
+    end
+    return setmetatable({ _sock = sock, _subscribed = false }, mt)
+end
+
+
+function _M.set_timeout(self, timeout)
+    local sock = rawget(self, "_sock")
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    return sock:settimeout(timeout)
+end
+
+
+function _M.connect(self, ...)
+    local sock = rawget(self, "_sock")
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    self._subscribed = false
+
+    return sock:connect(...)
+end
+
+
+function _M.set_keepalive(self, ...)
+    local sock = rawget(self, "_sock")
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    if rawget(self, "_subscribed") then
+        return nil, "subscribed state"
+    end
+
+    return sock:setkeepalive(...)
+end
+
+
+function _M.get_reused_times(self)
+    local sock = rawget(self, "_sock")
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    return sock:getreusedtimes()
+end
+
+
+local function close(self)
+    local sock = rawget(self, "_sock")
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    return sock:close()
+end
+_M.close = close
+
+
+local function _read_reply(self, sock)
+    local line, err = sock:receive()
+    if not line then
+        if err == "timeout" and not rawget(self, "_subscribed") then
+            sock:close()
+        end
+        return nil, err
+    end
+
+    local prefix = byte(line)
+
+    if prefix == 36 then    -- char '$'
+        -- print("bulk reply")
+
+        local size = tonumber(sub(line, 2))
+        if size < 0 then
+            return null
+        end
+
+        local data, err = sock:receive(size)
+        if not data then
+            if err == "timeout" then
+                sock:close()
+            end
+            return nil, err
+        end
+
+        local dummy, err = sock:receive(2) -- ignore CRLF
+        if not dummy then
+            return nil, err
+        end
+
+        return data
+
+    elseif prefix == 43 then    -- char '+'
+        -- print("status reply")
+
+        return sub(line, 2)
+
+    elseif prefix == 42 then -- char '*'
+        local n = tonumber(sub(line, 2))
+
+        -- print("multi-bulk reply: ", n)
+        if n < 0 then
+            return null
+        end
+
+        local vals = new_tab(n, 0)
+        local nvals = 0
+        for i = 1, n do
+            local res, err = _read_reply(self, sock)
+            if res then
+                nvals = nvals + 1
+                vals[nvals] = res
+
+            elseif res == nil then
+                return nil, err
+
+            else
+                -- be a valid redis error value
+                nvals = nvals + 1
+                vals[nvals] = {false, err}
             end
         end
-        return true
-    elseif res == ngx.null then
-        return true
-    elseif res == nil then
-        return true
-    end
 
-    return false
-end
+        return vals
 
-function _M.connect_mod( self, redis )    
-    redis:set_timeout(self.timeout)
-    return redis:connect("127.0.0.1", 6379)
-end
+    elseif prefix == 58 then    -- char ':'
+        -- print("integer reply")
+        return tonumber(sub(line, 2))
 
-function _M.set_keepalive_mod( redis )
-    return redis:set_keepalive(60000, 1000) -- put it into the connection pool of size 100, with 60 seconds max idle time
-end
+    elseif prefix == 45 then    -- char '-'
+        -- print("error reply: ", n)
 
-function _M.init_pipeline( self )
-    self._reqs = {}
-end
+        return false, sub(line, 2)
 
-function _M.commit_pipeline( self )
-    local reqs = self._reqs
-
-    if nil == reqs or 0 == #reqs then
-        return {}, "no pipeline"
     else
-        self._reqs = nil
+        -- when `line` is an empty string, `prefix` will be equal to nil.
+        return nil, "unknown prefix: \"" .. tostring(prefix) .. "\""
     end
-
-    local redis, err = redis_c:new()
-    if not redis then
-        return nil, err
-    end
-
-    local ok, err = self:connect_mod(redis)
-    if not ok then
-        return {}, err
-    end
-
-    redis:init_pipeline()
-    for _, vals in ipairs(reqs) do
-        local fun = redis[vals[1]]
-        table.remove(vals , 1)
-
-        fun(redis, unpack(vals))
-    end
-
-    local results, err = redis:commit_pipeline()
-    if not results or err then
-        return {}, err
-    end
-
-    if is_redis_null(results) then
-        results = {}
-        ngx.log(ngx.WARN, "is null")
-    end
-    -- table.remove (results , 1)
-
-    self.set_keepalive_mod(redis)
-
-    for i,value in ipairs(results) do
-        if is_redis_null(value) then
-            results[i] = nil
-        end
-    end
-
-    return results, err
 end
 
-function _M.subscribe( self, channel )
-    local redis, err = redis_c:new()
-    if not redis then
+
+local function _gen_req(args)
+    local nargs = #args
+
+    local req = new_tab(nargs * 5 + 1, 0)
+    req[1] = "*" .. nargs .. "\r\n"
+    local nbits = 2
+
+    for i = 1, nargs do
+        local arg = args[i]
+        if type(arg) ~= "string" then
+            arg = tostring(arg)
+        end
+
+        req[nbits] = "$"
+        req[nbits + 1] = #arg
+        req[nbits + 2] = "\r\n"
+        req[nbits + 3] = arg
+        req[nbits + 4] = "\r\n"
+
+        nbits = nbits + 5
+    end
+
+    -- it is much faster to do string concatenation on the C land
+    -- in real world (large number of strings in the Lua VM)
+    return req
+end
+
+
+local function _do_cmd(self, ...)
+    local args = {...}
+
+    local sock = rawget(self, "_sock")
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    local req = _gen_req(args)
+
+    local reqs = rawget(self, "_reqs")
+    if reqs then
+        reqs[#reqs + 1] = req
+        return
+    end
+
+    -- print("request: ", table.concat(req))
+
+    local bytes, err = sock:send(req)
+    if not bytes then
         return nil, err
     end
 
-    local ok, err = self:connect_mod(redis)
-    if not ok or err then
-        return nil, err
+    return _read_reply(self, sock)
+end
+
+
+local function _check_subscribed(self, res)
+    if type(res) == "table"
+       and (res[1] == "unsubscribe" or res[1] == "punsubscribe")
+       and res[3] == 0
+   then
+        self._subscribed = false
+    end
+end
+
+
+function _M.read_reply(self)
+    local sock = rawget(self, "_sock")
+    if not sock then
+        return nil, "not initialized"
     end
 
-    local res, err = redis:subscribe(channel)
-    if not res then
-        return nil, err
+    if not rawget(self, "_subscribed") then
+        return nil, "not subscribed"
     end
 
-    res, err = redis:read_reply()
-    if not res then
-        return nil, err
-    end
-
-    redis:unsubscribe(channel)
-    self.set_keepalive_mod(redis)
+    local res, err = _read_reply(self, sock)
+    _check_subscribed(self, res)
 
     return res, err
 end
 
-local function do_command(self, cmd, ... )
-    if self._reqs then
-        table.insert(self._reqs, {cmd, ...})
-        return
-    end
 
-    local redis, err = redis_c:new()
-    if not redis then
-        return nil, err
-    end
+for i = 1, #common_cmds do
+    local cmd = common_cmds[i]
 
-    local ok, err = self:connect_mod(redis)
-    if not ok or err then
-        return nil, err
-    end
-
-    local fun = redis[cmd]
-    local result, err = fun(redis, ...)
-    if not result or err then
-        -- ngx.log(ngx.ERR, "pipeline result:", result, " err:", err)
-        return nil, err
-    end
-
-    if is_redis_null(result) then
-        result = nil
-    end
-
-    self.set_keepalive_mod(redis)
-
-    return result, err
+    _M[cmd] =
+        function (self, ...)
+            return _do_cmd(self, cmd, ...)
+        end
 end
 
-function _M.new(self, opts)
 
-    opts = opts or {}
-    local timeout = (opts.timeout and opts.timeout * 1000) or 1000
-    local db_index= opts.db_index or 0
+for i = 1, #sub_commands do
+    local cmd = sub_commands[i]
 
-    for i = 1, #commands do
-        local cmd = commands[i]
-        _M[cmd] = 
-                function (self, ...)
-                    return do_command(self, cmd, ...)
-                end
+    _M[cmd] =
+        function (self, ...)
+            self._subscribed = true
+            return _do_cmd(self, cmd, ...)
+        end
+end
+
+
+for i = 1, #unsub_commands do
+    local cmd = unsub_commands[i]
+
+    _M[cmd] =
+        function (self, ...)
+            local res, err = _do_cmd(self, cmd, ...)
+            _check_subscribed(self, res)
+            return res, err
+        end
+end
+
+
+function _M.hmset(self, hashname, ...)
+    if select('#', ...) == 1 then
+        local t = select(1, ...)
+
+        local n = 0
+        for k, v in pairs(t) do
+            n = n + 2
+        end
+
+        local array = new_tab(n, 0)
+
+        local i = 0
+        for k, v in pairs(t) do
+            array[i + 1] = k
+            array[i + 2] = v
+            i = i + 2
+        end
+        -- print("key", hashname)
+        return _do_cmd(self, "hmset", hashname, unpack(array))
     end
 
-    return setmetatable({ timeout = timeout, db_index = db_index, _reqs = nil }, mt)
+    -- backwards compatibility
+    return _do_cmd(self, "hmset", hashname, ...)
 end
+
+
+function _M.init_pipeline(self, n)
+    self._reqs = new_tab(n or 4, 0)
+end
+
+
+function _M.cancel_pipeline(self)
+    self._reqs = nil
+end
+
+
+function _M.commit_pipeline(self)
+    local reqs = rawget(self, "_reqs")
+    if not reqs then
+        return nil, "no pipeline"
+    end
+
+    self._reqs = nil
+
+    local sock = rawget(self, "_sock")
+    if not sock then
+        return nil, "not initialized"
+    end
+
+    local bytes, err = sock:send(reqs)
+    if not bytes then
+        return nil, err
+    end
+
+    local nvals = 0
+    local nreqs = #reqs
+    local vals = new_tab(nreqs, 0)
+    for i = 1, nreqs do
+        local res, err = _read_reply(self, sock)
+        if res then
+            nvals = nvals + 1
+            vals[nvals] = res
+
+        elseif res == nil then
+            if err == "timeout" then
+                close(self)
+            end
+            return nil, err
+
+        else
+            -- be a valid redis error value
+            nvals = nvals + 1
+            vals[nvals] = {false, err}
+        end
+    end
+
+    return vals
+end
+
+
+function _M.array_to_hash(self, t)
+    local n = #t
+    -- print("n = ", n)
+    local h = new_tab(0, n / 2)
+    for i = 1, n, 2 do
+        h[t[i]] = t[i + 1]
+    end
+    return h
+end
+
+
+-- this method is deperate since we already do lazy method generation.
+function _M.add_commands(...)
+    local cmds = {...}
+    for i = 1, #cmds do
+        local cmd = cmds[i]
+        _M[cmd] =
+            function (self, ...)
+                return _do_cmd(self, cmd, ...)
+            end
+    end
+end
+
+
+setmetatable(_M, {__index = function(self, cmd)
+    local method =
+        function (self, ...)
+            return _do_cmd(self, cmd, ...)
+        end
+
+    -- cache the lazily generated method in our
+    -- module table
+    _M[cmd] = method
+    return method
+end})
+
 
 return _M

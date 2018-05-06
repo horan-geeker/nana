@@ -137,7 +137,7 @@ ok,err = User:where('id','=','1'):delete()
 
 #### 使用原生 sql 执行
 
-> 注意需要自己去处理sql注入
+> 注意需要自己去处理sql注入  
 `local Database = require('lib.database')`
 * local res = Database:query(sql) -- 执行数据查询语言DQL,返回结果集
 * local affected_rows, err = Database:execute(sql) -- 执行数据操纵语言DML,返回`受影响的行`或`false`和`错误信息`

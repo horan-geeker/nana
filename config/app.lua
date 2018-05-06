@@ -9,7 +9,7 @@ return {
     pool_timeout = 10000,
     pool_size = 10000,
     session_lifetime = 3600 * 24 * 356, --sec one year
-    max_request_per_second = 300,
+    max_request_per_second = 3000, -- throttle flow request per second
     user_table_name = 'users',
     login_id = 'phone', -- login method use email/username/phone...etc
     time_zone = 'UTC+8',

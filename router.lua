@@ -3,7 +3,9 @@ local route = require('providers.route_service_provider')
 local _M = {}
 
 function _M:init()
-
+    route:group({
+        'throttle'
+    }, function() 
         route:get('/index', 'index_controller', 'index')
         route:get('/captcha', 'auth_controller', 'getCaptcha')
         route:post('/register', 'auth_controller', 'register')
@@ -26,11 +28,8 @@ function _M:init()
                 route:get('/home')
             end)
         end)
-        route:group({
-            'throttle'
-        }, function()
-            route:get('/phone/code', 'auth_controller', 'getPhoneCode')
-        end)
+        route:post('/phone/code', 'auth_controller', 'getPhoneCode')
+    end)
     
     ngx.log(ngx.WARN, 'not find method, uri in router.lua or didn`t response in action, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
 end

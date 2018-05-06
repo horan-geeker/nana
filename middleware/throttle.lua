@@ -13,12 +13,12 @@ function _M:handle()
     else
         if times > access_limit then
             ngx.log(ngx.WARN, 'request limit '..times)
-            return false, 6
+            return false, 0x000006
         else
             local ok,err = shared_dict:incr(key, 1)
             if not ok then
                 ngx.log(ngx.ERR, err)
-                return false, 7
+                return false, 0x000007
             end
         end
     end

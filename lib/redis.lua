@@ -1,10 +1,10 @@
 local common = require("lib.common")
 local redis = require("lib.resty_redis")
-local config = require('config.app')
+local env = require('env')
 
 local _M = setmetatable({}, {__index=function(self, key)
 	local red = redis:new()
-	local ok,err = red:connect(config.redis_host, config.redis_port)
+	local ok,err = red:connect(env.redis_host, env.redis_port)
 	if not ok then
 		ngx.log(ngx.ERR, err)
 	end

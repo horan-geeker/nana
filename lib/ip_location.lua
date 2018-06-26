@@ -1,5 +1,6 @@
 #!/usr/bin/env lua
 local ngx = require('ngx')
+local config = require("config.app")
 
 local setmetatable = setmetatable
 local byte = string.byte
@@ -115,9 +116,10 @@ end
 
 -- 初始化
 function _M.new(self, address, token)
-    return setmetatable({ _ipAddress = address, _token = token, _ipBinaryFilePath = require("config.app").ip_binary_file_path }, mt)
+    -- @todo fix file path
+    -- ngx.log(ngx.ERR, cjson.encode(ngx.var.realpath_root))
+    return setmetatable({ _ipAddress = address, _token = token, _ipBinaryFilePath = '/var/www/nana/lib/17monipdb.dat' }, mt)
 end
-
 
 -- 从文件获取地区信息
 function _M.ipLocation(self, ipstr)
@@ -176,7 +178,7 @@ function _M.location(self)
 
     local address = self:ipLocation(ipAddress)
     if not address then
-        ngx.log(ngx.ERR, { "ip address data nil" })
+        ngx.log(ngx.ERR, "ip address data nil")
         return nil, "ip address data nil"
     end
 

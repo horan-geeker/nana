@@ -1,18 +1,23 @@
 # Nana
 
+[English Document](README_en.md)
+
 ## 为 api 设计的 lua 框架
 
 `openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，项目集成了多个组件，目前支持丰富的功能。
 
 ## 安装
 
+### 使用 docker 安装
+
+执行 `docker-compose up`
+
+### 手动安装
+
 * `git clone https://github.com/horan-geeker/nana.git`
-* 项目的入口文件是 `bootstrap.lua` 你可以把你的路由写入 `router.lua` 文件,参考项目中的 `nginx.conf` 配置 `openresty` 
-* 项目的配置文件都在 `config` 目录下 `app.lua`,其中 `db_name` 是数据库名, `user` `password` 是数据库的用户名密码, 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名, `login_id` 用于登录的列名，并且根据下边的数据库结构进行设计。
-
-### 非必要的配置
-
-* 项目跟目录执行 `cp env.example.lua env.lua`，复制 `env.example.lua` 到项目根目录下，命名为 `env.lua`，这个文件不包含在版本库里，密码等相关敏感信息可以写在这个文件。
+* 配置 `nginx`，项目的入口文件是 `bootstrap.lua` 配置的时候指到这里就好，项目中的 `nginx.conf` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
+* 执行 `cp env.example.lua env.lua` 其中 `db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`mysql_host` 是数据库地址，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交，
+> 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ## 文档
 
@@ -24,7 +29,9 @@
 route:post('/login', 'auth_controller', 'login')
 ```
 
-同时也支持路由群组，使用中间件来解决问题，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在路由群组的地方写一句就ok了，这样就会在调用 `controller` 之前先调用 `middleware > authenticate.lua` 的 `handle()` 方法：
+#### 路由群组
+
+路由群组目前主要的作用是使用中间件来解决一些问题，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在路由群组的地方写一句就ok了，这样就会在调用 `controller` 之前先调用 `middleware > authenticate.lua` 的 `handle()` 方法：
 
 ```
 route:group({
@@ -87,9 +94,11 @@ local ok,msg = validator:check(args, {
 ```
 
 ### 数据库操作 ORM
+
 默认的数据库操作都使用了 `ngx.quote_sql_str` 处理了 `sql注入问题`
 
 #### CURD
+
 ```
 local Model = require('models.model')
 local User = Model:new('users') -- 初始化 `User` 模型,约定俗成 `User` 的模型对应 `users` 表名,当然你也可以修改 `new()` 的参数为其他名称
@@ -118,10 +127,13 @@ ok,err = User:where('id','=','1'):delete()
 ```
 
 #### 排序
+
 `orderby(column, option)`方法，第一个参数传入排序的列名，第二个参数默认为`ASC` 也可以传入 `ASC 正序 或 DESC 倒序`(不区分大小写)，`Post:orderby('created_at'):get()`
 
 #### 分页
+
 模型支持`paginate(per_page)`方法，需要传入当前页码,`User:paginate(1)`,返回值如下结构：
+
 ```
 {
     "prev_page": null,
@@ -133,12 +145,14 @@ ok,err = User:where('id','=','1'):delete()
     "next_page": 2
 }
 ```
+
 当不存在下一页时，`next_page`为`null`
 
 #### 使用原生 sql 执行
 
-> 注意需要自己去处理sql注入  
+> 使用原生 sql 是需要注意自己去处理sql注入  
 `local Database = require('lib.database')`
+
 * local res = Database:query(sql) -- 执行数据查询语言DQL,返回结果集
 * local affected_rows, err = Database:execute(sql) -- 执行数据操纵语言DML,返回`受影响的行`或`false`和`错误信息`
 
@@ -259,65 +273,13 @@ end
 ![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
 
+### todo list
+
+* 登录增加失败次数限制
+* 解析 multipart/form-data 请求
+
 ### qq群 284519473
 
 ### 联系作者 wechat
 
 ![img](https://github.com/horan-geeker/hexo/blob/master/imgs/wechat-avatar.jpeg?raw=true)
-
-## Lua framework for web API
-
-It is a middleware to resolve user authenticate, you can use this to login or register user, and use other language(Java PHP) as downstream program to process other business logic at the same time.
-The entrance of this framework is bootstrap.lua, and you can write your routes in `router.lua`. if URL doesn't match any route, it will be processed by downstream program
-
-## reference Laravel framework styles
-
-### middleware
-
-Middleware can be used in `router.lua` and you can write middleware in `middleware` directory, there is a demo as `example_middleware.lua`
-
-#### service provider
-
-There are auth_service and route_service in `providers` directory.
-
-## install
-
-* We already have a nginx.conf in project, you can see it.
-* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `user_table_name` that represents the table name which you want store user data, `login_id` is a column name which is used for authentication.
-* Write your routes in router.lua.
-
-## database schema
-
-users
-```
-CREATE TABLE `users` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `nickname` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `avatar` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '''''',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-```
-
-id | nickname | email | password | avatar | created_at | updated_at
----| -------- | ----- | -------- | ------ | ---------- | ----------
- 1 | horan | 13571899655@163.com|3be64**| http://avatar.com | 2017-11-28 07:46:46 | 2017-11-28 07:46:46
-
-account_log
-```
-CREATE TABLE `account_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ip` varchar(255) NOT NULL DEFAULT '',
-  `city` varchar(10) NOT NULL DEFAULT '',
-  `type` varchar(255) NOT NULL DEFAULT '',
-  `time_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
-```
-
-id | ip | city | type | time_at
----| ---| ---- | ---- | -------
- 1 | 1.80.146.218 | Xian | login | 2018-01-04 04:01:02

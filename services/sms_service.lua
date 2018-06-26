@@ -5,7 +5,7 @@ local cjson = require('cjson')
 local _M = {}
 
 local function generateSendCloudSignature(phone, code)
-    local conf = env['sendcloud']
+    local conf = config.sendcloud
     local signStr = ''
     local params = {smsUser=conf['smsUser'],templateId=conf['templateId'],phone=phone,vars={code=code}}
     for k,v in pairsByKeys(params) do
@@ -22,7 +22,7 @@ local function generateSendCloudSignature(phone, code)
 end
 
 local function sendMessageToSendCloud(phone, code, signature, signStr)
-    local url = env['sendcloud']['url'] .. '?' .. signStr .. 'signature='..signature
+    local url = config['sendcloud']['url'] .. '?' .. signStr .. 'signature='..signature
     local httpClient = http.new()
     local res, err = httpClient:request_uri(url, {ssl_verify=false})
     if not res then

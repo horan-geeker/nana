@@ -3,19 +3,21 @@ local _M = {}
 
 function _M:all()
 	local data = {}
-	if ngx.req.get_method() == "GET" then
+	if ngx.req.get_method() == "GET" or ngx.req.get_method() == "HEAD" then
 		data = ngx.req.get_uri_args()
-	elseif ngx.req.get_method() == "POST" then
-		if ngx.req.get_headers()["Content-Type"] == 'application/json' then
+	else
+		ngx.req.read_body() -- open read body
+		if ngx.req.get_headers()['Content-Type'] then
+			local start_pos, end_pos = string.find(ngx.req.get_headers()['Content-Type'], 'application/json')
+		else
+			local start_pos = nil
+		end
+		if start_pos ~= nil then
 			data = cjson.decode(ngx.req.get_body_data())
 		else
-			ngx.req.read_body()
 			data = ngx.req.get_post_args()
 		end
-	else
-		data = cjson.decode(ngx.req.get_body_data())
 	end
-
 	return data
 end
 

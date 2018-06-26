@@ -4,8 +4,6 @@
 local router = require('router')
 --get helper function
 require('lib.helpers')
--- get env config
-env = require('env')
 
 local _M = {}
 

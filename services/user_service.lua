@@ -24,6 +24,9 @@ function _M:authorize(user)
     -- 每次ip定位都会有 IO 消耗，读ip二进制dat文件
     local ipObj, err = ipLocation:new(ngx.var.remote_addr)
     local location, err = ipObj:location()
+    if not location then
+        return false, err
+    end
     AccountLog:create(
         {
             ip = ngx.var.remote_addr,
@@ -32,6 +35,7 @@ function _M:authorize(user)
             type = 'login'
         }
     )
+    return true
 end
 
 return _M

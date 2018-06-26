@@ -1,14 +1,14 @@
 local Database = require('lib.database')
 local Validator = require('lib.validator')
-local config = require('config.app')
 local common = require("lib.common")
 local cjson = require('cjson')
+local env = require('env')
 
 local _M = {}
 
 local mt = { __index = _M }
 
-Database = Database:new(config)
+Database = Database:new(env)
 
 function _M:all()
     return Database:query('select * from '..self.table)
@@ -60,7 +60,7 @@ function _M:orderby(column,operator)
 end
 
 function _M:paginate(page_num, per_page)
-	per_page = per_page or config.per_page
+	per_page = per_page or env.per_page
 	local sql, count_sql, total
 	local data={
 		data = {},

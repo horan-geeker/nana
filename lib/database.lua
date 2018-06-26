@@ -108,14 +108,14 @@ end
 
 function _M.new(self, opts)
     opts = opts or {}
-    local db_host = opts.host or '127.0.0.1'
-    local db_port = opts.port or 3306
-    local db_user = opts.user or 'root'
-    local db_password = opts.password or ' '
+    local db_host = opts.mysql_host or '127.0.0.1'
+    local db_port = opts.mysql_port or 3306
+    local db_user = opts.mysql_user or 'root'
+    local db_password = opts.mysql_password or ' '
     local db_name = opts.db_name or 'test'
     local db_timeout =  opts.db_timeout or 10000
-    local db_pool_timeout = opts.pool_timeout or 1000
-    local db_pool_size = opts.pool_size or 1000
+    local db_pool_timeout = opts.mysql_pool_timeout or 1000
+    local db_pool_size = opts.mysql_pool_size or 1000
     local db_charset = opts.charset or 'utf8'
 
     return setmetatable({

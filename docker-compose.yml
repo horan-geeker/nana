@@ -1,0 +1,47 @@
+version: "2.1"
+services:
+    nana:
+        build: .
+        image: nana
+        volumes:
+            - "./:/var/www/nana"
+            - "./nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
+            - "./nginx/logs:/usr/local/openresty/nginx/logs"
+        ports:
+            - 80:80
+            - 443:443
+        depends_on:
+            mysql:
+                condition: service_healthy
+        command: /bin/bash -c "/var/www/nana/install.sh && nginx -g 'daemon off;'"
+    mysql:
+        image: mysql:5.7
+        hostname: mysql-host
+        volumes:
+            - "./mysql:/var/lib/mysql"
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+        ports:
+            - 3306:3306
+        networks:
+            default:
+                aliases:
+                    - mysql-host
+        healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            interval: 20s
+            timeout: 5s
+            retries: 10
+    redis:
+        image: redis
+        volumes:
+            - ./redis/data:/data
+        ports:
+            - 6379:6379
+        networks:
+            default:
+                aliases: 
+                    - redis-host
+networks:
+    default:
+        driver: bridge

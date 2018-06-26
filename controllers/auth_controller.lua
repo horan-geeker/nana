@@ -17,7 +17,7 @@ local sms_service = require('services.sms_service')
 local _M = {}
 
 function _M:getPhoneCode()
-    local conf = env['sendcloud']
+    local conf = config.sendcloud
     local args = request:all()
     local ok, msg =
         validator:check(
@@ -36,7 +36,7 @@ function _M:getPhoneCode()
         common:response(0x000007, err)
     else
         local smscode =
-            random.number(math.pow(10, config['phone_code_len'] - 1), math.pow(10, config['phone_code_len']) - 1)
+            random.number(math.pow(10, config.phone_code_len - 1), math.pow(10, config.phone_code_len) - 1)
         -- 用户第一次请求
         if data == nil then
             local ok, err = redis:set(key, smscode, 300)
@@ -116,10 +116,14 @@ function _M:login()
             -- login fail
             common:response(0x010002, config.login_id .. ' or password error')
         else
-            user_service:authorize(user)
+            ok, err = user_service:authorize(user)
+            if not ok then
+                -- @todo should render only error message
+                common:response(0x000001, err)
+            end
         end
     else
-        common:response(0x000001)
+        common:response(0x000001, 'need sms or password')
     end
     
     common:response(0, 'ok', user)

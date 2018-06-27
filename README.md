@@ -10,18 +10,29 @@
 
 ### 使用 docker 安装
 
-执行 `docker-compose up`
+* 执行 `cp env.example.lua env.lua` 其中 `db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`mysql_host` 是数据库地址，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交
+* 执行 `docker-compose up`
 
 ### 手动安装
 
 * `git clone https://github.com/horan-geeker/nana.git`
+* 同上执行 `cp env.example.lua env.lua` 并配置
 * 配置 `nginx`，项目的入口文件是 `bootstrap.lua` 配置的时候指到这里就好，项目中的 `nginx.conf` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
-* 执行 `cp env.example.lua env.lua` 其中 `db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`mysql_host` 是数据库地址，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交，
+
 > 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ## 文档
 
 ### 路由
+
+#### 支持 http 请求类型
+
+* GET
+* POST
+* PATCH
+* PUT
+* DELETE
+* HEAD
 
 > 路由文件在项目根目录 `router.lua`，如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：
 
@@ -248,7 +259,7 @@ location.country
 
 ### helper function
 
-系统在`bootstrap`默认已经全局加载`lib.helpers.lua`
+系统在`bootstrap`默认已经全局加载`lib/helpers.lua`
 
 #### 按 key 排序的迭代器
 
@@ -270,7 +281,7 @@ end
 
 ## 使用范例：内置用户认证，包含登录注册等功能
 
-![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)
+![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
 
 ### todo list

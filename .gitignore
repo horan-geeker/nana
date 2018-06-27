@@ -2,6 +2,3 @@ env.lua
 .idea
 .vscode
 storage/*
-mysql/
-redis/
-nginx/logs/*

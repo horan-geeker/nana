@@ -2,7 +2,7 @@ version: "2.1"
 services:
     nana:
         build: .
-        image: nana
+        image: openresty-nana:0.1
         volumes:
             - "./:/var/www/nana"
             - "./nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
@@ -15,10 +15,11 @@ services:
                 condition: service_healthy
         command: /bin/bash -c "/var/www/nana/install.sh && nginx -g 'daemon off;'"
     mysql:
-        image: mysql:5.7
+        build: ./mysql
+        image: mysql-nana:0.1
         hostname: mysql-host
         volumes:
-            - "./mysql:/var/lib/mysql"
+            - "./mysql/data:/var/lib/mysql"
         environment:
             - MYSQL_ROOT_PASSWORD=root
         ports:

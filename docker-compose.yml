@@ -1,19 +1,20 @@
 version: "2.1"
 services:
-    nana:
+    openresty:
         build: .
         image: openresty-nana:0.1
         volumes:
             - "./:/var/www/nana"
-            - "./nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
+            - "./nginx/conf/nginx.conf.raw:/usr/local/openresty/nginx/conf/nginx.conf.raw"
             - "./nginx/logs:/usr/local/openresty/nginx/logs"
         ports:
-            - 80:80
-            - 443:443
+            - 8888:80
+            - 4433:443
         depends_on:
             mysql:
                 condition: service_healthy
-        command: /bin/bash -c "/var/www/nana/install.sh && nginx -g 'daemon off;'"
+        env_file: .env
+        command: /bin/bash -c "envsubst '$$UPSTREAM_URL' < /usr/local/openresty/nginx/conf/nginx.conf.raw > /usr/local/openresty/nginx/conf/nginx.conf && /var/www/nana/install.sh && nginx -g 'daemon off;'"
     mysql:
         build: ./mysql
         image: mysql-nana:0.1
@@ -23,7 +24,7 @@ services:
         environment:
             - MYSQL_ROOT_PASSWORD=root
         ports:
-            - 3306:3306
+            - 33060:3306
         networks:
             default:
                 aliases:
@@ -38,7 +39,7 @@ services:
         volumes:
             - ./redis/data:/data
         ports:
-            - 6379:6379
+            - 63790:6379
         networks:
             default:
                 aliases: 

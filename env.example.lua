@@ -10,4 +10,9 @@ return {
     db_timeout = 10000, -- mysql timeout
     redis_host = "redis-host", -- redis host
     redis_port = 6379, -- redis port
+    sendcloud = {
+        SMSKEY = "xxxxx",
+        SMSUSER = "xxxxx",
+        TEMPLATEID = 0
+    }
 }

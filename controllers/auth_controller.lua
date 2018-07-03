@@ -8,7 +8,6 @@ local auth = require('providers.auth_service_provider')
 local cjson = require('cjson')
 local user_service = require('services.user_service')
 local random = require('lib.random')
-local ipLocation = require('lib.ip_location')
 local env = require('env')
 local random = require('lib.random')
 local redis = require('lib.redis')
@@ -16,7 +15,7 @@ local sms_service = require('services.sms_service')
 
 local _M = {}
 
-function _M:getPhoneCode()
+function _M:send_sms()
     local conf = config.sendcloud
     local args = request:all()
     local ok, msg =
@@ -99,19 +98,19 @@ function _M:login()
     if not ok then
         common:response(0x000001, msg)
     end
-    local ok, user = User:findByLoginId(args[config.login_id])
+    local ok, user = User:find_by_login_id(args[config.login_id])
     if not ok then
         common:response(0x010003)
     end
     if args.smscode then
-        ok = user_service:verifyCheckcode(args[config.login_id], args.smscode)
+        ok = user_service:verify_checkcode(args[config.login_id], args.smscode)
         if not ok then
             common:response(0x000001, 'invalidate sms code')
         else
             user_service:authorize(user)
         end
     elseif args.password then
-        local ok, user = User:verifyPassword(args[config.login_id], args.password)
+        ok, err = user_service:verify_password(args.password, user.password)
         if not ok then
             -- login fail
             common:response(0x010002, config.login_id .. ' or password error')
@@ -137,29 +136,23 @@ function _M:register()
         {
             config.login_id,
             'password',
-            'smscode'
         }
     )
     if not ok then
         common:response(0x000001, msg)
     end
-    -- 先校验验证码
-    ok = user_service:verifyCheckcode(args[config.login_id], args.smscode)
-    if not ok then
-        common:response(0x000001, 'invalidate checkcode')
-    end
     -- 检测是否重复
-    ok = User:findByLoginId(args[config.login_id])
+    ok = User:find_by_login_id(args[config.login_id])
     if ok then
         common:response(0x010001)
     end
 
-    local obj = {
+    local user_obj = {
         nickname = random.token(8),
         password = common:hash(args.password)
     }
-    obj[config.login_id] = args[config.login_id]
-    ok = User:create(obj)
+    user_obj[config.login_id] = args[config.login_id]
+    ok = User:create(user_obj)
     if not ok then
         common(0x000005)
     end
@@ -175,7 +168,36 @@ function _M:logout()
     return common:response(0)
 end
 
-function _M:getCaptcha()
+function _M:reset_password()
+    local args = request:all()
+    local ok, msg = validator:check(args, {
+        'old_password',
+        'new_password'
+        })
+    if not ok then
+        common:response(0x000001, msg)
+    end
+    if args.old_password == args.new_password then
+        common:response(0x010007)
+    end
+    local ok,user = auth:user()
+    local password = args.old_password
+    ok = user_service:verify_password(args.old_password, user.password)
+    if not ok then
+        -- password error
+        common:response(0x010005)
+    end
+    local ok, err = User:where('id', '=', user.id):update({
+        password=common:hash(args.new_password)
+    })
+    if not ok then
+        common:response(0x000005)
+    end
+    ok, err = auth:clear_token()
+    if not ok then
+        common:response(0x010006)
+    end
+    common:response(0)
 end
 
 return _M

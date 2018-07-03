@@ -7,16 +7,25 @@ function _M:init()
         'throttle'
     }, function()
         route:get('/index', 'index_controller', 'index') -- route:http_method(uri, controller, action)
-        route:post('/register', 'auth_controller', 'register')
         route:post('/login', 'auth_controller', 'login')
+        route:group({
+            'verify_sms_code'
+        }, function()
+            route:post('/register', 'auth_controller', 'register')
+        end)
+        route:post('/send/sms', 'auth_controller', 'send_sms')
         route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')
-        route:post('/phone/code', 'auth_controller', 'getPhoneCode')
         route:group({
             'authenticate',
             -- 'example_middleware'
         }, function()
             route:post('/logout', 'auth_controller', 'logout')
-            route:post('/reset-password', 'user_controller', 'resetPassword')
+            route:patch('/reset-password', 'auth_controller', 'reset_password')
+            route:group({
+                'verify_sms_code'
+            }, function()
+                route:patch('/forget-password', 'auth_controller', 'forget_password')
+            end)
             route:group({
                 'token_refresh'
             }, function()

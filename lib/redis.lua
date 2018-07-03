@@ -28,7 +28,12 @@ function _M:set(key, value, time)
 end
 
 function _M:get(key)
-	return self.red:get(key)
+	local value = self.red:get(key)
+	if value == ngx.null then
+		return nil
+	else
+		return value
+	end
 end
 
 function _M:del(key)

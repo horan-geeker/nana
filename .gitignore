@@ -2,3 +2,4 @@ env.lua
 .idea
 .vscode
 storage/*
+.env

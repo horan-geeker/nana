@@ -17,7 +17,12 @@ return {
     [0x010001] = 'phone number already exits',
     [0x010002] = 'phone no or password error',
     [0x010003] = 'user not exits',
+    [0x010004] = 'sms code error',
+    [0x010005] = 'reset password fail, old password error',
+    [0x010006] = 'reset password fail, unknow error',
+    [0x010007] = 'reset password fail, new password cannot equal to old password',
+    [0x010008] = 'get user info fail, system error',
 
     -- notify module
-    [0x020001] = 'code not expire'
+    [0x020001] = 'send sms fail, you can only send once ervey 60 secs'
 }

@@ -2,22 +2,29 @@
 
 [English Document](README_en.md)
 
-## 为 api 设计的 lua 框架
+## 介绍
 
-`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，项目集成了多个组件，目前支持丰富的功能。
+### 为 api 设计的 lua 框架
+
+`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，项目集成了多个组件，目前支持丰富的功能。如果你单纯使用 lua 来做 http 服务器的话，在 nginx 配置中使用 content_by_lua 来指定入口文件，否则按照项目默认的模式进行安装
+
+### 中间件模式
+
+通过 `access_by_lua` 阶段使得 lua 成为中间件，再通过 `proxy_pass` 指定下游主机，一个 api 请求会先通过 nana，如果匹配到了路由则执行对应控制器里的逻辑，如果没有匹配到路由则会直接执行 `proxy_pass` 指定的下游主机，如果匹配到了路由，但是控制器没有返回 body（也即是代码没有执行`common:response()` 或 `ngx.say()`）仍然会是在执行完 nana 的逻辑之后并且执行下游主机的逻辑，所以说，`nana` 在这里是一个系统层面的中间件
 
 ## 安装
 
 ### 使用 docker 安装
 
 * 执行 `cp env.example.lua env.lua` 其中 `db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`mysql_host` 是数据库地址，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交
+* 执行 `cp .env.example .env` 这是 docker 配置的环境变量，会替换 `nginx` 中的 `proxy_pass` 来指定下游的主机
 * 执行 `docker-compose up`
 
 ### 手动安装
 
 * `git clone https://github.com/horan-geeker/nana.git`
 * 同上执行 `cp env.example.lua env.lua` 并配置
-* 配置 `nginx`，项目的入口文件是 `bootstrap.lua` 配置的时候指到这里就好，项目中的 `nginx.conf` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
+* 配置 `nginx`，项目的入口文件是 `bootstrap.lua` 配置的时候指到这里就好，项目中的 `nginx/conf/nginx.conf.raw` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
 
 > 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
@@ -169,20 +176,10 @@ ok,err = User:where('id','=','1'):delete()
 
 ### cookie
 
+在 `helper.lua` 中包含了 `cookie` 的辅助方法，全局已经引用了该文件，可以直接使用函数
 ```
-local cookie_obj = require("lib.cookie")
-local cookie, err = cookie_obj:new()
-config.time_zone -- 取到cookie里的属性，'UTF8'
--- 封装cookie对象来写入
-local cookie_payload = {
-    key = token_name, value = ''
-}
-cookie_payload.value = 'xxx'
-local ok, err = cookie:set(cookie_payload)
-if not ok then
-    ngx.log(ngx.ERR, err)
-    return false
-end
+set_cookie(key, value, expire) -- expire 是可选参数，单位是时间戳，精确到秒
+get_cookie(key)
 ```
 
 ### redis
@@ -250,8 +247,8 @@ local data = cjson.decode(res.body)
 ### 根据ip获取地理位置
 
 ```
-local ipLocation = require("lib.ip_location")
-local ipObj, err = ipLocation:new(ngx.var.remote_addr)
+local ip_location = require("lib.ip_location")
+local ipObj, err = ip_location:new(ngx.var.remote_addr)
 local location, err = ipObj:location()
 location.city
 location.country

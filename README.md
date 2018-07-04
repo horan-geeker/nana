@@ -17,7 +17,7 @@
 ### 使用 docker 安装
 
 * 执行 `cp env.example.lua env.lua` 其中 `db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`mysql_host` 是数据库地址，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交
-* 执行 `cp .env.example .env` 这是 docker 配置的环境变量，会替换 `nginx` 中的 `proxy_pass` 来指定下游的主机
+* 执行 `cp .env.example .env` 这是 docker 配置的环境变量，通过修改 `UPSTREAM_URL` 来指定下游的主机（实际上直接替换了 `nginx` 中的 `proxy_pass`）
 * 执行 `docker-compose up`
 
 ### 手动安装
@@ -276,15 +276,106 @@ end
 
 推荐在写一些中大型项目时，`controller` （对应项目中的`controllers文件夹`）里只对http请求进行处理，例如对参数的验证，返回`json`的格式等，而不要去处理商业逻辑，商业逻辑可以写在 `service` 里（对应项目中`services文件夹`），再从 `controller` 中调用，可以写出更清晰的代码，也方便将来单元测试
 
-## 使用范例：内置用户认证，包含登录注册等功能
+## 用户通行证 API 接口说明
 
 ![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
 
+### 注册
+
+```
+curl -X "POST" "http://localhost:8888/register" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "phone": "135xxxxxxxx",
+  "sms_code": "9492",
+  "password": "123456"
+}'
+```
+
+#### 参数说明
+
+* phone 手机号
+* sms_code 手机验证码
+* password 密码
+
+### 登录
+
+```
+curl -X "POST" "http://localhost:8888/login" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "phone": "135xxxxxxxx",
+  "password": "123456"
+}'
+```
+
+#### 参数说明
+
+* phone 手机号
+* password 密码
+
+### 发送短信(未登录)
+
+```
+curl -X "POST" "http://localhost:8888/send/sms" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "phone": "135********"
+}'
+```
+
+#### 参数说明
+
+* phone 手机号
+
+### 重置密码
+
+```
+curl -X "PATCH" "http://localhost:8888/reset-password" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{
+  "old_password": "1234567",
+  "new_password": "123456"
+}'
+```
+
+#### 参数说明
+
+* old_password 旧密码
+* new_password 新密码
+* 需要携带 cookie token
+
+## 退出登录
+
+```
+curl -X "POST" "http://localhost:8888/logout" \
+     -H 'Content-Type: application/json; charset=utf-8' \
+     -d $'{}'
+```
+
+#### 参数说明
+
+* 需要携带 cookie token
+
+### 获取用户信息
+
+```
+curl "http://localhost:8888/userinfo"
+```
+
+#### 参数说明
+
+* 需要携带 cookie token
+
 ### todo list
 
-* 登录增加失败次数限制
+* 增加已登录发送短信接口
+* 可配置是否使用短信验证码
 * 解析 multipart/form-data 请求
+* 登录增加失败次数限制
+* 集成国际短信验证码业务，twilio
+* 密码加密
 
 ### qq群 284519473
 

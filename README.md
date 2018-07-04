@@ -2,6 +2,14 @@
 
 [English Document](README_en.md)
 
+目录
+====
+
+* [介绍](#介绍)
+    * [为 api 设计的 lua 框架](#为-api-设计的-lua-框架)
+    * [中间件模式](#中间件模式)
+* [安装](#安装)
+
 ## 介绍
 
 ### 为 api 设计的 lua 框架
@@ -371,7 +379,7 @@ curl "http://localhost:8888/userinfo"
 ### todo list
 
 * 增加已登录发送短信接口
-* 可配置是否使用短信验证码
+* 可配置是否使用短信验证码
 * 解析 multipart/form-data 请求
 * 登录增加失败次数限制
 * 集成国际短信验证码业务，twilio

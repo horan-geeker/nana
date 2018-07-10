@@ -1,6 +1,6 @@
 local cjson = require('cjson')
 local conf = require('config.app')
-local status_code = require('config.status')
+local error_code = require('config.status')
 
 local _M = {}
 
@@ -24,7 +24,12 @@ end
 
 function _M:response(status, message, data)
 	-- you can modify this resp struct as you favor
-	local msg = message or status_code[status]
+	local msg = message
+	if message == nil or message == '' then
+		if error_code[conf.locale] ~= nil then
+			msg = error_code[conf.locale][status]
+		end
+	end
 	local resp = {status=status, msg=msg, data=data}
 	if not resp.status then
 		resp.status = -1

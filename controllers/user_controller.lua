@@ -9,21 +9,16 @@ local user_service = require('services.user_service')
 local _M = {}
 
 function _M:show(user_id)
-    ngx.log(ngx.ERR, user_id, comment_id)
-    common:response(0, 'show', {user_id=user_id, comment_id=comment_id})
+    common:response(0, 'show', {user_id=user_id})
 end
 
 function _M:comments(user_id, comment_id)
-    ngx.log(ngx.ERR, user_id, comment_id)
     common:response(0, 'comments', {user_id=user_id, comment_id=comment_id})
 end
 
 function _M:userinfo()
-    local ok,data = auth:user()
-    if not ok then
-        return common:response(0x010008, data)
-    end
-    return common:response(0,'ok',data)
+    local user = auth:user()
+    return common:response(0, 'ok', user)
 end
 
 return _M

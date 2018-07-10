@@ -6,9 +6,37 @@
 ====
 
 * [介绍](#介绍)
-    * [为 api 设计的 lua 框架](#为-api-设计的-lua-框架)
-    * [中间件模式](#中间件模式)
+  * [为 api 设计的 lua 框架](#为-api-设计的-lua-框架)
+  * [中间件模式](#中间件模式)
 * [安装](#安装)
+  * [使用 docker 安装](#使用-docker-安装)
+  * [手动安装](#手动安装)
+* [文档](#文档)
+  * [配置](#配置)
+  * [路由](#路由)
+  * [中间件](#中间件)
+  * [控制器](#控制器)
+    * [Service](#Service)
+  * [Request](#Request)
+    * [参数获取](#参数获取)
+    * [发起 http 请求](#发起-http-请求)
+  * [Response](#Response)
+    * [定义全局 response 结构](#定义全局-response-结构)
+  * [Cookie](#Cookie)
+  * [数据库操作 ORM](#数据库操作-ORM)
+    * [CURD](#CURD)
+    * [排序](#排序)
+    * [分页](#分页)
+    * [使用原生 sql](#使用原生-sql)
+  * [Redis](#Redis)
+  * [Helper Function](#Helper-Function)
+  * [综合](#综合)
+    * [Random](#Random)
+    * [IP 定位](#IP-定位)
+* [用户通行证 API 接口说明](#用户通行证-API-接口说明)
+* [TODO list](#TODO-list)
+* [qq群 284519473](#qq群-284519473)
+* [联系作者](#联系作者)
 
 ## 介绍
 
@@ -24,14 +52,15 @@
 
 ### 使用 docker 安装
 
-* 执行 `cp env.example.lua env.lua` 其中 `db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`mysql_host` 是数据库地址，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交
+* 执行 `cp env.example.lua env.lua` 其中 `mysql_host` 是数据库地址，`db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交，可以帮助区分线上和本地环境的不同配置
 * 执行 `cp .env.example .env` 这是 docker 配置的环境变量，通过修改 `UPSTREAM_URL` 来指定下游的主机（实际上直接替换了 `nginx` 中的 `proxy_pass`）
 * 执行 `docker-compose up`
 
 ### 手动安装
 
 * `git clone https://github.com/horan-geeker/nana.git`
-* 同上执行 `cp env.example.lua env.lua` 并配置
+* 同上执行 `cp env.example.lua env.lua` 并配置其中的数据库
+* 执行 `sudo chmod 755 install.sh && ./install.sh` 来生成数据库结构
 * 配置 `nginx`，项目的入口文件是 `bootstrap.lua` 配置的时候指到这里就好，项目中的 `nginx/conf/nginx.conf.raw` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
 
 > 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
@@ -98,13 +127,53 @@ end
 ```
 你可以把你自定义的中间件写到 `middleware` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
 
-### 获取参数
+### 控制器
+
+在路由匹配的`uri`，第二个参数就是控制器的路径，默认都是在`controllers`文件夹下的文件名称，第三个参数是对应该文件的方法，你可以在方法中返回 response 响应，也可以在处理完业务逻辑之后不返回响应，交由下游继续处理
+
+#### Service
+
+在项目逻辑较为复杂的情况下，可复用的情况也比较普遍，`controller`里如果有可以抽离出来的逻辑，我们可以把这部分写在`service`里（对应项目中`services文件夹`），其实如果严格规范的开发`controller`只对http请求进行处理，例如对参数的验证，返回`json`的格式等，而不用去处理商业逻辑，商业逻辑可以写在 `service` 里，再从 `controller` 中调用，可以写出更清晰的代码，也方便将来单元测试
+
+### Request
+
+#### 参数获取
 
 ```
 local request = require("lib.request")
 local args = request:all() -- 拿到所有参数，同时支持 get post 以及其他 http 请求
 args.username -- 拿到username参数
 ```
+
+#### 发起 http 请求
+
+使用了这个开源组件 https://github.com/pintsized/lua-resty-http
+
+```
+local http = require('lib.http')
+local httpc = http.new()
+local res, err = httpc:request_uri(url, {ssl_verify=false}) -- https 的请求出现异常可以带上这个参数，但是确保你是安全的
+if not res then
+    ngx.log(ngx.ERR, res, err)
+    return res, err
+end
+local data = cjson.decode(res.body)
+```
+
+### Response
+
+框架使用的 `common` 中的 `response` 方法通过定义数字来代表不同的`response`类型，你也可以直接写 ngx.say('') ngx.exit(ngx.OK),
+在 `config > status.lua` 中可以增加返回类型
+```
+local common = require("lib.common")
+common:response(1) -- 会去 `status.lua` 中找到 `1` 的错误信息，连同错误码 `1` 返回给前端
+common:response(0,'ok') -- 如果你传了第二个参数，会覆盖 `status.lua` 中的原有错误码对应的错误信息
+common:response(0, 'ok', data) -- 第三个参数用来传送数据,默认会进行 cjson.encode 所以只需要传数据即可
+```
+
+#### 定义全局 response 结构
+
+在`config`目录下的`status.lua`定义了返回的状态码和`msg`内容,你可以在这里新增或修改你想要的状态码，在系统中使用 `common:response(status)`的方式返回响应内容，默认的格式是`{"status":0,"message":"ok","data":{}}`你可以通过修改`common.lua`的`response`方法来自定义不同的结构
 
 ### 验证数据
 
@@ -117,6 +186,14 @@ local ok,msg = validator:check(args, {
     'password', -- 验证 password 参数需要携带
     id = {included={1,2,3}} -- 验证 id 参数需要携带且是 1, 2, 3 中的某一个
     })
+```
+
+### Cookie
+
+在 `helper.lua` 中包含了 `cookie` 的辅助方法，全局已经引用了该文件，可以直接使用函数
+```
+set_cookie(key, value, expire) -- expire 是可选参数，单位是时间戳，精确到秒
+get_cookie(key)
 ```
 
 ### 数据库操作 ORM
@@ -174,7 +251,7 @@ ok,err = User:where('id','=','1'):delete()
 
 当不存在下一页时，`next_page`为`null`
 
-#### 使用原生 sql 执行
+#### 使用原生 sql
 
 > 使用原生 sql 是需要注意自己去处理sql注入  
 `local Database = require('lib.database')`
@@ -182,15 +259,7 @@ ok,err = User:where('id','=','1'):delete()
 * local res = Database:query(sql) -- 执行数据查询语言DQL,返回结果集
 * local affected_rows, err = Database:execute(sql) -- 执行数据操纵语言DML,返回`受影响的行`或`false`和`错误信息`
 
-### cookie
-
-在 `helper.lua` 中包含了 `cookie` 的辅助方法，全局已经引用了该文件，可以直接使用函数
-```
-set_cookie(key, value, expire) -- expire 是可选参数，单位是时间戳，精确到秒
-get_cookie(key)
-```
-
-### redis
+### Redis
 
 ```
 local redis = require("lib.redis")
@@ -214,45 +283,23 @@ end
 系统也引用了`resty redis`
 `local restyRedis = require('lib.resty_redis')`
 
-### response
+### 综合
 
-框架使用的 `common` 中的 `response` 方法通过定义数字来代表不同的`response`类型，你也可以直接写 ngx.say('') ngx.exit(ngx.OK),
-在 `config > status.lua` 中可以增加返回类型
-```
-local common = require("lib.common")
-common:response(1) -- 会去 `status.lua` 中找到 `1` 的错误信息，连同错误码 `1` 返回给前端
-common:response(0,'ok') -- 如果你传了第二个参数，会覆盖 `status.lua` 中的原有错误码对应的错误信息
-common:response(0, 'ok', data) -- 第三个参数用来传送数据,默认会进行 cjson.encode 所以只需要传数据即可
-```
-
-### http请求
-
-使用了这个开源组件 https://github.com/pintsized/lua-resty-http
-
-```
-local http = require('lib.http')
-local httpc = http.new()
-local res, err = httpc:request_uri(url, {ssl_verify=false}) -- https 的请求出现异常可以带上这个参数，但是确保你是安全的
-if not res then
-    ngx.log(ngx.ERR, res, err)
-    return res, err
-end
-local data = cjson.decode(res.body)
-```
-
-### random
+#### Random
 
 `local random = require('lib.random')`
 
-#### 字母 + 数字
+##### 字母 + 数字
 
 `random.token(10)` -- 长度为10的
 
-#### 纯数字
+##### 纯数字
 
 `random.number(1000, 9999)`
 
-### 根据ip获取地理位置
+#### IP 定位
+
+目前使用离线的 dat 文件(`lib/17monipdb.dat`)进行 ip 定位，长时间后可能会有误差问题
 
 ```
 local ip_location = require("lib.ip_location")
@@ -262,7 +309,7 @@ location.city
 location.country
 ```
 
-### helper function
+### Helper Function
 
 系统在`bootstrap`默认已经全局加载`lib/helpers.lua`
 
@@ -275,14 +322,6 @@ for k,v in pairsByKeys(hashTable) do
     ...
 end
 ```
-
-### 返回 response
-
-在`config`目录下的`status.lua`定义了返回的状态码和`msg`内容,你可以在这里新增或修改你想要的状态码，在系统中使用 `common:response(status)`的方式返回响应内容，默认的格式是`{"status":0,"message":"ok","data":{}}`你可以通过修改`common.lua`的`response`方法来自定义不同的结构
-
-## 推荐的编码风格
-
-推荐在写一些中大型项目时，`controller` （对应项目中的`controllers文件夹`）里只对http请求进行处理，例如对参数的验证，返回`json`的格式等，而不要去处理商业逻辑，商业逻辑可以写在 `service` 里（对应项目中`services文件夹`），再从 `controller` 中调用，可以写出更清晰的代码，也方便将来单元测试
 
 ## 用户通行证 API 接口说明
 
@@ -376,17 +415,23 @@ curl "http://localhost:8888/userinfo"
 
 * 需要携带 cookie token
 
-### todo list
+## TODO list
 
-* 增加已登录发送短信接口
+* 增加多语言配置
 * 可配置是否使用短信验证码
 * 解析 multipart/form-data 请求
 * 登录增加失败次数限制
 * 集成国际短信验证码业务，twilio
 * 密码加密
 
-### qq群 284519473
+## qq群 284519473
 
-### 联系作者 wechat
+## 联系作者
+
+### mail
+
+#### 13571899655@163.com
+
+### wechat
 
 ![img](https://github.com/horan-geeker/hexo/blob/master/imgs/wechat-avatar.jpeg?raw=true)

@@ -2,8 +2,10 @@ local cjson = require('cjson')
 local config = require("config.app")
 local cookie_obj = require("lib.cookie")
 
+local _M = {}
+
 -- use for k,v in pairsByKeys(hashTable) then ... end sort a hashTable by key
-function pairsByKeys (t, f)
+function _M:pairsByKeys(t, f)
     local a = {}
     for n in pairs(t) do table.insert(a, n) end
     table.sort(a, f)
@@ -18,7 +20,7 @@ function pairsByKeys (t, f)
 
 end
 
-function set_cookie(key, value, expires)
+function _M:set_cookie(key, value, expires)
     local cookie, err = cookie_obj:new()
     if not cookie then
         ngx.log(ngx.ERR, err)
@@ -38,7 +40,7 @@ function set_cookie(key, value, expires)
     return true
 end
 
-function get_cookie(key)
+function _M:get_cookie(key)
     local cookie, err = cookie_obj:new()
     if not cookie then
         ngx.log(ngx.ERR, err)
@@ -47,7 +49,7 @@ function get_cookie(key)
     return cookie:get(key)
 end
 
-function get_local_time()
+function _M:get_local_time()
     local time_zone = ngx.re.match(config.time_zone, "[0-9]+")
     if time_zone == nil then
         local err = 'not set time zone or format error, time zone should look like `UTC+8` current is: '..config.time_zone
@@ -57,3 +59,5 @@ function get_local_time()
     -- time-zone * 60(sec) * 60(min) + UTC+0 time = current time
     return time_zone[0] * 3600 + ngx.time()
 end
+
+return _M

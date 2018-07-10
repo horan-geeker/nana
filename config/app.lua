@@ -1,6 +1,8 @@
 local env = require('../env')
 
 return {
+    locale = 'zh',
+    fallback_locale = 'en',
     login_id = "phone", -- login method use email/username/phone...etc
     time_zone = "UTC+8",
     session_lifetime = 3600 * 24 * 30, --sec, here means a month

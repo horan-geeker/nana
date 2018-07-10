@@ -13,12 +13,13 @@ function _M:init()
         }, function()
             route:post('/register', 'auth_controller', 'register')
         end)
-        route:post('/send/sms', 'auth_controller', 'send_sms')
+        route:post('/send/sms', 'notify/sms_notify_controller', 'guest_send_sms')
         route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')
         route:group({
             'authenticate',
             -- 'example_middleware'
         }, function()
+            route:post('/user/send/sms', 'notify/sms_notify_controller', 'user_send_sms')
             route:post('/logout', 'auth_controller', 'logout')
             route:patch('/reset-password', 'auth_controller', 'reset_password')
             route:group({

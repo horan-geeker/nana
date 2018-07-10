@@ -19,7 +19,7 @@ function _M:authorize(user)
     if not ok then
         ngx.log(ngx.ERR, 'cannot set redis key, error_msg:'..err)
     end
-    local ok, err = set_cookie(token_name, token, get_local_time() + config.session_lifetime)
+    local ok, err = helpers:set_cookie(token_name, token, helpers:get_local_time() + config.session_lifetime)
     if not ok then
         return false, err
     end
@@ -27,7 +27,7 @@ function _M:authorize(user)
 end
 
 function _M:check()
-    local token = get_cookie(token_name)
+    local token = helpers:get_cookie(token_name)
     if not token then
         return false, 'cookie not exist'
     end
@@ -39,10 +39,10 @@ function _M:check()
 end
 
 function _M:token_refresh()
-    local token = get_cookie(token_name)
+    local token = helpers:get_cookie(token_name)
     local token_ttl = redis:ttl(token_name..':'..token)
     if token_ttl < config.session_refresh_time then
-        local ok,err = set_cookie(token_name, token) -- @todo add refresh token in cookie?
+        local ok,err = helpers:set_cookie(token_name, token) -- @todo add refresh token in cookie?
         if not ok then
             return false, err
         end
@@ -55,11 +55,11 @@ function _M:token_refresh()
 end
 
 function _M:clear_token()
-    local token = get_cookie(token_name)
+    local token = helpers:get_cookie(token_name)
     if not token then
         return false, 'cookie not exist'
     end
-    local ok,err = set_cookie(token_name, '', get_local_time() - 1)
+    local ok,err = helpers:set_cookie(token_name, '', helpers:get_local_time() - 1)
     if not ok then
         return false, err
     end
@@ -71,12 +71,12 @@ function _M:clear_token()
 end
 
 function _M:user()
-    local token = get_cookie(token_name)
+    local token = helpers:get_cookie(token_name)
     if not token then
-        return false, 'token invalidate'
+        return nil
     end
     local userinfo = redis:get(token_name..':'..token)
-    return true, cjson.decode(userinfo)
+    return cjson.decode(userinfo)
 end
 
 return _M

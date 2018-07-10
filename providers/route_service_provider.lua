@@ -7,10 +7,10 @@ local controller_prefix = 'controllers.'
 local middleware_prefix = 'middleware.'
 
 
-local function route_match(route_url, current_url)
+local function route_match(route_url, http_url)
     local new_router_url, n, err = ngx.re.gsub(route_url, '\\{[\\w]+\\}', '(\\d+)')
-    new_router_url = new_router_url .. '$'
-    local captures, err = ngx.re.match(current_url, new_router_url, 'jo')
+    new_router_url = '^' .. new_router_url .. '$'
+    local captures, err = ngx.re.match(http_url, new_router_url, 'jo')
     if captures then
         captures[0] = nil;
         return true, captures

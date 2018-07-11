@@ -3,13 +3,19 @@ local route = require('providers.route_service_provider')
 local _M = {}
 
 function _M:init()
+    ngx.ctx.middleware_group = {}
+    self:routes()
+    ngx.log(ngx.WARN, 'not find method, uri in router.lua or didn`t response in action, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
+end
+
+function _M:routes()
     route:group({
         'throttle'
     }, function()
         route:get('/index', 'index_controller', 'index') -- route:http_method(uri, controller, action)
         route:post('/login', 'auth_controller', 'login')
         route:group({
-            'verify_sms_code'
+            'verify_guest_sms_code'
         }, function()
             route:post('/register', 'auth_controller', 'register')
         end)
@@ -38,8 +44,6 @@ function _M:init()
             end)
         end)
     end)
-    
-    ngx.log(ngx.WARN, 'not find method, uri in router.lua or didn`t response in action, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
 end
 
 return _M

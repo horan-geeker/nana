@@ -346,6 +346,23 @@ curl -X "POST" "http://localhost:8888/register" \
 * sms_code 手机验证码
 * password 密码
 
+#### 返回响应
+
+```
+{
+    "msg":"ok",
+    "status":0,
+    "data":{
+        "nickname":"HDC1kxzk",
+        "created_at":"2018-06-28 06:39:24","updated_at":"2018-07-02 13:51:49",
+        "id":2,
+        "avatar":"",
+        "phone":"13571899655",
+        "email":""
+    }
+}
+```
+
 ### 登录
 
 ```
@@ -361,6 +378,23 @@ curl -X "POST" "http://localhost:8888/login" \
 
 * phone 手机号
 * password 密码
+
+#### 返回响应
+
+```
+{
+    "msg":"ok",
+    "status":0,
+    "data":{
+        "nickname":"HDC1kxzk",
+        "created_at":"2018-06-28 06:39:24","updated_at":"2018-07-02 13:51:49",
+        "id":2,
+        "avatar":"",
+        "phone":"13571899655",
+        "email":""
+    }
+}
+```
 
 ### 发送短信(未登录)
 
@@ -417,6 +451,8 @@ curl "http://localhost:8888/userinfo"
 
 ## TODO list
 
+* readme api 返回说明
+* model hidden
 * 增加多语言配置
 * 可配置是否使用短信验证码
 * 解析 multipart/form-data 请求

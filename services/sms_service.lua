@@ -4,7 +4,9 @@ local cjson = require('cjson')
 local random = require('lib.random')
 local redis = require('lib.redis')
 
-local _M = {}
+local _M = {
+    SMS_KEY = 'sms:phone:%s'
+}
 
 local function generateSendCloudSignature(phone, code)
     local conf = config.sendcloud
@@ -44,7 +46,7 @@ local function sendMessageToSendCloud(phone, code, signature, signStr)
 end
 
 function _M:sendSMS(phone)
-    local key = 'phone:' .. phone
+    local key = string.format(self.SMS_KEY, phone)
     local data, err = redis:get(key)
     if err then
         ngx.log(ngx.ERR, err)
@@ -79,6 +81,16 @@ function _M:sendSMS(phone)
             common:response(0x00000B, err)
         end
     return true
+end
+
+function _M:verify_sms_code(phone, sms_code)
+    local key = string.format(self.SMS_KEY, phone)
+    local cache_code = redis:get(key)
+    if cache_code ~= nil and cache_code == sms_code then
+        redis:del(key)
+        return true
+    end
+    return false
 end
 
 return _M

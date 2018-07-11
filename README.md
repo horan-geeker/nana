@@ -13,6 +13,7 @@
   * [手动安装](#手动安装)
 * [文档](#文档)
   * [配置](#配置)
+  * [本地化](#本地化)
   * [路由](#路由)
   * [中间件](#中间件)
   * [控制器](#控制器)
@@ -66,6 +67,16 @@
 > 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ## 文档
+
+### 配置
+
+* 项目的配置文件主要放在 `config/app.lua`
+* 状态码的配置文件主要放在 `config/status.lua`
+
+### 本地化
+
+通过给 `ngx.ctx.locale` 赋值来更换语言环境，如：
+`ngx.ctx.locale = zh`
 
 ### 路由
 
@@ -514,8 +525,6 @@ curl "http://localhost:8888/userinfo"
 
 ## TODO list
 
-* 测试所有 middleware 执行顺序，是否被执行
-* 增加多语言配置
 * 可配置是否使用短信验证码
 * 解析 multipart/form-data 请求
 * 登录增加失败次数限制

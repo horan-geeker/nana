@@ -18,14 +18,11 @@ local function route_match(route_url, http_url)
 end
 
 function _M:call_action(method, uri, controller, action)
-    ngx.log(ngx.ERR, 'call cation: ', method, uri, controller, action)
     if method == ngx.var.request_method then
         local ok, params = route_match(common:purge_uri(uri), common:purge_uri(ngx.var.request_uri))
         if ok then
-            ngx.log(ngx.ERR, 'controller: ', controller, cjson.encode(ngx.ctx.middleware_group))
             if ngx.ctx.middleware_group then
-                for _,middleware in ipairs(ngx.ctx.middleware_group) do
-                    ngx.log(ngx.ERR, controller,action,middleware)
+                for _,middleware in ipairs(table_reverse(ngx.ctx.middleware_group)) do
                     local result, status, message = require(middleware_prefix..middleware):handle()
                     if result == false then
                         common:response(status, message)
@@ -68,15 +65,12 @@ end
 function _M:group(middleware, func)
     -- index always be 1 and data will push back one by one
     for index,middleware_item in ipairs(middleware) do
-        ngx.log(ngx.ERR, 'insert: index-',index, 'value-', middleware_item)
         table.insert(ngx.ctx.middleware_group, index, middleware_item)
     end
     func()
     -- if not match any route, remove part of middleware
-    ngx.log(ngx.ERR, 'run here?', cjson.encode(ngx.ctx.middleware_group))
     for index,middleware_item in ipairs(middleware) do
         -- remove middleware
-        ngx.log(ngx.ERR, 'remove: index-',index, 'value-', middleware_item)
         table.remove(ngx.ctx.middleware_group, index)
     end
 end

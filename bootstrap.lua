@@ -7,6 +7,29 @@ local cookie_obj = require("lib.cookie")
 local Core = {}
 
 function Core:helpers()
+    function _G.table_reverse(tbl)
+        for i=1, math.floor(#tbl / 2) do
+            tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
+        end
+        return tbl
+    end
+    function _G.table_remove(tab, rm)
+        local result = tab
+		for k, v in pairs(rm) do
+            for a_k, a_v in pairs(result) do
+                if type(a_k) == 'number' then
+                    if v == a_v then
+                        table.remove(result, a_k)
+                    end
+                else
+                    if v == a_k then
+                        result[a_k] = nil
+                    end
+				end
+			end
+        end
+        return result
+    end
     -- sort a hashTable by key
     -- use example: for k,v in pairsByKeys(hashTable)
     function _G:pairsByKeys(f)

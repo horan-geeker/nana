@@ -328,6 +328,19 @@ end
 ![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
 
+### 接口总体格式
+> 所有接口均返回json数据，第一次会有二到三个参数
+
+```
+{
+    "msg":"ok",
+    "status":0,
+    "data":{}
+}
+```
+
+> 其中 data 可不存在
+
 ### 注册
 
 ```
@@ -351,15 +364,7 @@ curl -X "POST" "http://localhost:8888/register" \
 ```
 {
     "msg":"ok",
-    "status":0,
-    "data":{
-        "nickname":"HDC1kxzk",
-        "created_at":"2018-06-28 06:39:24","updated_at":"2018-07-02 13:51:49",
-        "id":2,
-        "avatar":"",
-        "phone":"13571899655",
-        "email":""
-    }
+    "status":0
 }
 ```
 
@@ -410,6 +415,15 @@ curl -X "POST" "http://localhost:8888/send/sms" \
 
 * phone 手机号
 
+#### 返回响应
+
+```
+{
+    "msg":"ok",
+    "status":0
+}
+```
+
 ### 重置密码
 
 ```
@@ -427,6 +441,15 @@ curl -X "PATCH" "http://localhost:8888/reset-password" \
 * new_password 新密码
 * 需要携带 cookie token
 
+#### 返回响应
+
+```
+{
+    "msg":"ok",
+    "status":0
+}
+```
+
 ## 退出登录
 
 ```
@@ -439,6 +462,15 @@ curl -X "POST" "http://localhost:8888/logout" \
 
 * 需要携带 cookie token
 
+#### 返回响应
+
+```
+{
+    "msg":"ok",
+    "status":0
+}
+```
+
 ### 获取用户信息
 
 ```
@@ -449,10 +481,26 @@ curl "http://localhost:8888/userinfo"
 
 * 需要携带 cookie token
 
+#### 返回响应
+
+```
+{
+    "msg":"ok",
+    "status":0,
+    "data":{
+        "nickname":"HDC1kxzk",
+        "created_at":"2018-06-28 06:39:24","updated_at":"2018-07-02 13:51:49",
+        "id":2,
+        "avatar":"",
+        "phone":"13571899655",
+        "email":""
+    }
+}
+```
+
 ## TODO list
 
-* readme api 返回说明
-* model hidden
+* 测试所有 middleware 执行顺序，是否被执行
 * 增加多语言配置
 * 可配置是否使用短信验证码
 * 解析 multipart/form-data 请求

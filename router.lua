@@ -22,17 +22,17 @@ function _M:routes()
         route:post('/send/sms', 'notify/sms_notify_controller', 'guest_send_sms')
         route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')
         route:group({
+                'verify_guest_sms_code'
+            }, function()
+            route:patch('/forget-password', 'auth_controller', 'forget_password')
+        end)
+        route:group({
             'authenticate',
             -- 'example_middleware'
         }, function()
             route:post('/user/send/sms', 'notify/sms_notify_controller', 'user_send_sms')
             route:post('/logout', 'auth_controller', 'logout')
             route:patch('/reset-password', 'auth_controller', 'reset_password')
-            route:group({
-                'verify_sms_code'
-            }, function()
-                route:patch('/forget-password', 'auth_controller', 'forget_password')
-            end)
             route:group({
                 'token_refresh'
             }, function()

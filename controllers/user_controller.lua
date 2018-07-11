@@ -18,7 +18,7 @@ end
 
 function _M:userinfo()
     local user = auth:user()
-    return common:response(0, 'ok', user)
+    return common:response(0, 'ok', table_remove(user, {'password'}))
 end
 
 return _M

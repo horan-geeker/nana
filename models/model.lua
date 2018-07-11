@@ -10,8 +10,17 @@ local mt = { __index = _M }
 
 Database = Database:new(env)
 
+function _M:merge_hidden()
+	if #self.attributes == 0 then
+		return '*'
+	else
+		local result = table_remove(self.attributes, self.hidden)
+		return table.concat(result, ", ")
+	end
+end
+
 function _M:all()
-    return Database:query('select * from '..self.table)
+    return Database:query('select ' .. self:merge_hidden() .. ' from '..self.table)
 end
 
 function _M:where(column,operator,value)
@@ -97,7 +106,7 @@ function _M:first()
 		ngx.log(ngx.ERROR,'do not have query sql str')
 		return
 	end
-	local sql = 'select * from '..self.table..' '..self.query_sql..' limit 1'
+	local sql = 'select ' .. self:merge_hidden() .. ' from '..self.table..' '..self.query_sql..' limit 1'
 	self.query_sql = nil
 	local res = Database:query(sql)
 	if table.getn(res) > 0 then
@@ -112,7 +121,7 @@ function _M:get()
 		ngx.log(ngx.ERROR,'do not have query sql str')
 		return
 	end
-	local sql = 'select * from '..self.table..' '..self.query_sql
+	local sql = 'select ' .. self:merge_hidden() .. ' from '..self.table..' '..self.query_sql
 	self.query_sql = nil
 	local res = Database:query(sql)
 	if table.getn(res) > 0 then
@@ -124,7 +133,7 @@ end
 
 function _M:find(id,column)
     column = column or 'id'
-    return Database:query('select * from '..self.table..' where '..column..'='..ngx.quote_sql_str(id)..' limit 1')
+    return Database:query('select ' .. self:merge_hidden() .. ' from '..self.table..' where '..column..'='..ngx.quote_sql_str(id)..' limit 1')
 end
 
 function _M:create(data)
@@ -183,10 +192,12 @@ function _M:query(sql)
 	return Database:execute(sql)
 end
 
-function _M:new(table)
+function _M:new(table, attributes, hidden)
 	return setmetatable({
 		table = table,
-		query_sql = nil
+		attributes = attributes or {},
+		hidden = hidden or {},
+		query_sql = nil,
 		},mt)
 end
 

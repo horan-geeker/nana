@@ -16,14 +16,14 @@ http {
     error_log /usr/local/openresty/nginx/logs/error.log notice;
     lua_shared_dict shared_dict 10m;
     lua_package_path '/var/www/nana/?.lua;;';
-    #access_by_lua_file '/var/www/nana/bootstrap.lua';
+    access_by_lua_file '/var/www/nana/bootstrap.lua';
     server {
         listen      80;
         server_name localhost;
         lua_need_request_body off;
         lua_code_cache on;
         location / {
-            content_by_lua_file '/var/www/nana/bootstrap.lua';
+            #content_by_lua_file '/var/www/nana/bootstrap.lua';
             # Pay attention please, you cannot use content_by_lua_file and proxy_pass together
             #proxy_pass ${UPSTREAM_URL};
             #proxy_set_header X-Real-IP $remote_addr;

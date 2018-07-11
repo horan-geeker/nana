@@ -6,14 +6,6 @@ local common = require('lib.common')
 
 local _M = {}
 
-function _M:verify_sms_code(phone, sms_code)
-    local cache_code = redis:get('phone:'..phone)
-    if cache_code ~= nil and cache_code == sms_code then
-        return true
-    end
-    return false
-end
-
 function _M:verify_password(password, user_password)
     if common:hash(password) == user_password then
         return true

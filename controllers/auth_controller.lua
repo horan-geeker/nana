@@ -42,7 +42,7 @@ function _M:login()
         ok, err = user_service:verify_password(args.password, user.password)
         if not ok then
             -- login fail
-            common:response(0x010002, config.login_id .. ' or password error')
+            common:response(0x010002)
         else
             ok, err = user_service:authorize(user)
             if not ok then
@@ -54,7 +54,7 @@ function _M:login()
         common:response(0x000001, 'need sms or password')
     end
     
-    common:response(0, 'ok', user)
+    common:response(0, 'ok', table_remove(user, {'password'}))
 end
 
 function _M:register()
@@ -124,6 +124,27 @@ function _M:reset_password()
     end
     ok, err = auth:clear_token()
     if not ok then
+        common:response(0x010006)
+    end
+    common:response(0)
+end
+
+-- use sms verify
+function _M:forget_password()
+    local args = request:all()
+    local ok, msg = validator:check(args, {
+        'phone',
+        'new_password'
+        })
+    if not ok then
+        common:response(0x000001, msg)
+    end
+    local user = auth:user()
+    local ok, err = User:where('phone', '=', args.phone):update({
+        password=common:hash(args.new_password)
+    })
+    if not ok then
+        ngx.log(ngx.ERR, err)
         common:response(0x010006)
     end
     common:response(0)

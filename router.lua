@@ -3,18 +3,29 @@ local route = require('providers.route_service_provider')
 local _M = {}
 
 function _M:init()
+    ngx.ctx.middleware_group = {}
+    self:routes()
+    ngx.log(ngx.WARN, 'not find method, uri in router.lua or didn`t response in action, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
+end
+
+function _M:routes()
     route:group({
         'throttle'
     }, function()
         route:get('/index', 'index_controller', 'index') -- route:http_method(uri, controller, action)
         route:post('/login', 'auth_controller', 'login')
         route:group({
-            'verify_sms_code'
+            'verify_guest_sms_code'
         }, function()
             route:post('/register', 'auth_controller', 'register')
         end)
         route:post('/send/sms', 'notify/sms_notify_controller', 'guest_send_sms')
         route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')
+        route:group({
+                'verify_guest_sms_code'
+            }, function()
+            route:patch('/forget-password', 'auth_controller', 'forget_password')
+        end)
         route:group({
             'authenticate',
             -- 'example_middleware'
@@ -22,11 +33,6 @@ function _M:init()
             route:post('/user/send/sms', 'notify/sms_notify_controller', 'user_send_sms')
             route:post('/logout', 'auth_controller', 'logout')
             route:patch('/reset-password', 'auth_controller', 'reset_password')
-            route:group({
-                'verify_sms_code'
-            }, function()
-                route:patch('/forget-password', 'auth_controller', 'forget_password')
-            end)
             route:group({
                 'token_refresh'
             }, function()
@@ -38,8 +44,6 @@ function _M:init()
             end)
         end)
     end)
-    
-    ngx.log(ngx.WARN, 'not find method, uri in router.lua or didn`t response in action, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
 end
 
 return _M

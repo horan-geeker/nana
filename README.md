@@ -311,7 +311,21 @@ location.country
 
 ### Helper Function
 
-系统在`bootstrap`默认已经全局加载`lib/helpers.lua`
+系统在 `bootstrap.lua` 默认已经全局加载 `Core:helpers()`
+
+#### 反转 table
+
+可以反转 array 类型的 table
+
+```
+table_reverse(tab) -- return reverse table
+```
+
+#### table 按值删除
+
+```
+table_remove(tab, {'item1', 'item2'})
+```
 
 #### 按 key 排序的迭代器
 

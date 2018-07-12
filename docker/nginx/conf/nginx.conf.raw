@@ -27,8 +27,8 @@ http {
         location / {
             #content_by_lua_file '/var/www/nana/bootstrap.lua';
             # Pay attention please, you cannot use content_by_lua_file and proxy_pass together
-            #proxy_pass ${PROXY_PASS_URL};
-            #proxy_set_header X-Real-IP $remote_addr;
+            proxy_pass ${PROXY_PASS_URL};
+            proxy_set_header X-Real-IP $remote_addr;
         }
     }
     #server {

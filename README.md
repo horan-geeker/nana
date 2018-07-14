@@ -525,8 +525,8 @@ curl "http://localhost:8888/userinfo"
 
 ## TODO list
 
-* 可配置是否使用短信验证码
 * 解析 multipart/form-data 请求
+* 增加阿里云短信服务
 * 登录增加失败次数限制
 * 集成国际短信验证码业务，twilio
 * 密码加密

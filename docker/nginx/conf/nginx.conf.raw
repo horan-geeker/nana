@@ -5,7 +5,9 @@ events {
 }
 
 http {
+    
     resolver 127.0.0.11 ipv6=off;
+    
     ##
     # Logging Settings
     ##
@@ -14,9 +16,11 @@ http {
                       '"$http_user_agent" "$http_x_forwarded_for" "$request_time"';
     access_log /usr/local/openresty/nginx/logs/access.log main;
     error_log /usr/local/openresty/nginx/logs/error.log notice;
+    
     lua_shared_dict shared_dict 10m;
     lua_package_path '/var/www/nana/?.lua;;';
     access_by_lua_file '/var/www/nana/bootstrap.lua';
+    
     server {
         listen      80;
         server_name ${API_SERVER_NAME};

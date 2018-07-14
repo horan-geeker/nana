@@ -26,8 +26,9 @@ function _M:response(status, message, data)
 	-- you can modify this resp struct as you favor
 	local msg = message
 	if message == nil or message == '' then
-		if error_code[conf.locale] ~= nil then
-			msg = error_code[conf.locale][status]
+		local locale = ngx.ctx.locale or conf.locale
+		if error_code[locale] ~= nil then
+			msg = error_code[locale][status]
 		end
 	end
 	local resp = {status=status, msg=msg, data=data}

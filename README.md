@@ -13,6 +13,7 @@
   * [手动安装](#手动安装)
 * [文档](#文档)
   * [配置](#配置)
+  * [本地化](#本地化)
   * [路由](#路由)
   * [中间件](#中间件)
   * [控制器](#控制器)
@@ -53,7 +54,7 @@
 ### 使用 docker 安装
 
 * 执行 `cp env.example.lua env.lua` 其中 `mysql_host` 是数据库地址，`db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交，可以帮助区分线上和本地环境的不同配置
-* 执行 `cp .env.example .env` 这是 docker 配置的环境变量，通过修改 `UPSTREAM_URL` 来指定下游的主机（实际上直接替换了 `nginx` 中的 `proxy_pass`）
+* 执行 `cp .env.example .env` 这是 docker 配置的环境变量，通过修改 `PROXY_PASS_URL` 来指定下游的主机（实际上直接替换了 `nginx` 中的 `proxy_pass`），`API_SERVER_NAME` 是替换了 `nginx` 中的 `server_name`
 * 执行 `docker-compose up`
 
 ### 手动安装
@@ -66,6 +67,16 @@
 > 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ## 文档
+
+### 配置
+
+* 项目的配置文件主要放在 `config/app.lua`
+* 状态码的配置文件主要放在 `config/status.lua`
+
+### 本地化
+
+通过给 `ngx.ctx.locale` 赋值来更换语言环境，如：
+`ngx.ctx.locale = zh`
 
 ### 路由
 
@@ -514,10 +525,8 @@ curl "http://localhost:8888/userinfo"
 
 ## TODO list
 
-* 测试所有 middleware 执行顺序，是否被执行
-* 增加多语言配置
-* 可配置是否使用短信验证码
 * 解析 multipart/form-data 请求
+* 增加阿里云短信服务
 * 登录增加失败次数限制
 * 集成国际短信验证码业务，twilio
 * 密码加密

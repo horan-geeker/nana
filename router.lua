@@ -10,7 +10,7 @@ end
 
 function _M:routes()
     route:group({
-        'throttle'
+        'locale', 'throttle'
     }, function()
         route:get('/index', 'index_controller', 'index') -- route:http_method(uri, controller, action)
         route:post('/login', 'auth_controller', 'login')
@@ -28,7 +28,6 @@ function _M:routes()
         end)
         route:group({
             'authenticate',
-            -- 'example_middleware'
         }, function()
             route:post('/user/send/sms', 'notify/sms_notify_controller', 'user_send_sms')
             route:post('/logout', 'auth_controller', 'logout')

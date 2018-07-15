@@ -5,7 +5,7 @@ local random = require('lib.random')
 local redis = require('lib.redis')
 
 local _M = {
-    SMS_KEY = 'sms:phone:%s'
+    SMS_KEY = 'SMS:PHONE:%s'
 }
 
 local function generateSendCloudSignature(phone, code)

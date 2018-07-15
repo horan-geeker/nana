@@ -8,41 +8,11 @@ services:
             - "./docker/nginx/conf/nginx.conf.raw:/usr/local/openresty/nginx/conf/nginx.conf.raw"
             - "./docker/nginx/logs:/usr/local/openresty/nginx/logs"
         ports:
-            - 8888:80
-            - 4433:443
-        depends_on:
-            mysql:
-                condition: service_healthy
+            - 8880:80
+            - 4430:443
         env_file: .env
-        command: /bin/bash -c "envsubst '$$API_SERVER_NAME' < /usr/local/openresty/nginx/conf/nginx.conf.raw | envsubst '$$PROXY_PASS_URL' > /usr/local/openresty/nginx/conf/nginx.conf && /var/www/nana/install.sh && nginx -g 'daemon off;'"
-    mysql:
-        image: mysql:5.7
-        hostname: mysql-host
-        volumes:
-            - "./docker/mysql/data:/var/lib/mysql"
-        environment:
-            - MYSQL_ROOT_PASSWORD=root
-        ports:
-            - 33060:3306
         networks:
             default:
-                aliases:
-                    - mysql-host
-        healthcheck:
-            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-            interval: 20s
-            timeout: 5s
-            retries: 10
-    redis:
-        image: redis
-        volumes:
-            - ./docker/redis/data:/data
-        ports:
-            - 63790:6379
-        networks:
-            default:
-                aliases: 
-                    - redis-host
+        command: /bin/bash -c "envsubst '$$API_SERVER_NAME' < /usr/local/openresty/nginx/conf/nginx.conf.raw | envsubst '$$PROXY_PASS_URL' > /usr/local/openresty/nginx/conf/nginx.conf && nginx -g 'daemon off;'"
 networks:
     default:
-        driver: bridge

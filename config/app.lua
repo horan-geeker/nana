@@ -10,6 +10,8 @@ return {
     max_request_per_second = 3000, -- throttle flow request per second
     user_table_name = "users",
     phone_code_len = 4,
+    per_page = env.per_page or 10,
+    redis_prefix = 'NANA:',
     wechat = {
         web = {
             app_id = "xxxxxxxxxxx",

@@ -77,7 +77,7 @@ function _M:register()
     end
 
     local user_obj = {
-        nickname = random.token(8),
+        name = random.token(8),
         password = common:hash(args.password)
     }
     user_obj[config.login_id] = args[config.login_id]

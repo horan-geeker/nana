@@ -3,6 +3,7 @@ local Validator = require('lib.validator')
 local common = require("lib.common")
 local cjson = require('cjson')
 local env = require('env')
+local config = require('config.app')
 
 local _M = {}
 
@@ -69,7 +70,7 @@ function _M:orderby(column,operator)
 end
 
 function _M:paginate(page_num, per_page)
-	per_page = per_page or env.per_page
+	per_page = per_page or config.per_page
 	local sql, count_sql, total
 	local data={
 		data = {},

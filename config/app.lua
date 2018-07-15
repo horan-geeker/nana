@@ -9,6 +9,7 @@ return {
     session_refresh_time = 3600 * 24 * 7, --sec, here means a week
     max_request_per_second = 3000, -- throttle flow request per second
     user_table_name = "users",
+    per_page = env.per_page or 10,
     phone_code_len = 4,
     wechat = {
         web = {

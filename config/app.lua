@@ -11,6 +11,8 @@ return {
     user_table_name = "users",
     per_page = env.per_page or 10,
     phone_code_len = 4,
+    per_page = env.per_page or 10,
+    redis_prefix = 'NANA:',
     wechat = {
         web = {
             app_id = "xxxxxxxxxxx",

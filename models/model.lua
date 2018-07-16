@@ -35,7 +35,7 @@ end
 
 function _M:orwhere(column,operator,value)
 	if not self.query_sql then
-		return ngx.log(ngx.ERROR,'orwhere function need a query_sql prefix')
+		return ngx.log(ngx.ERR,'orwhere function need a query_sql prefix')
 	else
 		self.query_sql = self.query_sql..' or '..column..operator..ngx.quote_sql_str(value)
 	end
@@ -104,7 +104,7 @@ end
 
 function _M:first()
 	if not self.query_sql then
-		ngx.log(ngx.ERROR,'do not have query sql str')
+		ngx.log(ngx.ERR,'do not have query sql str')
 		return
 	end
 	local sql = 'select ' .. self:merge_hidden() .. ' from '..self.table..' '..self.query_sql..' limit 1'
@@ -119,7 +119,7 @@ end
 
 function _M:get()
 	if not self.query_sql then
-		ngx.log(ngx.ERROR,'do not have query sql str')
+		ngx.log(ngx.ERR,'do not have query sql str')
 		return
 	end
 	local sql = 'select ' .. self:merge_hidden() .. ' from '..self.table..' '..self.query_sql
@@ -134,7 +134,13 @@ end
 
 function _M:find(id,column)
     column = column or 'id'
-    return Database:query('select ' .. self:merge_hidden() .. ' from '..self.table..' where '..column..'='..ngx.quote_sql_str(id)..' limit 1')
+	local sql = 'select ' .. self:merge_hidden() .. ' from '..self.table..' where '..column..'='..ngx.quote_sql_str(id)..' limit 1'
+	local res = Database:query(sql)
+	if table.getn(res) > 0 then
+		return res[1]
+	else
+		return false
+	end
 end
 
 function _M:create(data)
@@ -149,7 +155,7 @@ function _M:create(data)
 			values = values..','..ngx.quote_sql_str(value)
 		end
 	end
-	return Database:execute('insert ignore into '..self.table..'('..columns..') values('..values..')')
+	return Database:execute('insert into '..self.table..'('..columns..') values('..values..')')
 end
 
 function _M:delete()
@@ -186,7 +192,7 @@ end
 function _M:query(sql)
 	if not sql then
 		if not self.query_sql then
-			return ngx.log(ngx.ERROR,'query() function need sql to query')
+			return ngx.log(ngx.ERR,'query() function need sql to query')
 		end
 		return Database:execute(self.query_sql)
 	end

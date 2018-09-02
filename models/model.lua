@@ -1,6 +1,5 @@
 local Database = require('lib.database')
 local Validator = require('lib.validator')
-local common = require("lib.common")
 local cjson = require('cjson')
 local conf = require('config.app')
 local env = require('env')

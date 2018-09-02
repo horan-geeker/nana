@@ -4,6 +4,6 @@ MAINTAINER he jun wei "13571899655@163.com"
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y mysql-client
+# RUN apt-get update && apt-get install -y mysql-client
 
 EXPOSE 80

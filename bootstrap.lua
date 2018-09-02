@@ -95,13 +95,13 @@ function Core:helpers()
         return time_zone[0] * 3600 + ngx.time()
     end
 
-    function _G:purge_uri(uri)
+    function _G.purge_uri(uri)
         local uri = string.gsub(uri, "?.*", "")
-        local uri_without_slash = _M:remove_slash(uri)
+        local uri_without_slash = remove_slash(uri)
         return uri_without_slash
     end
 
-    function _G:remove_slash(target)
+    function _G.remove_slash(target)
         local len = string.len(target)
         if string.find(target,'/', len) then
             return string.sub(target, 1, len-1)

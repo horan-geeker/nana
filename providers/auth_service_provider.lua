@@ -1,5 +1,4 @@
 local random = require("lib.random")
-local common = require("lib.common")
 local config = require("config.app")
 local cjson = require("cjson")
 local redis = require("lib.redis")

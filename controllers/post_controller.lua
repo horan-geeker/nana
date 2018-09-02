@@ -3,8 +3,7 @@ local conf = require('config.app')
 local Post = require('models.post')
 local validator = require('lib.validator')
 local request = require("lib.request")
-local common = require("lib.common")
-local request = require('lib.request')
+local response = require('lib.response')
 local Comment = require('models.comment')
 local Favor = require('models.favor')
 local Tag = require('models.tag')
@@ -15,7 +14,7 @@ local _M = {}
 function _M:index()
 	local args = request:all()
 	local page = args.page or 1
-	common:response(0, 'ok', Post:orderby('created_at', 'desc'):paginate(page))
+	response:json(0, 'ok', Post:orderby('created_at', 'desc'):paginate(page))
 end
 
 function _M:store()
@@ -27,15 +26,15 @@ function _M:store()
         'thumbnail',
         })
     if not ok then
-        common:response(0x000001, msg)
+        response:json(0x000001, msg)
 	end
 	local tag = Tag:find(args.tag_id)
 	if not tag then
-		common:response(0x030001)
+		response:json(0x030001)
     end
 	local user = Auth:user()
 	if not user then
-		common:response(0x000001, 'internal error, user is empty')
+		response:json(0x000001, 'internal error, user is empty')
     end
     local data = {
 		tag_id=tag.id,
@@ -46,9 +45,9 @@ function _M:store()
     }
 	local post = Post:create(data)
     if not post then
-        common:response(0x000005)
+        response:json(0x000005)
     end
-	common:response(0,'ok', args)
+	response:json(0,'ok', args)
 end
 
 function _M:show(id)
@@ -59,7 +58,7 @@ function _M:show(id)
 		post.comments = Comment:where('post_id', '=', id):get()
 		post.favor_count = Favor:where('post_id', '=', id):count()
 	end
-	common:response(0, 'ok', {
+	response:json(0, 'ok', {
 		post = post,
 	})
 end

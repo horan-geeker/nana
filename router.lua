@@ -12,7 +12,8 @@ function _M:routes()
     route:group({
         'locale', 'throttle'
     }, function()
-        route:get('/index', 'index_controller', 'index') -- route:http_method(uri, controller, action)
+        route:get('/posts', 'post_controller', 'index')
+        route:get('/posts/{id}', 'post_controller', 'show')
         route:post('/login', 'auth_controller', 'login')
         route:group({
             'verify_guest_sms_code'
@@ -29,6 +30,9 @@ function _M:routes()
         route:group({
             'authenticate',
         }, function()
+            route:post('/posts/{id}/comments', 'comment_controller', 'index')
+            route:post('/posts/{id}/favor', 'post_controller', 'favor')
+            route:post('/posts', 'post_controller', 'store')
             route:post('/user/send/sms', 'notify/sms_notify_controller', 'user_send_sms')
             route:post('/logout', 'auth_controller', 'logout')
             route:patch('/reset-password', 'auth_controller', 'reset_password')
@@ -36,8 +40,6 @@ function _M:routes()
                 'token_refresh'
             }, function()
                 route:get('/userinfo', 'user_controller', 'userinfo')
-                route:get("/users/{user_id}/", 'user_controller', 'show')
-                route:get("/users/{user_id}/comments/{comment_id}", 'user_controller', 'comments')
                 -- test upsteam usage (suppose /home api write by Java or PHP) use nginx reverse proxy
                 route:get('/home')
             end)

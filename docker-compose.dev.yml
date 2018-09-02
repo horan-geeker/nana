@@ -1,7 +1,7 @@
 version: "2.1"
 services:
     openresty:
-        build: .
+        build: ./docker/nginx
         image: openresty-nana:0.1
         volumes:
             - "./:/var/www/nana"

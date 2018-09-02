@@ -4,7 +4,7 @@ services:
         build: ./docker/nginx
         image: openresty-nana:0.1
         volumes:
-            - "./:/var/www/nana"
+            - "./:/app"
             - "./docker/nginx/conf/nginx.conf.raw:/usr/local/openresty/nginx/conf/nginx.conf.raw"
             - "./docker/nginx/logs:/usr/local/openresty/nginx/logs"
         ports:
@@ -14,7 +14,7 @@ services:
             mysql:
                 condition: service_healthy
         env_file: .env
-        command: /bin/bash -c "envsubst '$$API_SERVER_NAME' < /usr/local/openresty/nginx/conf/nginx.conf.raw | envsubst '$$PROXY_PASS_URL' > /usr/local/openresty/nginx/conf/nginx.conf && /var/www/nana/install.sh && nginx -g 'daemon off;'"
+        command: /bin/bash -c "envsubst '$$API_SERVER_NAME' < /usr/local/openresty/nginx/conf/nginx.conf.raw | envsubst '$$PROXY_PASS_URL' > /usr/local/openresty/nginx/conf/nginx.conf && /app/install.sh && nginx -g 'daemon off;'"
     mysql:
         image: mysql:5.7
         hostname: mysql-host

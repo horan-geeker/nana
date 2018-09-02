@@ -1,9 +1,20 @@
-# Nana
+# lua-china-api
 
 [![GitHub release](https://img.shields.io/github/release/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/releases/latest)
 [![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)
-  
+![Build status](https://travis-ci.org/luaChina/lua-china-api.svg?branch=master)  
 [English Document](README_en.md)
+
+## 技术选型
+
+* openresty nana
+* mysql 5.7
+* redis
+
+## 自动化部署
+
+* travis-ci
+* docker-hub
 
 目录
 ====

@@ -1,6 +1,7 @@
 local cjson = require('cjson')
 local conf = require('config.app')
 local Post = require('models.post')
+local User = require('models.user')
 local validator = require('lib.validator')
 local request = require("lib.request")
 local response = require('lib.response')
@@ -14,7 +15,7 @@ local _M = {}
 function _M:index()
 	local args = request:all()
 	local page = args.page or 1
-	response:json(0, 'ok', Post:orderby('created_at', 'desc'):paginate(page))
+	response:json(0, 'ok', Post:orderby('created_at', 'desc'):with('user'):paginate(page))
 end
 
 function _M:store()
@@ -23,7 +24,6 @@ function _M:store()
         'title',
         'content',
         'tag_id',
-        'thumbnail',
         })
     if not ok then
         response:json(0x000001, msg)
@@ -37,11 +37,11 @@ function _M:store()
 		response:json(0x000001, 'internal error, user is empty')
     end
     local data = {
-		tag_id=tag.id,
+		post_tag_id=tag.id,
 		user_id=user.id,
 		title=args.title,
 		content=args.content,
-		thumbnail=args.thumbnail,
+		thumbnail='',
     }
 	local post = Post:create(data)
     if not post then
@@ -51,16 +51,19 @@ function _M:store()
 end
 
 function _M:show(id)
-	local post = Post:find(id)
+	local post = Post:with('user'):find(id)
 	if not post then
 		post = nil
 	else
 		post.comments = Comment:where('post_id', '=', id):get()
 		post.favor_count = Favor:where('post_id', '=', id):count()
 	end
-	response:json(0, 'ok', {
-		post = post,
-	})
+	response:json(0, 'ok', post)
+end
+
+function _M:tags()
+	local tags = Tag:all()
+	response:json(0, 'ok', tags)
 end
 
 return _M

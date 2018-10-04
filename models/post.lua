@@ -1,14 +1,15 @@
 local Model = require("models.model")
+local User = require('models.user')
 local config = require("config.app")
 
 local Post = Model:new('posts')
 
 function Post:comments()
-    return Post:has_many('comments', 'post_id', 'id')
+    return Post:hasMany(Comment:new(), 'id', 'post_id')
 end
 
-function Post:users()
-    return Post:belonyto('users', 'id', 'user_id')
+function Post:user()
+    return Post:belongsTo(User:new(), 'user_id', 'id')
 end
 
 return Post

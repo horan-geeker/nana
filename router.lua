@@ -13,10 +13,11 @@ function _M:routes()
         'locale', 'throttle'
     }, function()
         route:get('/posts', 'post_controller', 'index')
+        route:get('/tags', 'post_controller', 'tags')
         route:get('/posts/{id}', 'post_controller', 'show')
         route:post('/login', 'auth_controller', 'login')
         route:group({
-            'verify_guest_sms_code'
+            -- 'verify_guest_sms_code'
         }, function()
             route:post('/register', 'auth_controller', 'register')
         end)

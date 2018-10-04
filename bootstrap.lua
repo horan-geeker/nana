@@ -13,15 +13,21 @@ function Core:helpers()
         end
         return tbl
     end
+    -- remove item in table
     function _G.table_remove(tab, rm)
         local result = tab
 		for k, v in pairs(rm) do
             for a_k, a_v in pairs(result) do
+                -- array
                 if type(a_k) == 'number' then
-                    if v == a_v then
+                    -- object
+                    if type(a_v) == 'table' then
+                        result[a_k][v] = nil
+                    elseif v == a_v then
                         table.remove(result, a_k)
                     end
                 else
+                -- hash array
                     if v == a_k then
                         result[a_k] = nil
                     end
@@ -29,6 +35,15 @@ function Core:helpers()
 			end
         end
         return result
+    end
+
+    function _G.implode(arr, symbol)
+        local implode_str = ''
+        symbol = symbol or ','
+        for item in pairs(arr) do
+            implode_str = implode_str .. item .. symbol
+        end
+        return string.sub(implode_str, 1, #implode_str - 1)
     end
     -- sort a hashTable by key
     -- use example: for k,v in pairsByKeys(hashTable)
@@ -51,8 +66,7 @@ function Core:helpers()
         return iter
     end
 
-    function _G:set_cookie(value, expires)
-        local key = self
+    function _G.set_cookie(key, value, expires)
         local cookie, err = cookie_obj:new()
         if not cookie then
             ngx.log(ngx.ERR, err)
@@ -109,18 +123,18 @@ function Core:helpers()
         return target
     end
 
-    function _G:hash(password)
+    function _G.hash(password)
         return ngx.md5(password)
     end
 
-    function _G:log(...)
+    function _G.log(...)
         local args = {}
         if #{...}>1 then
             args = {...}
         else
             args = ...
         end
-        if conf.env == 'dev' then
+        if config.env == 'dev' then
             ngx.log(ngx.WARN, cjson.encode(args))
         end
     end

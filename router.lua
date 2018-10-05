@@ -13,7 +13,10 @@ function _M:routes()
         'locale', 'throttle'
     }, function()
         route:get('/posts', 'post_controller', 'index')
+        route:get('/posts/count', 'post_controller', 'count')
         route:get('/tags', 'post_controller', 'tags')
+        route:get('/users/top', 'user_controller', 'top')
+        route:get('/users/count', 'user_controller', 'count')
         route:get('/posts/{id}', 'post_controller', 'show')
         route:post('/login', 'auth_controller', 'login')
         route:group({

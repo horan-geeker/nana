@@ -58,12 +58,17 @@ function _M:show(id)
 		post.comments = Comment:where('post_id', '=', id):get()
 		post.favor_count = Favor:where('post_id', '=', id):count()
 	end
+	Post:where('id', '=', post.id):update({read_count = post.read_count+1})
 	response:json(0, 'ok', post)
 end
 
 function _M:tags()
 	local tags = Tag:all()
 	response:json(0, 'ok', tags)
+end
+
+function _M:count()
+	response:json(0, 'ok', Post:count())
 end
 
 return _M

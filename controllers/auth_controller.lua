@@ -75,17 +75,21 @@ function _M:register()
     if ok then
         response:json(0x010001)
     end
-
+    local phone_len = string.len(args.phone)
+    local hidden_phone_len = math.floor(phone_len * 0.4)
+    local hidden_phone = string.sub(args.phone, 1, hidden_phone_len - 1) .. string.rep('*', hidden_phone_len) .. string.sub(args.phone, phone_len - hidden_phone_len + 1, phone_len)
     local user_obj = {
-        name = args[config.login_id],
-        password = hash(args.password)
+        name = hidden_phone,
+        password = hash(args.password),
+        phone = args.phone
     }
-    user_obj[config.login_id] = args[config.login_id]
+
     ok = User:create(user_obj)
     if not ok then
         response:json(0x000005)
     end
     local user = User:where('phone', '=', args.phone):first()
+    user_service:authorize(user)
     response:json(0, 'ok', table_remove(user, {'password'}))
 end
 

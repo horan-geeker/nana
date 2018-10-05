@@ -92,7 +92,7 @@ function _M:paginate(page_num, per_page)
 		data['data'] = Database:query(sql)
 		local ids = {}
 		for key,value in pairs(data['data']) do
-			table.insert( ids, value.id )
+			table.insert( ids, value[self.relation.local_key] )
 		end
 		local relations = self:fetchRelation(ids)
 		for key, value in pairs(data['data']) do
@@ -128,19 +128,19 @@ function _M:first()
 	end
 end
 
-function _M:get()
+function _M:get(num)
+	num = num or nil
+	local limit_sql = ''
+	if num ~= nil then
+		limit_sql = 'limit ' .. num
+	end
 	if not self.query_sql then
 		ngx.log(ngx.ERR,'do not have query sql str')
 		return
 	end
-	local sql = 'select * from '..self.table..' '..self.query_sql
+	local sql = 'select * from '..self.table..' '..self.query_sql .. ' ' .. limit_sql
 	self.query_sql = nil
-	local res = Database:query(sql)
-	if table.getn(res) > 0 then
-		return res
-	else
-		return false
-	end
+	return Database:query(sql)
 end
 
 function _M:find(id,column)
@@ -149,7 +149,7 @@ function _M:find(id,column)
 	local res = Database:query(sql)
 	if table.getn(res) > 0 then
 		if self.relation.mode ~= 0 then
-			local relation = self:fetchRelation({res[1].id})
+			local relation = self:fetchRelation({res[1][self.relation.local_key]})
 			if self.relation.mode == 1 then
 				if table.getn(relation) > 0 then
 					res[1][self.relation.key_name] = relation[1]

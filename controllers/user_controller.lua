@@ -8,12 +8,12 @@ local user_service = require('services.user_service')
 
 local _M = {}
 
-function _M:show(user_id)
-    response:json(0, 'show', {user_id=user_id})
+function _M:count()
+    response:json(0, 'show', User:count())
 end
 
-function _M:comments(user_id, comment_id)
-    response:json(0, 'comments', {user_id=user_id, comment_id=comment_id})
+function _M:top()
+    response:json(0, 'comments', table_remove(User:orderby('created_at', 'desc'):get(5), {'password', 'phone'}))
 end
 
 function _M:userinfo()

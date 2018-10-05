@@ -40,8 +40,8 @@ function Core:helpers()
     function _G.implode(arr, symbol)
         local implode_str = ''
         symbol = symbol or ','
-        for item in pairs(arr) do
-            implode_str = implode_str .. item .. symbol
+        for key, value in pairs(arr) do
+            implode_str = implode_str .. value .. symbol
         end
         return string.sub(implode_str, 1, #implode_str - 1)
     end

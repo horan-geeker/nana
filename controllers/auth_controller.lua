@@ -63,7 +63,7 @@ function _M:register()
         validator:check(
         args,
         {
-            config.login_id,
+            'phone',
             'password',
         }
     )
@@ -71,15 +71,20 @@ function _M:register()
         response:json(0x000001, msg)
     end
     -- 检测是否重复
-    ok = User:find_by_login_id(args[config.login_id])
+    ok = User:where('phone', '=', args.phone):first()
     if ok then
         response:json(0x010001)
     end
-    local phone_len = string.len(args.phone)
-    local hidden_phone_len = math.floor(phone_len * 0.4)
-    local hidden_phone = string.sub(args.phone, 1, hidden_phone_len - 1) .. string.rep('*', hidden_phone_len) .. string.sub(args.phone, phone_len - hidden_phone_len + 1, phone_len)
+    local name = args.name
+    if name == nil or name == '' then
+        -- 如果没有昵称，拼接模糊手机号
+        local phone_len = string.len(args.phone)
+        local hidden_phone_len = math.floor(phone_len * 0.4)
+        name = string.sub(args.phone, 1, hidden_phone_len - 1) .. string.rep('*', hidden_phone_len) .. string.sub(args.phone, phone_len - hidden_phone_len + 1, phone_len)
+    end
+
     local user_obj = {
-        name = hidden_phone,
+        name = name,
         password = hash(args.password),
         phone = args.phone
     }

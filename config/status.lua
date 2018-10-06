@@ -26,7 +26,10 @@ return {
         [0x010008] = '获取用户信息失败，系统错误',
 
         -- notify module
-        [0x020001] = '发送短信验证码失败，请在60秒之后重试'
+        [0x020001] = '发送短信验证码失败，请在60秒之后重试',
+
+        -- post module
+        [0x030001] = '获取文章信息失败，文章不存在',
     },
     en = {
         -- system code    
@@ -54,6 +57,6 @@ return {
         [0x010008] = 'fail to get user info, system error',
 
         -- notify module
-        [0x020001] = 'Fail to send SMS, please try again after 60 secs'
+        [0x020001] = 'Fail to send SMS, please try again after 60 secs',
     }
 }

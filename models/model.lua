@@ -73,8 +73,8 @@ function _M:paginate(page_num, per_page)
 	local sql, count_sql, total
 	local data={
 		data = {},
-		next_page = cjson.null,
-		prev_page = cjson.null,
+		next_page = 1,
+		prev_page = 1,
 		total = 0
 	}
 	if not self.query_sql then
@@ -203,6 +203,10 @@ function _M:belongsTo(model, local_key, foreign_key)
 end
 
 function _M:fetchRelation(ids)
+	-- if table is empty
+	if next(ids) == nil then
+		return {}
+	end
 	local ids_str = implode(ids)
 	self.relation_sql = 'select * from '..self.relation.model.table..' where ' .. self.relation.foreign_key .. ' in (' .. ids_str .. ')'
 	return table_remove(Database:query(self.relation_sql), self.relation.model:getHidden())

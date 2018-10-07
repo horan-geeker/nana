@@ -72,4 +72,30 @@ function _M:count()
 	response:json(0, 'ok', Post:count())
 end
 
+function _M:favor(id)
+	local post = Post:find(id)
+	if not post then
+		post = nil
+		response:json(0x030001)
+	else
+		local auth = Auth:user()
+		local favor = Favor:where('user_id', '=', auth.id):where('post_id','=', post.id):first()
+		if not favor then
+			local ok = Favor:create({
+				user_id=auth.id,
+				post_id=post.id,
+			})
+			if not ok then
+				return response:json(0x000005)
+			end
+		else
+			local ok = Favor:delete(favor.id)
+			if not ok then
+				return response:json(0x000005)
+			end
+		end
+		return response:json(0)
+	end
+end
+
 return _M

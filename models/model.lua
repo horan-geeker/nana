@@ -212,14 +212,19 @@ function _M:fetchRelation(ids)
 	return table_remove(Database:query(self.relation_sql), self.relation.model:getHidden())
 end
 
-function _M:delete()
-	-- 拼接需要delete的字段
-	if self.query_sql then
-		local sql = 'delete from '..self.table..' '..self.query_sql..' limit 1'
-		self.query_sql = nil
-		return Database:execute(sql)
+function _M:delete(id)
+	id = id or nil
+	if not id then
+		-- 拼接需要delete的字段
+		if self.query_sql then
+			local sql = 'delete from '..self.table..' '..self.query_sql..' limit 1'
+			self.query_sql = nil
+			return Database:execute(sql)
+		end
+		ngx.log(ngx.ERR,'delete function need prefix sql')
+	else
+		return Database:execute('delete from '..self.table..' where id=' .. id .. ' limit 1')
 	end
-	ngx.log(ngx.ERR,'delete function have to called first')
 	return false
 end
 

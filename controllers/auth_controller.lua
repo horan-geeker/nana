@@ -71,8 +71,8 @@ function _M:register()
         response:json(0x000001, msg)
     end
     -- 检测是否重复
-    ok = User:where('phone', '=', args.phone):first()
-    if ok then
+    local user = User:where('phone', '=', args.phone):first()
+    if user then
         response:json(0x010001)
     end
     local name = args.name

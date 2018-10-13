@@ -56,7 +56,7 @@ function _M:show(id)
 		post = nil
 		response:json(0x030001)
 	else
-		post.comments = Comment:where('post_id', '=', id):get()
+		post.comments = Comment:where('post_id', '=', id):with('user'):get()
 		post.favor_count = Favor:where('post_id', '=', id):count()
 		Post:where('id', '=', post.id):update({read_count = post.read_count+1})
 		response:json(0, 'ok', post)

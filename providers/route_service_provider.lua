@@ -29,7 +29,14 @@ function _M:call_action(method, uri, controller, action)
                 end
             end
             if controller then
-                return require(controller_prefix..controller)[action](nil, table.unpack(params))
+                if type(require(controller_prefix..controller)) ~= 'table' then
+                    return response:json(0x00000D, nil, nil, 500)
+                end
+                local action = require(controller_prefix..controller)[action]
+                if action == nil then
+                    return response:json(0x00000E, nil, nil, 500)
+                end
+                return action(nil, table.unpack(params))
             else
                 return ngx.log(ngx.WARN, 'upsteam api')
             end

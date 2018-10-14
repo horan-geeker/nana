@@ -1,10 +1,10 @@
 FROM openresty/openresty:1.13.6.1-trusty
 
-MAINTAINER he jun wei "13571899655@163.com"
+MAINTAINER junwei he "13571899655@163.com"
 
-RUN apt-get update && apt-get install -y mysql-client
+COPY . /app
+COPY ./docker/nginx/conf/nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
 
-ENV WORK_DIR /var/www/nana
+WORKDIR /app
 
-WORKDIR ${WORK_DIR}
 EXPOSE 80

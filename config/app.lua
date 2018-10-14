@@ -1,6 +1,7 @@
 local env = require('../env')
 
 return {
+    env = env.APP_ENV or 'production',
     locale = 'zh',
     fallback_locale = 'en',
     login_id = "phone", -- login method use email/username/phone...etc

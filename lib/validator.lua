@@ -12,8 +12,11 @@ function Validator:in_table(item,table)
 end
 
 function Validator:check(data,rules)
+	if data == nil then
+		return false, 'data param cannot be nil'
+	end
 	if self:is_empty(data) then
-		return false,"data for check is empty"
+		return false, 'data param cannot empty'
 	end
 	for var,rule in pairs(rules) do
         if type(var) == 'number' then

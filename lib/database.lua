@@ -103,7 +103,6 @@ function _M.execute(self, sql)
         return false, res
     end
     return res.affected_rows
-
 end
 
 function _M.new(self, opts)

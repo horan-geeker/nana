@@ -1,9 +1,20 @@
-# Nana
+# lua-china-api
 
 [![GitHub release](https://img.shields.io/github/release/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/releases/latest)
 [![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)
-  
+![Build status](https://travis-ci.org/luaChina/lua-china-api.svg?branch=master)  
 [English Document](README_en.md)
+
+## 技术选型
+
+* openresty nana
+* mysql 5.7
+* redis
+
+## 自动化部署
+
+* travis-ci
+* docker-hub
 
 目录
 
@@ -58,8 +69,8 @@
 ### 使用 docker 安装
 
 * 执行 `cp env.example.lua env.lua` 其中 `mysql_host` 是数据库地址，`db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交，可以帮助区分线上和本地环境的不同配置
-* 执行 `cp .env.example .env` 这是 docker 配置的环境变量，通过修改 `PROXY_PASS_URL` 来指定下游的主机（实际上直接替换了 `nginx` 中的 `proxy_pass`），`API_SERVER_NAME` 是替换了 `nginx` 中的 `server_name`
-* 执行 `docker-compose up`
+* 构建 `docker build -t lua-china-api .`
+* 运行 `docker run -p 80:80 --name=lua-china-api -v /host/path/nana:/app -d lua-china-api`
 
 ### 手动安装
 

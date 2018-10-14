@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - openssl aes-256-cbc -K $encrypted_ef9c5b855f49_key -iv $encrypted_ef9c5b855f49_iv
+    -in id_rsa.enc -out ~/.ssh/id_rsa -d
+  - chmod 600 ~/.ssh/id_rsa
+  - export DOCKER_ID_USER="$docker_user"
+
+script:
+  - cp env.example.lua env.lua
+  - docker build -t lua-china-api:0.1 .
+  - docker login -u $docker_user -p $docker_password
+  - docker tag lua-china-api:0.1 $DOCKER_ID_USER/lua-china-api:0.1
+  - docker push $DOCKER_ID_USER/lua-china-api:0.1
+  - ssh -o "StrictHostKeyChecking no" root@115.28.82.133 "(docker rm -f lua-china-api || true) && (docker rmi -f horan/lua-china-api:0.1 || true)"
+  - ssh -o "StrictHostKeyChecking no" root@115.28.82.133 "docker run -p 10.31.231.178:8887:80 --name=lua-china-api -d horan/lua-china-api:0.1"
+
+after_script:
+- rm -rf ~/.ssh

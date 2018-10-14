@@ -2,16 +2,15 @@ local auth = require('providers.auth_service_provider')
 local ip_location = require('lib.ip_location')
 local AccountLog = require('models.account_log')
 local redis = require('lib.redis')
-local common = require('lib.common')
 
 local _M = {}
 
 function _M:verify_password(password, user_password)
-    if common:hash(password) == user_password then
+    ngx.log(ngx.ERR, password, user_password)
+    if hash(password) == user_password then
         return true
-    else
-        return false
     end
+    return false
 end
 
 function _M:notify(login_id)
@@ -27,16 +26,17 @@ function _M:authorize(user)
     local ip_obj, err = ip_location:new(ngx.var.remote_addr)
     local location, err = ip_obj:location()
     if not location then
-        return false, err
-    end
-    AccountLog:create(
-        {
-            ip = ngx.var.remote_addr,
-            city = location.city,
-            country = location.country,
-            type = 'login'
+        location = {
+            city = '',
+            country = '',
         }
-    )
+    end
+    AccountLog:create({
+        ip = ngx.var.remote_addr,
+        city = location.city,
+        country = location.country,
+        type = 'login'
+    })
     return true
 end
 

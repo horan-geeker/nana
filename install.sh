@@ -12,8 +12,8 @@ MYSQL_HOST="mysql-host"
 MYSQL_USER="root"
 MYSQL_PASSWORD="root"
 mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWORD -e "\
-CREATE DATABASE IF NOT EXISTS nana;
-USE nana;
+CREATE DATABASE IF NOT EXISTS lua_china;
+USE lua_china;
 CREATE TABLE IF NOT EXISTS \`users\` (\
   \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,\
   \`nickname\` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',\

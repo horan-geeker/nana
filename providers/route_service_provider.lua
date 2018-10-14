@@ -1,6 +1,5 @@
-local common = require('lib.common')
 local cjson = require('cjson')
-
+local response = require('lib.response')
 local controller_prefix = 'controllers.'
 local middleware_prefix = 'middleware.'
 
@@ -19,21 +18,30 @@ end
 
 function _M:call_action(method, uri, controller, action)
     if method == ngx.var.request_method then
-        local ok, params = route_match(common:purge_uri(uri), common:purge_uri(ngx.var.request_uri))
+        local ok, params = route_match(purge_uri(uri), purge_uri(ngx.var.request_uri))
         if ok then
             if ngx.ctx.middleware_group then
                 for _,middleware in ipairs(table_reverse(ngx.ctx.middleware_group)) do
                     local result, status, message = require(middleware_prefix..middleware):handle()
                     if result == false then
-                        common:response(status, message)
+                        response:json(status, message)
                     end
                 end
             end
             if controller then
-                require(controller_prefix..controller)[action](nil, table.unpack(params))
+                if type(require(controller_prefix..controller)) ~= 'table' then
+                    return response:json(0x00000D, nil, nil, 500)
+                end
+                local action = require(controller_prefix..controller)[action]
+                if action == nil then
+                    return response:json(0x00000E, nil, nil, 500)
+                end
+                return action(nil, table.unpack(params))
             else
-                ngx.log(ngx.WARN, 'upsteam api')
+                return ngx.log(ngx.WARN, 'upsteam api')
             end
+        -- else
+        --     return ngx.exit(ngx.HTTP_NOT_FOUND)
         end
     end
 end

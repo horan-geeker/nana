@@ -10,16 +10,10 @@ end
 
 function _M:routes()
     route:group({
-        -- 'locale',
-        -- 'throttle'
+        'locale',
+        'throttle'
     }, function()
-        route:get('/posts', 'post_controller', 'index')
-        route:get('/posts/count', 'post_controller', 'count')
-        route:get('/tags', 'post_controller', 'tags')
-        route:get('/users/top', 'user_controller', 'top')
-        route:get('/users/count', 'user_controller', 'count')
-        route:get('/users/{id}', 'user_controller', 'show')
-        route:get('/posts/{id}', 'post_controller', 'show')
+        route:get('/index', 'index_controller', 'index')
         route:post('/login', 'auth_controller', 'login')
         route:post('/send/sms', 'notify/sms_notify_controller', 'guest_send_sms')
         route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')
@@ -32,10 +26,6 @@ function _M:routes()
         route:group({
             'authenticate',
         }, function()
-            route:post('/posts/{id}/comments', 'comment_controller', 'create')
-            route:post('/posts/{id}/favor', 'post_controller', 'favor')
-            route:post('/posts', 'post_controller', 'store')
-            route:post('/users/send/sms', 'notify/sms_notify_controller', 'user_send_sms')
             route:post('/logout', 'auth_controller', 'logout')
             route:patch('/reset-password', 'auth_controller', 'reset_password')
             route:group({

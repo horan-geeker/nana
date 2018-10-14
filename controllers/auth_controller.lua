@@ -70,14 +70,14 @@ function _M:register()
     if not ok then
         response:json(0x000001, msg)
     end
-    -- 检测是否重复
+    -- check if repeat
     local user = User:where('phone', '=', args.phone):first()
     if user then
         response:json(0x010001)
     end
     local name = args.name
     if name == nil or name == '' then
-        -- 如果没有昵称，拼接模糊手机号
+        -- if dont have nickname, make up with a part of phone
         local phone_len = string.len(args.phone)
         local hidden_phone_len = math.floor(phone_len * 0.4)
         name = string.sub(args.phone, 1, hidden_phone_len - 1) .. string.rep('*', hidden_phone_len) .. string.sub(args.phone, phone_len - hidden_phone_len + 1, phone_len)

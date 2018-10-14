@@ -8,7 +8,7 @@ local common = require("lib.common")
 local _M = {}
 
 function _M:index()
-	local args = request:all() -- 拿到所有参数
+	local args = request:all() -- get all args
 	common:response(0,'request args', args)
 end
 

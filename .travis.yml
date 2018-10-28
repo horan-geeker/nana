@@ -14,7 +14,7 @@ script:
   - docker login -u $docker_user -p $docker_password
   - docker tag lua-china-api:0.1 $DOCKER_ID_USER/lua-china-api:0.1
   - docker push $DOCKER_ID_USER/lua-china-api:0.1
-  - ssh -o "StrictHostKeyChecking no" root@115.28.82.133 "(docker rm -f lua-china-api || true) && (docker rmi -f horan/lua-china-api:0.1 || true)"
+  - ssh -o "StrictHostKeyChecking no" root@115.28.82.133 "(docker rm -f lua-china-api || true) && (docker rmi -f horan/lua-china-api:0.1 || true) && docker pull horan/lua-china-api:0.1"
   - ssh -o "StrictHostKeyChecking no" root@115.28.82.133 "docker run -p 10.31.231.178:8887:80 --name=lua-china-api -d horan/lua-china-api:0.1"
 
 after_script:

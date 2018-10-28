@@ -50,6 +50,43 @@ function _M:store()
 	response:json(0,'ok', args)
 end
 
+function _M:update(id)
+	local args = request:all() -- 拿到所有参数
+	local ok, msg = validator:check(args, {
+        'title',
+        'content',
+        'tag_id',
+        })
+    if not ok then
+        response:json(0x000001, msg)
+	end
+	local tag = Tag:find(args.tag_id)
+	if not tag then
+		response:json(0x030001)
+    end
+	local user = Auth:user()
+	if not user then
+		response:json(0x000001, 'internal error, user is empty')
+    end
+	local post = Post:find(id)
+	if not post then
+        response:json(0x000005)
+	end
+	if post.user_id ~= user.id then
+		response:json(0x000005)
+	end
+    local data = {
+		post_tag_id=tag.id,
+		title=args.title,
+		content=args.content,
+    }
+	local ok = Post:where('id', '=', post.id):update(data)
+    if not ok then
+        response:json(0x000005)
+    end
+	response:json(0,'ok', args)
+end
+
 function _M:show(id)
 	local post = Post:with('user'):find(id)
 	if not post then

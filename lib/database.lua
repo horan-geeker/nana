@@ -90,6 +90,7 @@ function _M.query(self, sql)
     local ret, res, _ = self:mysql_query(sql)
     if not ret then
         ngx.log(ngx.ERR, "query db error. res: " .. (res or "nil"))
+        ngx.exit(500)
         return nil
     end
     return res

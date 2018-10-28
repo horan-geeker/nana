@@ -22,7 +22,7 @@ function _M:create(post_id)
     local user = Auth:user()
     local post = Post:find(post_id)
     if not post then
-        response:json(0x030002)
+        response:json(0x040002)
     end
     local comment = Comment:create({
         user_id = user.id,

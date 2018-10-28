@@ -55,14 +55,14 @@ function _M:update(id)
 	local ok, msg = validator:check(args, {
         'title',
         'content',
-        'tag_id',
+        'post_tag_id',
         })
     if not ok then
         response:json(0x000001, msg)
 	end
-	local tag = Tag:find(args.tag_id)
+	local tag = Tag:find(args.post_tag_id)
 	if not tag then
-		response:json(0x030001)
+		response:json(0x030003)
     end
 	local user = Auth:user()
 	if not user then
@@ -70,10 +70,10 @@ function _M:update(id)
     end
 	local post = Post:find(id)
 	if not post then
-        response:json(0x000005)
+        response:json(0x030001)
 	end
 	if post.user_id ~= user.id then
-		response:json(0x000005)
+		response:json(0x030002)
 	end
     local data = {
 		post_tag_id=tag.id,

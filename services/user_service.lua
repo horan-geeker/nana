@@ -6,7 +6,6 @@ local redis = require('lib.redis')
 local _M = {}
 
 function _M:verify_password(password, user_password)
-    ngx.log(ngx.ERR, password, user_password)
     if hash(password) == user_password then
         return true
     end

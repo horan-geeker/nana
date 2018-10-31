@@ -11,7 +11,7 @@ return {
     redis_host = "10.31.231.178", -- redis host
     redis_port = 6379, -- redis port
     sendcloud = {
-        SMSKEY = "xxxxx",
+        SMSKEY = "",
         SMSUSER = "LuaChina",
         TEMPLATEID = 13265
     }

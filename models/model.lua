@@ -83,15 +83,17 @@ function _M:get(num)
 	local sql = 'select * from '..self.table..' '..self.query_sql .. ' ' .. limit_sql
 	self.query_sql = nil
 	local res = Database:query(sql)
-	local ids = {}
-	for key,value in pairs(res) do
-		table.insert( ids, value[self.relation.local_key] )
-	end
-	local relations = self:fetchRelation(ids)
-	for key, value in pairs(res) do
-		for index, item in pairs(relations) do
-			if (value[self.relation.local_key] == item[self.relation.foreign_key]) then
-				res[key][self.relation.key_name] = item
+	if self.relation.local_key ~= nil then
+		local ids = {}
+		for key,value in pairs(res) do
+			table.insert( ids, value[self.relation.local_key] )
+		end
+		local relations = self:fetchRelation(ids)
+		for key, value in pairs(res) do
+			for index, item in pairs(relations) do
+				if (value[self.relation.local_key] == item[self.relation.foreign_key]) then
+					res[key][self.relation.key_name] = item
+				end
 			end
 		end
 	end

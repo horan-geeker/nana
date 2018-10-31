@@ -33,4 +33,14 @@ function _M:userinfo()
     return response:json(0, 'ok', table_remove(user, {'password'}))
 end
 
+function _M:posts(user_id)
+    local posts = Post:where('user_id', '=', user_id):get()
+    return response:json(0, 'ok', posts)
+end
+
+function _M:comments(user_id)
+    local comments = Comment:where('user_id', '=', user_id):get()
+    return response:json(0, 'ok', comments)
+end
+
 return _M

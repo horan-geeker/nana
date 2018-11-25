@@ -23,8 +23,6 @@ function _M:show(id)
     if not user then
         return response:json(0x010009, nil, nil, 404)
     end
-    user.posts = Post:where('user_id', '=', user.id):get()
-    user.comments = Comment:where('user_id', '=', user.id):get()
     return response:json(0, 'ok', table_remove(user, {'password'}))
 end
 
@@ -39,7 +37,7 @@ function _M:posts(user_id)
 end
 
 function _M:comments(user_id)
-    local comments = Comment:where('user_id', '=', user_id):get()
+    local comments = Comment:where('user_id', '=', user_id):with('post'):get()
     return response:json(0, 'ok', comments)
 end
 

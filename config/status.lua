@@ -14,8 +14,6 @@ return {
         [0x00000A] = '系统错误, Cookie 错误',
         [0x00000B] = '系统错误，定时器错误',
         [0x00000C] = '系统异常，用户未登录',
-        [0x00000D] = '系统错误，控制器异常',
-        [0x00000E] = '系统错误, 调用方法在控制器中不存在',
 
         -- user module
         [0x010001] = '注册失败，手机号已存在',
@@ -54,8 +52,6 @@ return {
         [0x00000A] = 'system error, cookie error',
         [0x00000B] = 'system error, timer error',
         [0x00000C] = 'system error，user not authenticat',
-        [0x00000D] = 'system error, controller not a table',
-        [0x00000E] = 'system error, this action function not exist',
 
         -- user module
         [0x010001] = 'phone number already exits',

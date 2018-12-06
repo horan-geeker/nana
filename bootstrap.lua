@@ -7,6 +7,7 @@ local cookie_obj = require("lib.cookie")
 local Core = {}
 
 function Core:helpers()
+    -- here you need use . not :
     function _G.table_reverse(tbl)
         for i=1, math.floor(#tbl / 2) do
             tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
@@ -100,12 +101,12 @@ function Core:helpers()
     function _G:get_local_time()
         local time_zone = ngx.re.match(config.time_zone, "[0-9]+")
         if time_zone == nil then
-            local err =
-                "not set time zone or format error, time zone should look like `UTC+8` current is: " .. config.time_zone
+            local err = "not set time zone or format error, time zone should look like `+8:00` current is: " .. config.time_zone
             ngx.log(ngx.ERR, err)
             return false, err
         end
-        -- time-zone * 60(sec) * 60(min) + UTC+0 time = current time
+        -- ngx.time() return UTC+0 timestamp
+        -- time_zone * 60(sec) * 60(min) + UTC+0 time = current time
         return time_zone[0] * 3600 + ngx.time()
     end
 
@@ -126,7 +127,8 @@ function Core:helpers()
     function _G.hash(password)
         return ngx.md5(password)
     end
-
+    
+    -- data not in order
     function _G.log(...)
         local args = {}
         if #{...}>1 then
@@ -134,9 +136,7 @@ function Core:helpers()
         else
             args = ...
         end
-        if config.env == 'dev' then
-            ngx.log(ngx.WARN, cjson.encode(args))
-        end
+        ngx.log(ngx.WARN, cjson.encode(args))
     end
 end
 

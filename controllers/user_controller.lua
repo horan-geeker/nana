@@ -21,7 +21,7 @@ end
 function _M:show(id)
     local user = User:find(id)
     if not user then
-        return response:json(0x010009, nil, nil, 404)
+        return response:json(0x010009)
     end
     return response:json(0, 'ok', table_remove(user, {'password'}))
 end
@@ -32,7 +32,7 @@ function _M:userinfo()
 end
 
 function _M:posts(user_id)
-    local posts = Post:where('user_id', '=', user_id):get()
+    local posts = Post:where('deleted_at', 'is', 'null'):where('user_id', '=', user_id):get()
     return response:json(0, 'ok', posts)
 end
 

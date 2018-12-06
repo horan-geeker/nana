@@ -15,7 +15,13 @@ local _M = {}
 function _M:index()
 	local args = request:all()
 	local page = args.page or 1
-	response:json(0, 'ok', Post:orderby('created_at', 'desc'):with('user'):paginate(page))
+	response:json(0, 'ok', Post:where('deleted_at', 'is', 'null'):orderby('created_at', 'desc'):with('user'):paginate(page))
+end
+
+function _M:drafts()
+	local user = Auth:user()
+	local drafts = Post:where('user_id', '=', user.id):where('deleted_at', 'is not', 'null'):orderby('created_at', 'desc'):get()
+	response:json(0, 'ok', drafts)
 end
 
 function _M:store()
@@ -79,6 +85,7 @@ function _M:update(id)
 		post_tag_id=tag.id,
 		title=args.title,
 		content=args.content,
+		deleted_at='null'
     }
 	local ok = Post:where('id', '=', post.id):update(data)
     if not ok then
@@ -88,7 +95,7 @@ function _M:update(id)
 end
 
 function _M:show(id)
-	local post = Post:with('user'):find(id)
+	local post = Post:where('id', '=', id):where('deleted_at', 'is', 'null'):with('user'):first()
 	if not post then
 		post = nil
 		response:json(0x030001)
@@ -98,6 +105,24 @@ function _M:show(id)
 		Post:where('id', '=', post.id):update({read_count = post.read_count+1})
 		response:json(0, 'ok', post)
 	end
+end
+
+function _M:edit(id)
+	local post = Post:where('id', '=', id):with('user'):first()
+	if not post then
+		post = nil
+		response:json(0x030001)
+	end
+	response:json(0, 'ok', post)
+end
+
+function _M:delete(id)
+	local user = Auth:user()
+	local ok = Post:where('user_id', '=', user.id):where('id', '=', id):soft_delete()
+	if ok then
+		response:json(0, 'ok', post)
+	end
+	response:error()
 end
 
 function _M:tags()

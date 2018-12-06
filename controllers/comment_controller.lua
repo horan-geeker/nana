@@ -30,7 +30,7 @@ function _M:create(post_id)
         content = args.content
     })
     if not comment then
-        return response:json(0x000005, nil, nil, 500)
+        return response:error(0x000005)
     end
     return response:json(0)
 end

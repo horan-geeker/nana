@@ -5,10 +5,11 @@ local _M = {}
 function _M:init()
     ngx.ctx.middleware_group = {}
     self:routes()
-    ngx.log(ngx.WARN, 'not find method, uri in router.lua or didn`t response in action, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
+    return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
 function _M:routes()
+    route:get('/index', 'index_controller', 'index')
     route:group({
         -- 'locale',
         -- 'throttle'
@@ -34,10 +35,13 @@ function _M:routes()
         route:group({
             'authenticate',
         }, function()
+            route:get('/posts/drafts', 'post_controller', 'drafts')
+            route:get('/posts/{id}/edit', 'post_controller', 'edit')
             route:post('/posts/{id}/comments', 'comment_controller', 'create')
             route:post('/posts/{id}/favor', 'post_controller', 'favor')
             route:post('/posts', 'post_controller', 'store')
             route:put('/posts/{id}', 'post_controller', 'update')
+            route:delete('/posts/{id}', 'post_controller', 'delete')
             route:post('/users/send/sms', 'notify/sms_notify_controller', 'user_send_sms')
             route:post('/logout', 'auth_controller', 'logout')
             route:patch('/reset-password', 'auth_controller', 'reset_password')

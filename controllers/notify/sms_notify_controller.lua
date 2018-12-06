@@ -1,4 +1,4 @@
-local common = require('lib.common')
+local response = require('lib.response')
 local validator = require('lib.validator')
 local random = require('lib.random')
 local config = require('config.app')
@@ -18,22 +18,22 @@ function _M:guest_send_sms()
         }
     )
     if not ok then
-        common:response(1, err)
+        response:json(1, err)
     end
     local res = sms_service:sendSMS(args['phone'])
     if res ~= true then
-        common:response(res)
+        response:json(res)
     end
-    common:response(0)
+    response:json(0)
 end
 
 function _M:user_send_sms()
     local user = auth:user()
     local res = sms_service:sendSMS(user.phone)
     if res ~= true then
-        common:response(res)
+        response:json(res)
     end
-    common:response(0)
+    response:json(0)
 end
 
 return _M

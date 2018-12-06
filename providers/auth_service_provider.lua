@@ -1,9 +1,9 @@
 local random = require("lib.random")
-local common = require("lib.common")
 local config = require("config.app")
 local cjson = require("cjson")
 local redis = require("lib.redis")
 local cookie_obj = require("lib.cookie")
+local response = require('lib.response')
 
 local _M = {}
 local token_name = 'token'
@@ -17,7 +17,7 @@ function _M:authorize(user)
     token = generate_token(user[config.login_id]..user.id)
     local ok,err = redis:set(token_name..':'..token, cjson.encode(user), config.session_lifetime*60)
     if not ok then
-        ngx.log(ngx.ERR, 'cannot set redis key, error_msg:'..err)
+        response:error('cannot set redis key, error_msg:'..err)
     end
     local ok, err = set_cookie(token_name, token, get_local_time() + config.session_lifetime)
     if not ok then

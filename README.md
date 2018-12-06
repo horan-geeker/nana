@@ -2,15 +2,14 @@
 
 [![GitHub release](https://img.shields.io/github/release/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/releases/latest)
 [![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)
-  
 [English Document](README_en.md)
 
 目录
+
 ====
 
 * [介绍](#介绍)
   * [为 api 设计的 lua 框架](#为-api-设计的-lua-框架)
-  * [中间件模式](#中间件模式)
 * [安装](#安装)
   * [使用 docker 安装](#使用-docker-安装)
   * [手动安装](#手动安装)
@@ -46,28 +45,23 @@
 
 ### 为 api 设计的 lua 框架
 
-`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，项目集成了多个组件，目前支持丰富的功能。如果你单纯使用 lua 来做 http 服务器的话，在 nginx 配置中使用 content_by_lua 来指定入口文件，否则按照项目默认的模式进行安装
-
-### 中间件模式
-
-通过 `access_by_lua` 阶段使得 lua 成为中间件，再通过 `proxy_pass` 指定下游主机，一个 api 请求会先通过 nana，如果匹配到了路由则执行对应控制器里的逻辑，如果没有匹配到路由则会直接执行 `proxy_pass` 指定的下游主机，如果匹配到了路由，但是控制器没有返回 body（也即是代码没有执行`common:response()` 或 `ngx.say()`）仍然会是在执行完 nana 的逻辑之后并且执行下游主机的逻辑，所以说，`nana` 在这里是一个系统层面的中间件
+`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，适用于 `restful api` 的微服务框架，项目集成了多个组件，目前支持丰富的功能。
 
 ## 安装
 
 ### 使用 docker 安装
 
 * 执行 `cp env.example.lua env.lua` 其中 `mysql_host` 是数据库地址，`db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交，可以帮助区分线上和本地环境的不同配置
-* 执行 `cp .env.example .env` 这是 docker 配置的环境变量，通过修改 `PROXY_PASS_URL` 来指定下游的主机（实际上直接替换了 `nginx` 中的 `proxy_pass`），`API_SERVER_NAME` 是替换了 `nginx` 中的 `server_name`
-* 执行 `docker-compose up`
+* 构建 `docker build -t nana .`
+* 运行 `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana` 生产环境不需要 `mount` 到 `/app`，开发环境这样做较方便调试
 
 ### 手动安装
 
 * `git clone https://github.com/horan-geeker/nana.git`
-* 同上执行 `cp env.example.lua env.lua` 并配置其中的数据库
-* 执行 `sudo chmod 755 install.sh && ./install.sh` 来生成数据库结构
-* 配置 `nginx`，项目的入口文件是 `bootstrap.lua` 配置的时候指到这里就好，项目中的 `nginx/conf/nginx.conf.raw` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
+* 同上执行 `cp env.example.lua env.lua` 并配置其中的 `mysql redis`
+* 配置 `nginx`，将 `content_by_lua_file` 指到框架的入口文件 `bootstrap.lua`，项目中的 `nginx/conf/nginx.conf` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
 
-> 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
+> 如果你需要使用项目自带的登录注册等功能，需配置 `config/app.lua`：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ## 文档
 
@@ -94,7 +88,7 @@
 
 > 路由文件在项目根目录 `router.lua`，如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：
 
-```
+```lua
 route:post('/login', 'auth_controller', 'login')
 ```
 
@@ -102,7 +96,7 @@ route:post('/login', 'auth_controller', 'login')
 
 路由群组目前主要的作用是使用中间件来解决一些问题，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在路由群组的地方写一句就ok了，这样就会在调用 `controller` 之前先调用 `middleware > authenticate.lua` 的 `handle()` 方法：
 
-```
+```lua
 route:group({
         'authenticate',
     }, function()
@@ -117,7 +111,7 @@ route:group({
 `route:get("/users/{user_id}/comments/{comment_id}", 'user_controller', 'comments')`
 可匹配`/users/1/comments/2`，在`comments action`里，直接写上两个参数即可，命名不进行约束
 
-```
+```lua
 function _M:comments(user_id, comment_id)
     ngx.log(ngx.ERR, user_id, comment_id)
     common:response(0, 'comments', {user_id=user_id, comment_id=comment_id})
@@ -131,7 +125,7 @@ end
 > 中间件都需要写在 `middleware` 文件夹下，并且需要写上命名为 `handle()` 的方法
 `中间件` 的设计模式解决了代码的复用，我们可以在中间件中自定义自己的东西，如`middleware > authenticate.lua`
 
-```
+```lua
 function _M:handle()
     if not auth_service:check() then
         common:response(4,'no authorized in authenticate')
@@ -163,7 +157,7 @@ args.username -- 拿到username参数
 
 使用了这个开源组件 https://github.com/pintsized/lua-resty-http
 
-```
+```lua
 local http = require('lib.http')
 local httpc = http.new()
 local res, err = httpc:request_uri(url, {ssl_verify=false}) -- https 的请求出现异常可以带上这个参数，但是确保你是安全的
@@ -176,22 +170,46 @@ local data = cjson.decode(res.body)
 
 ### Response
 
-框架使用的 `common` 中的 `response` 方法通过定义数字来代表不同的`response`类型，你也可以直接写 ngx.say('') ngx.exit(ngx.OK),
-在 `config > status.lua` 中可以增加返回类型
+框架使用的 `lib/response.lua` 中的 `json` 方法通过定义数字来代表不同的`response`类型，该方法支持三四个参数
+
+1. 第一个参数是状态码，16进制状态码对应 `config/status.lua`
+2. 第二个参数是错误码文案，文案根据第一个参数对应 `config/status.lua` 中的文案
+3. 第三个参数是需要向前端返回的数据，可省略
+4. 第四个参数是返回的 `http 状态码`，可省略，默认是200
+
+```lua
+response:json(0x000000, 'success message', data, 200)
+--[[
+{
+"msg": "success message",
+"status": 0,
+"data": {}
+}
+--]]
 ```
-local common = require("lib.common")
-common:response(1) -- 会去 `status.lua` 中找到 `1` 的错误信息，连同错误码 `1` 返回给前端
-common:response(0,'ok') -- 如果你传了第二个参数，会覆盖 `status.lua` 中的原有错误码对应的错误信息
-common:response(0, 'ok', data) -- 第三个参数用来传送数据,默认会进行 cjson.encode 所以只需要传数据即可
+
+或者返回错误信息
+
+```lua
+response:json(0x000001)
+--[[
+{
+"msg": "验证错误",
+"status": 1,
+"data": {}
+}
+--]]
 ```
+
+当然你可以在 `config > status.lua` 中可以增加返回状态码
 
 #### 定义全局 response 结构
 
-在`config`目录下的`status.lua`定义了返回的状态码和`msg`内容,你可以在这里新增或修改你想要的状态码，在系统中使用 `common:response(status)`的方式返回响应内容，默认的格式是`{"status":0,"message":"ok","data":{}}`你可以通过修改`common.lua`的`response`方法来自定义不同的结构
+在 `config` 目录下的 `status.lua` 定义了返回的 `status` 和 `msg` 内容，默认返回的格式是 `{"status":0,"message":"ok","data":{}}` 你可以通过修改 `lib/response.lua` 的 `json` 方法来自定义不同的结构
 
 ### 验证数据
 
-```
+```lua
 local validator = require('lib.validator')
 local request = require("lib.request")
 local args = request:all() -- 拿到所有参数
@@ -205,43 +223,80 @@ local ok,msg = validator:check(args, {
 ### Cookie
 
 在 `helper.lua` 中包含了 `cookie` 的辅助方法，全局已经引用了该文件，可以直接使用函数
-```
+
+```lua
 set_cookie(key, value, expire) -- expire 是可选参数，单位是时间戳，精确到秒
 get_cookie(key)
 ```
 
 ### 数据库操作 ORM
 
-默认的数据库操作都使用了 `ngx.quote_sql_str` 处理了 `sql注入问题`
+> 默认的数据库操作都使用了 `ngx.quote_sql_str` 处理了 `sql注入问题`
+以下增删改查都需要先获取模型 `table` 可类比 `class`
 
-#### CURD
-
+```lua
+-- 获取模型，模型的表名对应 `models/user.lua` 中 `Model:new()` 的第一个参数 `users`  
+local User = require("models.user")
 ```
-local Model = require('models.model')
-local User = Model:new('users') -- 初始化 `User` 模型,约定俗成 `User` 的模型对应 `users` 表名,当然你也可以修改 `new()` 的参数为其他名称
-local user = User:where('username','=','cgreen'):where('password','=','xxxxxxx'):get() -- 拿到 username 字段的值是 `cgreen` 的，`password` 字段的值是 `xxxxxx` 的多条数据，注意返回是数组，`first()` 方法返回的是一条数据
-local user = User:find(1) -- 拿到 `id` 为 1 的用户
-User:where('name','=','xxx'):orwhere('name','=','yyy'):get() -- 获取 `name` 为 `xxx` 的或者 `yyy` 的 `user`
+
+#### 检索
+
+```lua
+-- 拿到 users 表 `id` 为 1 的用户
+local user = User:find(1)
+
+-- 获取表中所有数据
+local users = User:all()
+
+-- 返回 users 表中 username 字段的值是 `cgreen` 的，`password` 字段的值是 `xxxxxx` 的多条数据，注意此处返回是 table 数组，`first()` 方法返回的是单条数据
+local user = User:where('username','=','cgreen'):where('password','=','xxxxxxx'):get()
+
+-- 返回 `name` 为 `xxx` 或者 `yyy` 的所有用户 table 数组
+local users = User:where('name','=','xxx'):orwhere('name','=','yyy'):get()
+```
+
+#### 新增
+
+```lua
 -- 创建一个用户
 User:create({
     id=3,
-    password='123456',
-    name='horanaaa',
-    email='horangeeker@geeker.com',
+    password='xxxxxx',
+    name='hejunwei',
+    email='heunweimake@gmail.com',
 })
--- 更新一个用户
-local ok, err = User:where('id', '=', user.id):update({
+```
+
+#### 更新
+
+```lua
+-- 更新 id = 1 的 user 的 name 为 test, avatar 为 NULL
+local ok, err = User:where('id', '=', 1):update({
         name='test',
+        avatar='null'
   })
 if not ok then
     ngx.log(ngx.ERR, err)
 end
--- 删除操作
-ok,err = User:where('id','=','1'):delete()
-    if not ok then
-        ngx.log(ngx.ERR, err)
-    end
 ```
+
+#### 删除
+
+```lua
+-- 删除 id = 1 的用户
+local ok, err = User:where('id','=','1'):delete()
+if not ok then
+    ngx.log(ngx.ERR, err)
+end
+
+-- 软删除
+local ok, err = User:where('id','=','1'):soft_delete()
+if not ok then
+    ngx.log(ngx.ERR, err)
+end
+```
+
+> 软删除将 deleted_at 字段置为当前时间，字段名在 `models/model.lua` 中配置
 
 #### 排序
 
@@ -249,33 +304,133 @@ ok,err = User:where('id','=','1'):delete()
 
 #### 分页
 
-模型支持`paginate(per_page)`方法，需要传入当前页码,`User:paginate(1)`,返回值如下结构：
-
-```
+```lua
+local userPages = User:paginate(1)
+-- 返回如下结构：
 {
     "prev_page": null,
     "total": 64,
     "data": [
-        {...},
-        {...},
+        {user1_obj},
+        {user2_obj},
+        ...
     ],
     "next_page": 2
 }
 ```
 
-当不存在下一页时，`next_page`为`null`
+当不存在上一页（下一页）时，`prev_page`（`next_page`）为 `null`
 
 #### 使用原生 sql
 
-> 使用原生 sql 是需要注意自己去处理sql注入  
+> 使用原生 sql 时需要注意自己去处理 `sql 注入`  
 `local Database = require('lib.database')`
 
 * local res = Database:query(sql) -- 执行数据查询语言DQL,返回结果集
 * local affected_rows, err = Database:execute(sql) -- 执行数据操纵语言DML,返回`受影响的行`或`false`和`错误信息`
 
+### 模型间关系
+
+> 目前只支持一层关系，单个模型进行关联，之后会进行完善，该方法只是对开发友好，完全可以用 where 条件限定替代
+
+#### 一对多
+
+以 user 关联 post 为例，在 user 模型中定义关系 `hasMany`，参数：
+
+1. 关联模型
+2. 外表 id
+3. 本表 id
+
+```lua
+-- user.lua
+local Model = require("models.model")
+local Post = require('models.post')
+
+local User = Model:new('users')
+
+function User:posts()
+    return User:hasMany(Post, 'user_id', 'id')
+end
+
+return User
+
+-- post.lua
+local Model = require("models.model")
+local config = require("config.app")
+
+local Post = Model:new('posts')
+
+return Post
+
+-- controller 调用
+local user_and_post = User:where('id', '=', user_id):with('posts'):get()
+--[[
+[
+    {
+        "name":"horan",
+        // 返回值会带上 post 为 key 的对象
+        "posts":{
+            "id":67,
+            "user_id":1,
+            "title":"article title",
+            "content":"article content"
+        },
+        "email":"hejunweimake@gmail.com"
+    }
+]
+--]]
+```
+
+#### 多对一
+
+以 post 关联 tag 为例，在 post 模型中定义关系 `belongsTo`，参数：
+
+1. 关联模型
+2. 外表 id
+3. 本表 id
+
+```lua
+-- post.lua
+local Model = require("models.model")
+local Tag = require('models.tag')
+local config = require("config.app")
+
+local Post = Model:new('posts')
+
+function Post:tag()
+    return Post:belongsTo(Tag, 'id', 'tag_id')
+end
+
+return Post
+
+-- tag.lua
+local Model = require("models.model")
+local config = require("config.app")
+
+local Tag = Model:new('tags')
+
+return Tag
+
+-- controller 调用
+local posts_with_tag = Post:where('id', '=', 1):with('tag'):first()
+--[[
+{
+    "id":1,
+    "post_tag_id":1,
+    "user_id":1,
+    "title":"article title",
+    "tag":{
+        "id":1,
+        "type":"openresty"
+    },
+    "content":"article content"
+}
+--]]
+```
+
 ### Redis
 
-```
+```lua
 local redis = require("lib.redis")
 local ok,err = redis:set('key', 'value', 60) --seconds
 if not ok then
@@ -313,9 +468,9 @@ end
 
 #### IP 定位
 
-目前使用离线的 dat 文件(`lib/17monipdb.dat`)进行 ip 定位，长时间后可能会有误差问题
+目前使用离线的 dat 文件(`lib/17monipdb.dat`)进行 ip 定位，长时间后可能会有误差问题(文件更新于2017年底)
 
-```
+```lua
 local ip_location = require("lib.ip_location")
 local ipObj, err = ip_location:new(ngx.var.remote_addr)
 local location, err = ipObj:location()
@@ -331,13 +486,13 @@ location.country
 
 可以反转 array 类型的 table
 
-```
+```lua
 table_reverse(tab) -- return reverse table
 ```
 
 #### table 按值删除
 
-```
+```lua
 table_remove(tab, {'item1', 'item2'})
 ```
 
@@ -345,7 +500,7 @@ table_remove(tab, {'item1', 'item2'})
 
 > lua 中的`hash table`按`key`排序与其他语言不同，我们需要自己实现一个迭代器来遍历排好序的`table`
 
-```
+```lua
 for k,v in pairsByKeys(hashTable) do
     ...
 end
@@ -357,9 +512,10 @@ end
 使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
 
 ### 接口总体格式
+
 > 所有接口均返回json数据，第一次会有二到三个参数
 
-```
+```json
 {
     "msg":"ok",
     "status":0,
@@ -371,7 +527,7 @@ end
 
 ### 注册
 
-```
+```shell
 curl -X "POST" "http://localhost:8888/register" \
      -H 'Content-Type: application/json; charset=utf-8' \
      -d $'{
@@ -389,7 +545,7 @@ curl -X "POST" "http://localhost:8888/register" \
 
 #### 返回响应
 
-```
+```json
 {
     "msg":"ok",
     "status":0
@@ -398,7 +554,7 @@ curl -X "POST" "http://localhost:8888/register" \
 
 ### 登录
 
-```
+```shell
 curl -X "POST" "http://localhost:8888/login" \
      -H 'Content-Type: application/json; charset=utf-8' \
      -d $'{
@@ -414,7 +570,7 @@ curl -X "POST" "http://localhost:8888/login" \
 
 #### 返回响应
 
-```
+```json
 {
     "msg":"ok",
     "status":0,
@@ -431,7 +587,7 @@ curl -X "POST" "http://localhost:8888/login" \
 
 ### 发送短信(未登录)
 
-```
+```shell
 curl -X "POST" "http://localhost:8888/send/sms" \
      -H 'Content-Type: application/json; charset=utf-8' \
      -d $'{
@@ -445,7 +601,7 @@ curl -X "POST" "http://localhost:8888/send/sms" \
 
 #### 返回响应
 
-```
+```json
 {
     "msg":"ok",
     "status":0
@@ -454,7 +610,7 @@ curl -X "POST" "http://localhost:8888/send/sms" \
 
 ### 重置密码
 
-```
+```shell
 curl -X "PATCH" "http://localhost:8888/reset-password" \
      -H 'Content-Type: application/json; charset=utf-8' \
      -d $'{
@@ -471,7 +627,7 @@ curl -X "PATCH" "http://localhost:8888/reset-password" \
 
 #### 返回响应
 
-```
+```json
 {
     "msg":"ok",
     "status":0
@@ -480,7 +636,7 @@ curl -X "PATCH" "http://localhost:8888/reset-password" \
 
 ## 退出登录
 
-```
+```shell
 curl -X "POST" "http://localhost:8888/logout" \
      -H 'Content-Type: application/json; charset=utf-8' \
      -d $'{}'
@@ -492,7 +648,7 @@ curl -X "POST" "http://localhost:8888/logout" \
 
 #### 返回响应
 
-```
+```json
 {
     "msg":"ok",
     "status":0
@@ -501,7 +657,7 @@ curl -X "POST" "http://localhost:8888/logout" \
 
 ### 获取用户信息
 
-```
+```shell
 curl "http://localhost:8888/userinfo"
 ```
 
@@ -511,7 +667,7 @@ curl "http://localhost:8888/userinfo"
 
 #### 返回响应
 
-```
+```json
 {
     "msg":"ok",
     "status":0,
@@ -529,9 +685,8 @@ curl "http://localhost:8888/userinfo"
 ## TODO list
 
 * 解析 multipart/form-data 请求
-* 增加阿里云短信服务
+* 处理 size 较大 body 的 post 请求
 * 登录增加失败次数限制
-* 集成国际短信验证码业务，twilio
 * 密码加密
 
 ## qq群 284519473

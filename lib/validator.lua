@@ -12,18 +12,21 @@ function Validator:in_table(item,table)
 end
 
 function Validator:check(data,rules)
+	if data == nil then
+		return false, 'data param cannot be nil'
+	end
 	if self:is_empty(data) then
-		return false,"data for check is empty"
+		return false, 'data param cannot empty'
 	end
 	for var,rule in pairs(rules) do
         if type(var) == 'number' then
             if not data[rule] or data[rule]==true or data[rule]=="" then
-            	return false,rule..' arg not exists'
+            	return false,rule..' not exists'
             end
         else
 			for condition,info in pairs(rule) do
                 if not data[var] or data[var] == '' or data[var] == {} or data[var]== true then
-                    return false,var..' arg value is empty'
+                    return false,var..' is empty'
 	            elseif condition == 'max' then
 					if #data[var] > info then
 						return false,var..' arg max length need '..info..' current is '..#data[var]

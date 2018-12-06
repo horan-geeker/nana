@@ -24,9 +24,11 @@ return {
         [0x010006] = '重置密码失败，系统异常',
         [0x010007] = '重置密码失败，新密码不能和旧密码相同',
         [0x010008] = '获取用户信息失败，系统错误',
+        [0x010009] = '获取用户信息失败，用户不存在',
 
         -- notify module
-        [0x020001] = '发送短信验证码失败，请在60秒之后重试'
+        [0x020001] = '发送短信验证码失败，请在60秒之后重试',
+
     },
     en = {
         -- system code    
@@ -42,6 +44,7 @@ return {
         [0x000009] = 'http request err',
         [0x00000A] = 'system error, cookie error',
         [0x00000B] = 'system error, timer error',
+        [0x00000C] = 'system error，user not authenticat',
 
         -- user module
         [0x010001] = 'phone number already exits',
@@ -54,6 +57,6 @@ return {
         [0x010008] = 'fail to get user info, system error',
 
         -- notify module
-        [0x020001] = 'Fail to send SMS, please try again after 60 secs'
+        [0x020001] = 'Fail to send SMS, please try again after 60 secs',
     }
 }

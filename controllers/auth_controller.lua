@@ -1,5 +1,5 @@
 local request = require('lib.request')
-local common = require('lib.common')
+local response = require('lib.response')
 local User = require('models.user')
 local AccountLog = require('models.account_log')
 local validator = require('lib.validator')
@@ -21,20 +21,20 @@ function _M:login()
         validator:check(
         args,
         {
-            config.login_id,
+            'phone',
         }
     )
     if not ok then
-        common:response(0x000001, msg)
+        response:json(0x000001, msg)
     end
-    local ok, user = User:find_by_login_id(args[config.login_id])
-    if not ok then
-        common:response(0x010003)
+    local user = User:where('phone', '=', args.phone):first()
+    if not user then
+        response:json(0x010003)
     end
     if args.smscode then
-        ok = user_service:verify_checkcode(args[config.login_id], args.smscode)
+        ok = user_service:verify_checkcode(args.phone, args.smscode)
         if not ok then
-            common:response(0x000001, 'invalidate sms code')
+            response:json(0x000001, 'invalidate sms code')
         else
             user_service:authorize(user)
         end
@@ -42,19 +42,19 @@ function _M:login()
         ok, err = user_service:verify_password(args.password, user.password)
         if not ok then
             -- login fail
-            common:response(0x010002)
+            response:json(0x010002)
         else
             ok, err = user_service:authorize(user)
             if not ok then
                 -- @todo should render only error message
-                common:response(0x000001, err)
+                response:json(0x000001, err)
             end
         end
     else
-        common:response(0x000001, 'need sms or password')
+        response:json(0x000001, 'need sms or password')
     end
     
-    common:response(0, 'ok', table_remove(user, {'password'}))
+    response:json(0, 'ok', table_remove(user, {'password'}))
 end
 
 function _M:register()
@@ -63,38 +63,48 @@ function _M:register()
         validator:check(
         args,
         {
-            config.login_id,
+            'phone',
             'password',
         }
     )
     if not ok then
-        common:response(0x000001, msg)
+        response:json(0x000001, msg)
     end
-    -- 检测是否重复
-    ok = User:find_by_login_id(args[config.login_id])
-    if ok then
-        common:response(0x010001)
+    -- check if repeat
+    local user = User:where('phone', '=', args.phone):first()
+    if user then
+        response:json(0x010001)
+    end
+    local name = args.name
+    if name == nil or name == '' then
+        -- if dont have nickname, make up with a part of phone
+        local phone_len = string.len(args.phone)
+        local hidden_phone_len = math.floor(phone_len * 0.4)
+        name = string.sub(args.phone, 1, hidden_phone_len - 1) .. string.rep('*', hidden_phone_len) .. string.sub(args.phone, phone_len - hidden_phone_len + 1, phone_len)
     end
 
     local user_obj = {
-        nickname = random.token(8),
-        password = common:hash(args.password)
+        name = name,
+        password = hash(args.password),
+        phone = args.phone
     }
-    user_obj[config.login_id] = args[config.login_id]
+
     ok = User:create(user_obj)
     if not ok then
-        common(0x000005)
+        response:json(0x000005)
     end
-    common:response(0)
+    local user = User:where('phone', '=', args.phone):first()
+    user_service:authorize(user)
+    response:json(0, 'ok', table_remove(user, {'password'}))
 end
 
 function _M:logout()
     local ok, err = auth:clear_token()
     if not ok then
         ngx.log(ngx.ERR, err)
-        common:response(0x00000A)
+        response:json(0x00000A)
     end
-    return common:response(0)
+    return response:json(0)
 end
 
 function _M:reset_password()
@@ -104,29 +114,29 @@ function _M:reset_password()
         'new_password'
         })
     if not ok then
-        common:response(0x000001, msg)
+        response:json(0x000001, msg)
     end
     if args.old_password == args.new_password then
-        common:response(0x010007)
+        response:json(0x010007)
     end
     local user = auth:user()
     local password = args.old_password
     ok = user_service:verify_password(args.old_password, user.password)
     if not ok then
         -- password error
-        common:response(0x010005)
+        response:json(0x010005)
     end
     local ok, err = User:where('id', '=', user.id):update({
-        password=common:hash(args.new_password)
+        password=hash(args.new_password)
     })
     if not ok then
-        common:response(0x000005)
+        response:json(0x000005)
     end
     ok, err = auth:clear_token()
     if not ok then
-        common:response(0x010006)
+        response:json(0x010006)
     end
-    common:response(0)
+    response:json(0)
 end
 
 -- use sms verify
@@ -137,17 +147,17 @@ function _M:forget_password()
         'new_password'
         })
     if not ok then
-        common:response(0x000001, msg)
+        response:json(0x000001, msg)
     end
     local user = auth:user()
     local ok, err = User:where('phone', '=', args.phone):update({
-        password=common:hash(args.new_password)
+        password=hash(args.new_password)
     })
     if not ok then
         ngx.log(ngx.ERR, err)
-        common:response(0x010006)
+        response:json(0x010006)
     end
-    common:response(0)
+    response:json(0)
 end
 
 return _M

@@ -1,24 +1,18 @@
 local request = require('lib.request')
-local common = require('lib.common')
-local validator = require('lib.validator')
+local response = require('lib.response')
 local auth = require("providers.auth_service_provider")
 local User = require("models.user")
-local config = require("config.app")
-local user_service = require('services.user_service')
 
 local _M = {}
 
-function _M:show(user_id)
-    common:response(0, 'show', {user_id=user_id})
-end
-
-function _M:comments(user_id, comment_id)
-    common:response(0, 'comments', {user_id=user_id, comment_id=comment_id})
+function _M:show(id)
+    local user = User:where('id', '=', id):first()
+    return response:json(0, '', user)
 end
 
 function _M:userinfo()
     local user = auth:user()
-    return common:response(0, 'ok', table_remove(user, {'password'}))
+    return response:json(0, 'ok', table_remove(user, {'password'})) -- hidden password field
 end
 
 return _M

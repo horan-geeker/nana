@@ -8,4 +8,8 @@ function Comment:user()
     return Comment:belongsTo(User:new(), 'user_id', 'id')
 end
 
+function Comment:post()
+    return Comment:belongsTo(Model:new('posts'), 'post_id', 'id')
+end
+
 return Comment

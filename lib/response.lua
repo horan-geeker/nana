@@ -23,4 +23,10 @@ function _M:json(status, message, data, http_status)
     ngx.exit(ngx.OK)
 end
 
+-- server error
+function _M:error(error_message)
+	ngx.log(ngx.ERR, error_message)
+	ngx.exit(500)
+end
+
 return _M

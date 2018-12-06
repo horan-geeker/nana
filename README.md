@@ -46,11 +46,7 @@
 
 ### 为 api 设计的 lua 框架
 
-`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，项目集成了多个组件，目前支持丰富的功能。如果你单纯使用 lua 来做 http 服务器的话，在 nginx 配置中使用 content_by_lua 来指定入口文件，否则按照项目默认的模式进行安装
-
-### 中间件模式
-
-通过 `access_by_lua` 阶段使得 lua 成为中间件，再通过 `proxy_pass` 指定下游主机，一个 api 请求会先通过 nana，如果匹配到了路由则执行对应控制器里的逻辑，如果没有匹配到路由则会直接执行 `proxy_pass` 指定的下游主机，如果匹配到了路由，但是控制器没有返回 body（也即是代码没有执行`common:response()` 或 `ngx.say()`）仍然会是在执行完 nana 的逻辑之后并且执行下游主机的逻辑，所以说，`nana` 在这里是一个系统层面的中间件
+`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，项目集成了多个组件，目前支持丰富的功能。
 
 ## 安装
 
@@ -528,9 +524,8 @@ curl "http://localhost:8888/userinfo"
 ## TODO list
 
 * 解析 multipart/form-data 请求
-* 增加阿里云短信服务
+* 处理 size 较大 body 的 post 请求
 * 登录增加失败次数限制
-* 集成国际短信验证码业务，twilio
 * 密码加密
 
 ## qq群 284519473

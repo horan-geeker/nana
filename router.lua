@@ -5,10 +5,11 @@ local _M = {}
 function _M:init()
     ngx.ctx.middleware_group = {}
     self:routes()
-    ngx.log(ngx.WARN, 'not find method, uri in router.lua or didn`t response in action, current method:'.. ngx.var.request_method ..' current uri:'..ngx.var.request_uri)
+    return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
 function _M:routes()
+    route:get('/index', 'index_controller', 'index')
     route:group({
         'locale',
         'throttle'
@@ -32,8 +33,6 @@ function _M:routes()
                 'token_refresh'
             }, function()
                 route:get('/userinfo', 'user_controller', 'userinfo')
-                -- test upsteam usage (suppose /home api write by Java or PHP) use nginx reverse proxy
-                route:get('/home')
             end)
         end)
     end)

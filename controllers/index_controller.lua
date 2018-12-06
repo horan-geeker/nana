@@ -1,7 +1,3 @@
-local cjson = require('cjson')
-local conf = require('config.app')
-local User = require('models.user')
-local validator = require('lib.validator')
 local request = require("lib.request")
 local response = require("lib.response")
 

@@ -1,4 +1,5 @@
 local mysql_c = require("resty.mysql")
+local config = require('config.app')
 
 local _M = { _VERSION = '0.01' }
 
@@ -36,10 +37,18 @@ function _M.get_connect(self)
     if not result then
         return false, errmsg
     end
-
+    -- set character code UTF-8
     local query = "SET NAMES "..self.db_charset
     local result, errmsg, errno, sqlstate = client:query(query)
     if not result then
+        ngx.log(ngx.ERR, errmsg)
+        return false, errmsg
+    end
+    -- set time zone
+    local query = 'SET time_zone = "'..config.time_zone..'"'
+    local result, errmsg, errno, sqlstate = client:query(query)
+    if not result then
+        ngx.log(ngx.ERR, errmsg, query)
         return false, errmsg
     end
 
@@ -52,7 +61,6 @@ end
 --[[    把连接返回到连接池
         用set_keepalive代替close() 将开启连接池特性,可以为每个nginx工作进程，指定连接最大空闲时间，和连接池最大连接数
 --]]
-
 function _M.close(self)
     if ngx.ctx.MYSQL then
         ngx.ctx.MYSQL:set_keepalive(self.db_pool_timeout,self.db_pool_size)
@@ -61,12 +69,11 @@ function _M.close(self)
     end
 end
 
--- --[[    查询有结果数据集时返回结果数据集
---         无数据数据集时返回查询影响返回:
---         false,出错信息,sqlstate结构.
---         true,结果集,sqlstate结构.
--- --]]
-
+--[[查询有结果数据集时返回结果数据集
+    无数据数据集时返回查询影响返回:
+    false,出错信息,sqlstate结构.
+    true,结果集,sqlstate结构.
+--]]
 function _M.mysql_query(self, sql)
     local ret, client = self:get_connect()
     if not ret then
@@ -90,6 +97,7 @@ function _M.query(self, sql)
     local ret, res, _ = self:mysql_query(sql)
     if not ret then
         ngx.log(ngx.ERR, "query db error. res: " .. (res or "nil"))
+        ngx.exit(500)
         return nil
     end
     return res

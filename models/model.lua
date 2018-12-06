@@ -11,6 +11,7 @@ local mt = { __index = _M }
 Database = Database:new(env)
 
 local function transformValue(value)
+	value = value or ''
 	if string.lower(value) == 'null' then
 		return 'NULL'
 	end
@@ -31,8 +32,9 @@ function _M:find(id,column)
 		ngx.log(ngx.ERR, 'cannot use find() with other query sql')
 		return nil
 	end
-    column = column or 'id'
-	local sql = 'select * from '..self.table..' where '..column..'='..ngx.quote_sql_str(id)..' limit 1'
+	column = column or 'id'
+	id = transformValue(id)
+	local sql = 'select * from '..self.table..' where '..column..'='..id..' limit 1'
 	local res = self:query(sql)
 	if table.getn(res) > 0 then
 		if self.relation.mode ~= 0 then
@@ -212,13 +214,13 @@ end
 function _M:create(data)
 	local columns,values
 	for column,value in pairs(data) do
-		value = value or '' -- convert nil to ''
+		value = transformValue(value)
 		if not columns then
 			columns = column
-			values = ngx.quote_sql_str(value)
+			values = value
 		else
 			columns = columns..','..column
-			values = values..','..ngx.quote_sql_str(value)
+			values = values..','..value
 		end
 	end
 	return self:execute('insert into '..self.table..'('..columns..') values('..values..')')

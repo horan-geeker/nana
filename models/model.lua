@@ -234,7 +234,7 @@ function _M:with(relation)
 	return self[relation]()
 end
 
-function _M:hasMany(model, local_key, foreign_key)
+function _M:hasMany(model, foreign_key, local_key)
 	self.relation.model = model
 	self.relation.local_key = local_key
 	self.relation.foreign_key = foreign_key
@@ -242,7 +242,7 @@ function _M:hasMany(model, local_key, foreign_key)
 	return self
 end
 
-function _M:belongsTo(model, local_key, foreign_key)
+function _M:belongsTo(model, foreign_key, local_key)
 	self.relation.model = model
 	self.relation.local_key = local_key
 	self.relation.foreign_key = foreign_key

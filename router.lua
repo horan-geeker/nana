@@ -18,6 +18,7 @@ function _M:routes()
         route:post('/login', 'auth_controller', 'login')
         route:post('/send/sms', 'notify/sms_notify_controller', 'guest_send_sms')
         route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')
+        route:get('/users/{id}', 'user_controller', 'show')
         route:group({
             'verify_guest_sms_code'
         }, function()

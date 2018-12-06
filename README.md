@@ -64,10 +64,9 @@
 
 * `git clone https://github.com/horan-geeker/nana.git`
 * 同上执行 `cp env.example.lua env.lua` 并配置其中的数据库
-* 执行 `sudo chmod 755 install.sh && ./install.sh` 来生成数据库结构
-* 配置 `nginx`，项目的入口文件是 `bootstrap.lua` 配置的时候指到这里就好，项目中的 `nginx/conf/nginx.conf.raw` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
+* 配置 `nginx`，框架的入口文件是 `bootstrap.lua` 将配置指到这里，项目中的 `nginx/conf/nginx.conf.raw` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
 
-> 如果你需要使用项目自带的登录注册等功能，需配置：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
+> 如果你需要使用项目自带的登录注册等功能，需配置 `config/app.lua`：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ## 文档
 
@@ -267,7 +266,7 @@ ok,err = User:where('id','=','1'):delete()
 
 #### 使用原生 sql
 
-> 使用原生 sql 是需要注意自己去处理sql注入  
+> 使用原生 sql 时需要注意自己去处理 `sql 注入`  
 `local Database = require('lib.database')`
 
 * local res = Database:query(sql) -- 执行数据查询语言DQL,返回结果集

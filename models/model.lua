@@ -10,12 +10,74 @@ local mt = { __index = _M }
 
 Database = Database:new(env)
 
-local function transformValue(value)
+local function transform_value(value)
 	value = value or ''
 	if string.lower(value) == 'null' then
 		return 'NULL'
 	end
 	return ngx.quote_sql_str(value)
+end
+
+-- return whole relations keys
+function _M:get_relation_local_index(parents)
+	local ids = {}
+	for key,parent in pairs(parents) do
+		table.insert( ids, parent[self.relation.local_key] )
+	end
+	return ids
+end
+
+-- return whole relation models
+function _M:retrieve_relations(ids)
+	-- if table is empty
+	if next(ids) == nil then
+		return {}
+	end
+	local ids_str = implode(ids)
+	self.relation_sql = 'select * from '..self.relation.model.table..' where ' .. self.relation.foreign_key .. ' in (' .. ids_str .. ')'
+	return table_remove(Database:query(self.relation_sql), self.relation.model:get_hidden())
+end
+
+-- return current parent node
+function _M:merge_one_relation(parent, relations)
+	for index, item in pairs(relations) do
+		if (parent[self.relation.local_key] == item[self.relation.foreign_key]) then
+			parent[self.relation.key_name] = item
+		end
+	end
+	return parent
+end
+
+function _M:merge_many_relations(parent, relations)
+	for index, item in pairs(relations) do
+		if (parent[self.relation.local_key] == item[self.relation.foreign_key]) then
+			if not parent[self.relation.key_name] then
+				parent[self.relation.key_name] = {}
+			end
+			table.insert(parent[self.relation.key_name], item)
+		end
+	end
+	return parent
+end
+
+function _M:make_relations(parents)
+	if self.relation.mode ~= 0 then
+		local relations = self:retrieve_relations(self:get_relation_local_index(parents))
+		for key, parent in pairs(parents) do
+			if self.relation.mode == 1 then
+				-- belongs to
+				if table.getn(relations) > 0 then
+					parents[key] = self:merge_one_relation(parent, relations)
+				else
+					parents[key][self.relation.key_name] = nil
+				end
+			elseif self.relation.mode == 2 then
+				-- has many
+				parents[key] = self:merge_many_relations(parent, relations)
+			end
+		end
+	end
+	return parents
 end
 
 -- function _M:merge_hidden()
@@ -33,22 +95,11 @@ function _M:find(id,column)
 		return nil
 	end
 	column = column or 'id'
-	id = transformValue(id)
+	id = transform_value(id)
 	local sql = 'select * from '..self.table..' where '..column..'='..id..' limit 1'
 	local res = self:query(sql)
 	if table.getn(res) > 0 then
-		if self.relation.mode ~= 0 then
-			local relation = self:fetchRelation({res[1][self.relation.local_key]})
-			if self.relation.mode == 1 then
-				if table.getn(relation) > 0 then
-					res[1][self.relation.key_name] = relation[1]
-				else
-					res[1][self.relation.key_name] = relation
-				end
-			elseif self.relation.mode == 2 then
-				res[1][self.relation.key_name] = relation
-			end
-		end
+		res = self:make_relations(res)
 		return res[1]
 	else
 		return false
@@ -57,15 +108,16 @@ end
 
 function _M:all()
 	if self.query_sql ~= nil then
-		ngx.log(ngx.ERR, 'cannot use all() with other query sql')
+		ngx.log(ngx.ERR, 'cannot use all() with other query sql', self.query_sql)
 		return nil
 	end
-    return self:query('select * from '..self.table)
+	local res = self:query('select * from '..self.table)
+	return self:make_relations(res)
 end
 
 
 function _M:where(column,operator,value)
-	value = transformValue(value)
+	value = transform_value(value)
 	if not self.query_sql then
 		self.query_sql = 'where '..column.. ' ' .. operator .. ' ' .. value
 	else
@@ -75,7 +127,7 @@ function _M:where(column,operator,value)
 end
 
 function _M:orwhere(column,operator,value)
-	value = transformValue(value)
+	value = transform_value(value)
 	if not self.query_sql then
 		return ngx.log(ngx.ERR,'orwhere function need a query_sql prefix')
 	else
@@ -125,23 +177,13 @@ function _M:get(num)
 	local sql = 'select * from '..self.table..' '..self.query_sql .. ' ' .. limit_sql
 	local res = self:query(sql)
 	if self.relation.local_key ~= nil then
-		local ids = {}
-		for key,value in pairs(res) do
-			table.insert( ids, value[self.relation.local_key] )
-		end
-		local relations = self:fetchRelation(ids)
-		for key, value in pairs(res) do
-			for index, item in pairs(relations) do
-				if (value[self.relation.local_key] == item[self.relation.foreign_key]) then
-					res[key][self.relation.key_name] = item
-				end
-			end
-		end
+		return self:make_relations(res)
 	end
 	return res
 end
 
 function _M:paginate(page_num, per_page)
+	page_num = page_num or 1
 	per_page = per_page or config.per_page
 	local sql, count_sql, total
 	local data={
@@ -161,19 +203,7 @@ function _M:paginate(page_num, per_page)
 	if not total then
 	else
 		data['total'] = tonumber(total[1]['count(*)'])
-		data['data'] = self:query(sql)
-		local ids = {}
-		for key,value in pairs(data['data']) do
-			table.insert( ids, value[self.relation.local_key] )
-		end
-		local relations = self:fetchRelation(ids)
-		for key, value in pairs(data['data']) do
-			for index, item in pairs(relations) do
-				if (value[self.relation.local_key] == item[self.relation.foreign_key]) then
-					data['data'][key][self.relation.key_name] = item
-				end
-			end
-		end
+		data['data'] = self:make_relations(self:query(sql))
 	end
 	if (table.getn(data['data']) + ((page_num - 1)* per_page)) < data['total'] then
 		data['next_page'] = page_num + 1
@@ -193,18 +223,7 @@ function _M:first()
 	local sql = 'select * from '..self.table..' '..self.query_sql..' limit 1'
 	local res = self:query(sql)
 	if next(res) ~= nil then
-		if self.relation.mode ~= 0 then
-			local relation = self:fetchRelation({res[1][self.relation.local_key]})
-			if self.relation.mode == 1 then
-				if table.getn(relation) > 0 then
-					res[1][self.relation.key_name] = relation[1]
-				else
-					res[1][self.relation.key_name] = relation
-				end
-			elseif self.relation.mode == 2 then
-				res[1][self.relation.key_name] = relation
-			end
-		end
+		res = self:make_relations(res)
 		return res[1]
 	else
 		return false
@@ -214,7 +233,7 @@ end
 function _M:create(data)
 	local columns,values
 	for column,value in pairs(data) do
-		value = transformValue(value)
+		value = transform_value(value)
 		if not columns then
 			columns = column
 			values = value
@@ -234,7 +253,8 @@ function _M:with(relation)
 	return self[relation]()
 end
 
-function _M:hasMany(model, foreign_key, local_key)
+-- consider use array to store relation model
+function _M:has_many(model, foreign_key, local_key)
 	self.relation.model = model
 	self.relation.local_key = local_key
 	self.relation.foreign_key = foreign_key
@@ -242,22 +262,12 @@ function _M:hasMany(model, foreign_key, local_key)
 	return self
 end
 
-function _M:belongsTo(model, foreign_key, local_key)
+function _M:belongs_to(model, foreign_key, local_key)
 	self.relation.model = model
 	self.relation.local_key = local_key
 	self.relation.foreign_key = foreign_key
 	self.relation.mode = 1
 	return self
-end
-
-function _M:fetchRelation(ids)
-	-- if table is empty
-	if next(ids) == nil then
-		return {}
-	end
-	local ids_str = implode(ids)
-	self.relation_sql = 'select * from '..self.relation.model.table..' where ' .. self.relation.foreign_key .. ' in (' .. ids_str .. ')'
-	return table_remove(Database:query(self.relation_sql), self.relation.model:getHidden())
 end
 
 function _M:delete(id)
@@ -290,7 +300,7 @@ function _M:update(data)
 	-- 拼接需要update的字段
 	local str = nil
 	for column,value in pairs(data) do
-		clean_value = transformValue(value)
+		clean_value = transform_value(value)
 		if not str then
 			str = column..'='..clean_value
 		else
@@ -323,7 +333,7 @@ function _M:execute(sql)
 	return Database:execute(sql)
 end
 
-function _M:getHidden()
+function _M:get_hidden()
 	return self.hidden
 end
 

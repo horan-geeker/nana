@@ -32,10 +32,11 @@
     * [分页](#分页)
     * [使用原生 sql](#使用原生-sql)
   * [Redis](#Redis)
-  * [Helper Function](#Helper-Function)
   * [综合](#综合)
     * [Random](#Random)
     * [IP 定位](#IP-定位)
+  * [Helper Function](#Helper-Function)
+  * [代码规范](#代码规范)
 * [用户通行证 API 接口说明](#用户通行证-API-接口说明)
 * [TODO list](#TODO-list)
 * [qq群 284519473](#qq群-284519473)
@@ -335,7 +336,7 @@ local userPages = User:paginate(1)
 
 #### 一对多
 
-以 user 关联 post 为例，在 user 模型中定义关系 `hasMany`，参数：
+以 user 关联 post 为例，在 user 模型中定义关系 `has_many`，参数：
 
 1. 关联模型
 2. 外表 id
@@ -349,7 +350,7 @@ local Post = require('models.post')
 local User = Model:new('users')
 
 function User:posts()
-    return User:hasMany(Post, 'user_id', 'id')
+    return User:has_many(Post, 'user_id', 'id')
 end
 
 return User
@@ -383,7 +384,7 @@ local user_and_post = User:where('id', '=', user_id):with('posts'):get()
 
 #### 多对一
 
-以 post 关联 tag 为例，在 post 模型中定义关系 `belongsTo`，参数：
+以 post 关联 tag 为例，在 post 模型中定义关系 `belongs_to`，参数：
 
 1. 关联模型
 2. 外表 id
@@ -398,7 +399,7 @@ local config = require("config.app")
 local Post = Model:new('posts')
 
 function Post:tag()
-    return Post:belongsTo(Tag, 'id', 'tag_id')
+    return Post:belongs_to(Tag, 'id', 'tag_id')
 end
 
 return Post
@@ -505,6 +506,11 @@ for k,v in pairsByKeys(hashTable) do
     ...
 end
 ```
+
+## 代码规范
+
+* 变量名和函数名均使用下划线风格
+* 与数据库相关模型变量名采用大写字母开头的驼峰
 
 ## 用户通行证 API 接口说明
 

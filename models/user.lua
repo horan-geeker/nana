@@ -6,8 +6,4 @@ local hidden = {'password', 'phone'}
 
 local User = Model:new(config.user_table_name, attributes, hidden)
 
-function User:new()
-    return User
-end
-
 return User

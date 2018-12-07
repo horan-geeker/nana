@@ -14,7 +14,6 @@ function _M:routes()
         'locale',
         'throttle'
     }, function()
-        route:get('/index', 'index_controller', 'index')
         route:post('/login', 'auth_controller', 'login')
         route:post('/send/sms', 'notify/sms_notify_controller', 'guest_send_sms')
         route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')

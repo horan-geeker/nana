@@ -6,7 +6,7 @@ local User = require("models.user")
 local _M = {}
 
 function _M:show(id)
-    local user = User:where('id', '=', id):first()
+    local user = User:find(id)
     return response:json(0, '', user)
 end
 

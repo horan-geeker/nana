@@ -38,8 +38,8 @@ return {
         [0x040002] = '发布评论失败，关联文章不存在',
 
         -- oauth module
-        [0x050001] = 'github 授权失败，请返回 http://lua-china.com/login 重新操作',
-        [0x050002] = 'github 授权失败，系统错误，请返回 http://lua-china.com/login 重新操作'
+        [0x050001] = 'github 授权失败，请返回 https://lua-china.com/login 重新操作',
+        [0x050002] = 'github 授权失败，系统错误，请返回 https://lua-china.com/login 重新操作'
     },
     en = {
         -- system code    

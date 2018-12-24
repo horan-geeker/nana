@@ -224,7 +224,6 @@ function _M:first()
 	end
 	local sql = 'select * from '..self.table..' '..self.query_sql..' limit 1'
 	local res = self:query(sql)
-	log(res)
 	if next(res) ~= nil then
 		res = self:make_relations(res)
 		return res[1]

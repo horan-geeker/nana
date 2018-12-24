@@ -45,7 +45,6 @@ function _M:github_login()
         ngx.log(ngx.ERR, err)
         response:json(0x050001)
     end
-    local data = {id=14841208}
     local user = User:where('oauth_id', '=', data.id):first()
     if not user then
         local user_obj = {

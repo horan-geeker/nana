@@ -1,7 +1,6 @@
 local config = require("env")
 local http = require('lib.http')
 local cjson = require('cjson')
-local common = require('lib.common')
 
 local _M = {}
 

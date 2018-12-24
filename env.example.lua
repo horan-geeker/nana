@@ -1,5 +1,7 @@
 return {
-    env = "dev", -- dev/prod
+    APP_ENV = "prod", -- dev/prod
+    APP_DOMAIN = 'api.lua-china.com',
+    WEB_URL = 'https://lua-china.com',
     mysql_host = "10.31.231.178", -- mysql host
     mysql_port = 3306, -- mysql port
     mysql_user = "root", -- mysql user
@@ -14,5 +16,8 @@ return {
         SMSKEY = "",
         SMSUSER = "LuaChina",
         TEMPLATEID = 13265
+    },
+    github = {
+        CLIENT_SECRET = ""
     }
 }

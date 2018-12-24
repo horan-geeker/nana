@@ -7,10 +7,6 @@ local hidden = {'password', 'phone'}
 
 local User = Model:new(config.user_table_name, attributes, hidden)
 
-function User:new()
-    return User
-end
-
 -- @todo: loop or previous error loading module
 -- function User:post()
 --     return User:hasMany(Post:new(), 'id', 'post_id')

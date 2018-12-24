@@ -9,7 +9,7 @@ before_install:
   - export DOCKER_ID_USER="$docker_user"
 
 script:
-  - sed "s/SMSKEY = \"\"/SMSKEY = \"$SMS_KEY\"/" env.example.lua > env.lua
+  - sed "s/SMSKEY = \"\"/SMSKEY = \"$SMS_KEY\"/;s/CLIENT_SECRET = \"\"/CLIENT_SECRET = \"$GITHUB_CLIENT_SECRET\"/" env.example.lua > env.lua
   - docker build -t lua-china-api:0.1 .
   - docker login -u $docker_user -p $docker_password
   - docker tag lua-china-api:0.1 $DOCKER_ID_USER/lua-china-api:0.1

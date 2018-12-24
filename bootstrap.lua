@@ -75,8 +75,12 @@ function Core:helpers()
         end
         local cookie_payload = {
             key = key,
-            value = value
+            value = value,
+            path = '/',
+            domain = config.app_domain,
+            httponly = true,
         }
+        log(config.app_domain)
         if expires ~= nil then
             cookie_payload.expires = ngx.cookie_time(expires)
         end

@@ -5,11 +5,11 @@ local User = require('models.user')
 local Comment = Model:new('comments')
 
 function Comment:user()
-    return Comment:belongsTo(User:new(), 'user_id', 'id')
+    return Comment:belongs_to(User, 'id', 'user_id')
 end
 
 function Comment:post()
-    return Comment:belongsTo(Model:new('posts'), 'post_id', 'id')
+    return Comment:belongs_to(Model:new('posts'), 'id', 'post_id')
 end
 
 return Comment

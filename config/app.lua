@@ -2,6 +2,8 @@ local env = require('../env')
 
 return {
     env = env.APP_ENV or 'production',
+    app_domain = env.APP_DOMAIN or 'https://api.lua-china.com',
+    web_url = env.WEB_URL or 'https://lua-china.com',
     locale = 'zh',
     fallback_locale = 'en',
     login_id = "phone", -- login method use email/username/phone...etc
@@ -17,8 +19,13 @@ return {
         web = {
             app_id = "xxxxxxxxxxx",
             secret = "xxxxxxxxxxxxxx",
-            redirect_uri = "http://api.nana.local"
+            redirect_uri = "http://api.nana.local/"
         }
+    },
+    github = {
+        client_id = "6162c14c3b7a50abf8ce",
+        client_secret = env.github.CLIENT_SECRET,
+        redirect_uri = "https://api.lua-china.com/oauth/github"
     },
     sendcloud = {
         url = "http://www.sendcloud.net/smsapi/send",

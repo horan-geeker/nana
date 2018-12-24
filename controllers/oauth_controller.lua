@@ -61,7 +61,7 @@ function _M:github_login()
         if not ok then
             response:json(0x000005)
         end
-        local user = User:where('oauth_id', '=', data.id):first()
+        user = User:where('oauth_id', '=', data.id):first()
         if not user then
             response:json(0x000005)
         end

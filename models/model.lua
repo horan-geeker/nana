@@ -1,5 +1,4 @@
 local Database = require('lib.database')
-local Validator = require('lib.validator')
 local cjson = require('cjson')
 local env = require('env')
 local config = require('config.app')
@@ -8,9 +7,15 @@ local _M = {}
 
 local mt = { __index = _M }
 
+local WRITE = 'write'
+local READ = 'read'
+
 Database = Database:new(env)
 
 local function transform_value(value)
+	if value == ngx.null then
+		value = ''
+	end
 	value = value or ''
 	if string.lower(value) == 'null' then
 		return 'NULL'
@@ -97,7 +102,7 @@ function _M:find(id,column)
 	column = column or 'id'
 	id = transform_value(id)
 	local sql = 'select * from '..self.table..' where '..column..'='..id..' limit 1'
-	local res = self:query(sql)
+	local res = self:query(sql, READ)
 	if table.getn(res) > 0 then
 		res = self:make_relations(res)
 		return res[1]
@@ -111,7 +116,7 @@ function _M:all()
 		ngx.log(ngx.ERR, 'cannot use all() with other query sql', self.query_sql)
 		return nil
 	end
-	local res = self:query('select * from '..self.table)
+	local res = self:query('select * from '..self.table, READ)
 	return self:make_relations(res)
 end
 
@@ -154,7 +159,7 @@ function _M:count()
 	else
 		sql = 'select count(*) from '..self.table..' '..self.query_sql
 	end
-	local res = self:query(sql)
+	local res = self:query(sql, READ)
 	if table.getn(res) > 0 then
 		return tonumber(res[1]['count(*)'])
 	else
@@ -175,7 +180,7 @@ function _M:get(num)
 		return
 	end
 	local sql = 'select * from '..self.table..' '..self.query_sql .. ' ' .. limit_sql
-	local res = self:query(sql)
+	local res = self:query(sql, READ)
 	if self.relation.local_key ~= nil then
 		return self:make_relations(res)
 	end
@@ -203,7 +208,7 @@ function _M:paginate(page_num, per_page)
 	if not total then
 	else
 		data['total'] = tonumber(total[1]['count(*)'])
-		data['data'] = self:make_relations(self:query(sql))
+		data['data'] = self:make_relations(self:query(sql, READ))
 	end
 	if (table.getn(data['data']) + ((page_num - 1)* per_page)) < data['total'] then
 		data['next_page'] = page_num + 1
@@ -221,7 +226,7 @@ function _M:first()
 		return
 	end
 	local sql = 'select * from '..self.table..' '..self.query_sql..' limit 1'
-	local res = self:query(sql)
+	local res = self:query(sql, READ)
 	if next(res) ~= nil then
 		res = self:make_relations(res)
 		return res[1]
@@ -242,7 +247,7 @@ function _M:create(data)
 			values = values..','..value
 		end
 	end
-	return self:execute('insert into '..self.table..'('..columns..') values('..values..')')
+	return self:query('insert into '..self.table..'('..columns..') values('..values..')', WRITE)
 end
 
 function _M:with(relation)
@@ -276,12 +281,12 @@ function _M:delete(id)
 		-- 拼接需要delete的字段
 		if self.query_sql then
 			local sql = 'delete from '..self.table..' '..self.query_sql..' limit 1'
-			return self:execute(sql)
+			return self:query(sql, WRITE)
 		end
 		ngx.log(ngx.ERR,'delete function need prefix sql')
 		ngx.exit(500)
 	else
-		return self:execute('delete from '..self.table..' where id=' .. id .. ' limit 1')
+		return self:query('delete from '..self.table..' where id=' .. id .. ' limit 1', WRITE)
 	end
 	return false
 end
@@ -289,7 +294,7 @@ end
 function _M:soft_delete()
 	if self.query_sql then
 		local sql = 'update '..self.table..' set '..self.soft_delete_column..' = now() '.. self.query_sql ..' limit 1'
-		return self:execute(sql)
+		return self:query(sql, WRITE)
 	end
 	ngx.log(ngx.ERR,'soft_delete function cannot called without restriction')
 	ngx.exit(500)
@@ -310,27 +315,33 @@ function _M:update(data)
 	-- 判断是模型自身执行update还是数据库where限定执行
 	if self.query_sql then
 		local sql = 'update '..self.table..' set '..str..' '..self.query_sql..' limit 1'
-		return self:execute(sql)
+		return self:query(sql, WRITE)
 	end
 	ngx.log(ngx.ERR,'update function cannot called without restriction')
 	ngx.exit(500)
 	return false
 end
 
-function _M:query(sql)
+function _M:query(sql, type)
 	if not sql then
 		return ngx.log(ngx.ERR,'query() function need sql to query')
 	end
 	self.query_sql = nil
-	return Database:query(sql)
-end
-
-function _M:execute(sql)
-	if not sql then
-		return ngx.log(ngx.ERR,'execute() function need sql to execute')
+	local result, err = Database:mysql_query(sql, type)
+	if err ~= nil then
+		ngx.log(ngx.ERR, "query db error. res: " .. (err or "no reason"))
+		ngx.exit(500)
+		return
 	end
-	self.query_sql = nil
-	return Database:execute(sql)
+	if type == READ then
+		return result
+	elseif type == WRITE then
+		return result.affected_rows
+	else
+		ngx.log(ngx.ERR, 'type invalid')
+		ngx.exit(500)
+		return
+	end
 end
 
 function _M:get_hidden()

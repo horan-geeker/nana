@@ -1,27 +1,80 @@
 # Nana
 
+[![GitHub release](https://img.shields.io/github/release/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/releases/latest)
+[![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)
 [中文文档](README.md)
 
-## Lua framework for web API
+`Nana` is a http restful api framework written in Lua which need be used in `openresty` platform and it's designed reference Laravel framework styles
+
+## Contents
+
+* [Getting started](#Getting-started)
+  * [Use docker](#Use-docker)
+  * [Normal install](#Normal-install)
+* [Document](#Document)
+  * [Config](#Config)
+  * [本地化](#本地化)
+  * [路由](#路由)
+  * [中间件](#中间件)
+  * [控制器](#控制器)
+    * [Service](#Service)
+  * [Request](#Request)
+    * [参数获取](#参数获取)
+    * [发起 http 请求](#发起-http-请求)
+  * [Response](#Response)
+    * [定义全局 response 结构](#定义全局-response-结构)
+  * [Cookie](#Cookie)
+  * [数据库操作 ORM](#数据库操作-ORM)
+    * [CURD](#CURD)
+    * [排序](#排序)
+    * [分页](#分页)
+    * [使用原生 sql](#使用原生-sql)
+  * [Redis](#Redis)
+  * [综合](#综合)
+    * [Random](#Random)
+  * [Helper Function](#Helper-Function)
+  * [代码规范](#代码规范)
+* [用户通行证 API 接口说明](#用户通行证-API-接口说明)
+* [TODO list](#TODO-list)
+* [Telegram](#Telegram)
+* [Contact author](#Contact-author)
+
+## Getting started
+
+### Use docker
+
+you can use `Dockerfile` to build nana that located
+ in project root directory
+
+* for convenience diff QA/Prod env, you need to execute `cp env.example.lua env.lua` and `env.lua` is ignored by git
+* `docker build -t nana .`
+* `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana`, only develop environment need mount volume to `/app` and set `lua_code_cache off` in `docker/nginx/conf/nginx.conf` file
+
+### Normal install
+
+* `git clone https://github.com/horan-geeker/nana.git`
+* execute `cp env.example.lua env.lua` configure `mysql redis`
+* config `content_by_lua_file` point to `bootstrap.lua`(at project root directory) in your `nginx conf file` and run nginx.
+
+> Note: if you want to use login/register function in nana framework, you need to configure `config/app.lua`: `user_table_name` name of user table in database, `login_id` name of user table's column for login as username and execute `chmod 755 install.sh && ./install.sh` to migrate database structure.
+
+## Document
+
+### Config
+
+* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `user_table_name` that represents the table name which you want store user data, `login_id` is a column name which is used for authentication.
+* Write your routes in router.lua.
+
+### middleware
 
 It is a middleware to resolve user authenticate, you can use this to login or register user, and use other language(Java PHP) as downstream program to process other business logic at the same time.
 The entrance of this framework is bootstrap.lua, and you can write your routes in `router.lua`. if URL doesn't match any route, it will be processed by downstream program
-
-## reference Laravel framework styles
-
-### middleware
 
 Middleware can be used in `router.lua` and you can write middleware in `middleware` directory, there is a demo as `example_middleware.lua`
 
 #### service provider
 
 There are auth_service and route_service in `providers` directory.
-
-## install
-
-* We already have a nginx.conf in project, you can see it.
-* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `user_table_name` that represents the table name which you want store user data, `login_id` is a column name which is used for authentication.
-* Write your routes in router.lua.
 
 ## database schema
 
@@ -58,3 +111,11 @@ CREATE TABLE `account_log` (
 id | ip | city | type | time_at
 ---| ---| ---- | ---- | -------
  1 | 1.80.146.218 | Xian | login | 2018-01-04 04:01:02
+
+## Telegram
+
+https://t.me/joinchat/LsEGyxV0FBGJmNbnxDn9jQ
+
+## Contact author
+
+fb: https://www.facebook.com/profile.php?id=100004896017774

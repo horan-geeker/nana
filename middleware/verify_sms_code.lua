@@ -3,7 +3,7 @@ local validator = require('lib.validator')
 local common = require('lib.common')
 local sms_service = require("services.sms_service")
 local config = require('config.app')
-local auth = require('providers.auth_service_provider')
+local auth = require('lib.auth_service_provider')
 
 local _M = {}
 

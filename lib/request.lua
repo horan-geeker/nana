@@ -13,7 +13,16 @@ function _M:all()
 			start_pos, end_pos = string.find(ngx.req.get_headers()['content-type'], 'application/json')
 		end
 		if start_pos ~= nil then
-			data = cjson.decode(ngx.req.get_body_data())
+			local body = ngx.req.get_body_data()
+			if not body then
+				-- body may get buffered in a temp file:
+				body = ngx.req.get_body_file()
+				if body then
+					ngx.log(ngx.ERR, "client body was too big, try to increase client_body_buffer_size")
+					return nil
+				end
+			end
+			data = cjson.decode(body)
 		else
 			data = ngx.req.get_post_args()
 		end

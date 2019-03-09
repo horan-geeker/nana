@@ -1,18 +1,21 @@
 # Nana
 
 [![GitHub release](https://img.shields.io/github/release/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/releases/latest)
-[![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)  
+
 [English Document](README_en.md)
+
+`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，适用于 `restful api` 的微服务框架，项目集成了多个组件，目前支持丰富的功能。
 
 目录
 
 ====
 
-* [介绍](#介绍)
-  * [为 api 设计的 lua 框架](#为-api-设计的-lua-框架)
 * [安装](#安装)
   * [使用 docker 安装](#使用-docker-安装)
   * [手动安装](#手动安装)
+* [快速上手](#快速上手)
+* [压力测试](#压力测试)
 * [文档](#文档)
   * [配置](#配置)
   * [本地化](#本地化)
@@ -34,19 +37,11 @@
   * [Redis](#Redis)
   * [综合](#综合)
     * [Random](#Random)
-    * [IP 定位](#IP-定位)
   * [Helper Function](#Helper-Function)
   * [代码规范](#代码规范)
-* [用户通行证 API 接口说明](#用户通行证-API-接口说明)
-* [TODO list](#TODO-list)
+* [用户 Auth API 接口说明](#用户-Auth-API-接口说明)
 * [qq群 284519473](#qq群-284519473)
 * [联系作者](#联系作者)
-
-## 介绍
-
-### 为 api 设计的 lua 框架
-
-`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，适用于 `restful api` 的微服务框架，项目集成了多个组件，目前支持丰富的功能。
 
 ## 安装
 
@@ -64,9 +59,53 @@
 
 > 如果你需要使用项目自带的登录注册等功能，需配置 `config/app.lua`：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
+## 快速上手
+
+> router.lua
+
+```lua
+
+function _M:routes()
+    -- add below
+    route:get('/index', 'index_controller', 'index')
+end
+```
+
+> controllers/index_controller.lua
+
+```lua
+local request = require("lib.request")
+local response = require("lib.response")
+
+local _M = {}
+
+function _M:index()
+    local args = request:all() -- get all args
+    response:json(0, 'request args', args) -- return response 200 and json content
+end
+
+return _M
+
+```
+
+## 压力测试
+
+### 单次 mysql 数据库查询
+
+#### mac 4核 i7 16G 内存 固态硬盘
+
+```shell
+ab -c 100 -n 10000 -k http://nana/user/1
+
+---
+Requests per second:    3125.76 [#/sec] (mean)
+Time per request:       31.992 [ms] (mean)
+---
+```
+
 ## 文档
 
-### 配置
+### 项目配置
 
 * 项目的配置文件主要放在 `config/app.lua`
 * 状态码的配置文件主要放在 `config/status.lua`
@@ -138,7 +177,7 @@ end
 
 ### 控制器
 
-在路由匹配的`uri`，第二个参数就是控制器的路径，默认都是在`controllers`文件夹下的文件名称，第三个参数是对应该文件的方法，你可以在方法中返回 response 响应，也可以在处理完业务逻辑之后不返回响应，交由下游继续处理
+在路由匹配的`uri`，第二个参数就是控制器的路径，默认都是在`controllers`文件夹下的文件名称，第三个参数是对应该文件的方法，可在方法中返回 response 响应。
 
 #### Service
 
@@ -467,18 +506,6 @@ end
 
 `random.number(1000, 9999)`
 
-#### IP 定位
-
-目前使用离线的 dat 文件(`lib/17monipdb.dat`)进行 ip 定位，长时间后可能会有误差问题(文件更新于2017年底)
-
-```lua
-local ip_location = require("lib.ip_location")
-local ipObj, err = ip_location:new(ngx.var.remote_addr)
-local location, err = ipObj:location()
-location.city
-location.country
-```
-
 ### Helper Function
 
 系统在 `bootstrap.lua` 默认已经全局加载 `Core:helpers()`
@@ -512,12 +539,7 @@ end
 * 变量名和函数名均使用下划线风格
 * 与数据库相关模型变量名采用大写字母开头的驼峰
 
-## 用户通行证 API 接口说明
-
-![img](https://github.com/horan-geeker/hexo/blob/master/imgs/Nana%20%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.png?raw=true)  
-使用中间件的模式解决用户登录注册等验证问题，你同时可以使用别的语言(Java PHP)来写项目的其他业务逻辑，
-
-### 接口总体格式
+## 用户 Auth API 接口说明
 
 > 所有接口均返回json数据，第一次会有二到三个参数
 
@@ -640,7 +662,7 @@ curl -X "PATCH" "http://localhost:8888/reset-password" \
 }
 ```
 
-## 退出登录
+### 退出登录
 
 ```shell
 curl -X "POST" "http://localhost:8888/logout" \
@@ -687,14 +709,6 @@ curl "http://localhost:8888/userinfo"
     }
 }
 ```
-
-## TODO list
-
-* 解析 multipart/form-data 请求
-* 处理 size 较大 body 的 post 请求
-* 登录增加失败次数限制
-* 密码加密
-* 优化 model relation，数据库 in 判断时没有去重，select * from post_tags where id in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1)
 
 ## qq群 284519473
 

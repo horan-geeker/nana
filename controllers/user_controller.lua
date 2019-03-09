@@ -1,6 +1,6 @@
 local request = require('lib.request')
 local response = require('lib.response')
-local auth = require("providers.auth_service_provider")
+local auth = require("lib.auth_service_provider")
 local User = require("models.user")
 
 local _M = {}

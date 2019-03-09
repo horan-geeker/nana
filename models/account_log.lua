@@ -1,4 +1,4 @@
-local Model = require("models.model")
+local Model = require("lib.model")
 
 local AccountLog = Model:new('account_log')
 

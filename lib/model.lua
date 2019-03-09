@@ -38,9 +38,9 @@ function _M:retrieve_relations(ids)
 	if next(ids) == nil then
 		return {}
 	end
-	local ids_str = implode(ids)
+	local ids_str = implode(unique(ids))
 	self.relation_sql = 'select * from '..self.relation.model.table..' where ' .. self.relation.foreign_key .. ' in (' .. ids_str .. ')'
-	return table_remove(Database:query(self.relation_sql), self.relation.model:get_hidden())
+	return table_remove(self:query(self.relation_sql, READ), self.relation.model:get_hidden())
 end
 
 -- return current parent node
@@ -113,7 +113,7 @@ end
 
 function _M:all()
 	if self.query_sql ~= nil then
-		ngx.log(ngx.ERR, 'cannot use all() with other query sql', self.query_sql)
+		ngx.log(ngx.ERR, 'cannot use all() with other query sql ', self.query_sql)
 		return nil
 	end
 	local res = self:query('select * from '..self.table, READ)

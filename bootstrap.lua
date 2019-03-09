@@ -1,5 +1,7 @@
--- github document https://github.com/horan-geeker/nana
--- author hejunwei
+-- Github Document: https://github.com/horan-geeker/nana
+-- Author:          hejunwei
+-- Version:         v0.3.0
+
 local cjson = require("cjson")
 local config = require("config.app")
 local cookie_obj = require("lib.cookie")
@@ -37,7 +39,19 @@ function Core:helpers()
         end
         return result
     end
-
+    -- unique a array
+    function _G.unique(arr)
+        local hash = {}
+        local res = {}
+        for _,v in ipairs(arr) do
+            if not hash[v] then
+                hash[v] = true
+                table.insert(res, v)
+            end
+        end
+        return res
+    end
+    -- make up a string from array
     function _G.implode(arr, symbol)
         local implode_str = ''
         symbol = symbol or ','

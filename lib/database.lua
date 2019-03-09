@@ -15,14 +15,13 @@ local mt = { __index = _M }
 --]]
 
 function _M.get_connect(self)
-
     if ngx.ctx.MYSQL then
-        return true, ngx.ctx.MYSQL, nil
+        return ngx.ctx.MYSQL, nil
     end
     
     local client, errmsg = mysql_c:new()
     if not client then
-        return false, nil, "mysql.socket_failed: " .. (errmsg or "nil")
+        return nil, "mysql.socket_failed: " .. (errmsg or "nil")
     end
 
     client:set_timeout(self.db_timeout)
@@ -37,7 +36,7 @@ function _M.get_connect(self)
 
     local result, errmsg, errno, sqlstate = client:connect(options)
     if not result then
-        return false, nil, errmsg
+        return nil, errmsg
     end
 
     -- set character code UTF-8
@@ -45,20 +44,19 @@ function _M.get_connect(self)
     local result, errmsg, errno, sqlstate = client:query(query)
     if not result then
         ngx.log(ngx.ERR, errmsg)
-        return false, nil, errmsg
+        return nil, errmsg
     end
     -- set time zone
     local query = 'SET time_zone = "'..config.time_zone..'"'
     local result, errmsg, errno, sqlstate = client:query(query)
     if not result then
         ngx.log(ngx.ERR, errmsg, query)
-        return false, nil, errmsg
+        return nil, errmsg
     end
 
     ngx.ctx.MYSQL = client
     ngx.log(ngx.INFO,'mysql connect')
-    return true, ngx.ctx.MYSQL, nil
-
+    return ngx.ctx.MYSQL, nil
 end
 
 --[[    
@@ -79,8 +77,8 @@ end
     err: if fail return reason
 --]]
 function _M.mysql_query(self, sql)
-    local ok, client, err = self:get_connect()
-    if not ok then
+    local client, err = self:get_connect()
+    if err ~= nil then
         return nil, err
     end
 

@@ -14,6 +14,8 @@
 * [安装](#安装)
   * [使用 docker 安装](#使用-docker-安装)
   * [手动安装](#手动安装)
+* [快速上手](#快速上手)
+* [压力测试](#压力测试)
 * [文档](#文档)
   * [配置](#配置)
   * [本地化](#本地化)
@@ -57,9 +59,53 @@
 
 > 如果你需要使用项目自带的登录注册等功能，需配置 `config/app.lua`：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
+## 快速上手
+
+> router.lua
+
+```lua
+
+function _M:routes()
+    -- add below
+    route:get('/index', 'index_controller', 'index')
+end
+```
+
+> controllers/index_controller.lua
+
+```lua
+local request = require("lib.request")
+local response = require("lib.response")
+
+local _M = {}
+
+function _M:index()
+    local args = request:all() -- get all args
+    response:json(0, 'request args', args) -- return response 200 and json content
+end
+
+return _M
+
+```
+
+## 压力测试
+
+### 单次 mysql 数据库查询
+
+#### mac 4核 i7 16G 内存 固态硬盘
+
+```shell
+ab -c 100 -n 10000 -k http://nana/user/1
+
+---
+Requests per second:    3125.76 [#/sec] (mean)
+Time per request:       31.992 [ms] (mean)
+---
+```
+
 ## 文档
 
-### 配置
+### 项目配置
 
 * 项目的配置文件主要放在 `config/app.lua`
 * 状态码的配置文件主要放在 `config/status.lua`

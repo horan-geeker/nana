@@ -1,4 +1,4 @@
-local auth = require('providers.auth_service_provider')
+local auth = require('lib.auth_service_provider')
 local AccountLog = require('models.account_log')
 local redis = require('lib.redis')
 

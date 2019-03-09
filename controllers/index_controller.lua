@@ -1,5 +1,6 @@
 local request = require("lib.request")
 local response = require("lib.response")
+local Post = require('models.post')
 
 local _M = {}
 

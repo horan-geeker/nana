@@ -364,8 +364,7 @@ local userPages = User:paginate(1)
 > 使用原生 sql 时需要注意自己去处理 `sql 注入`  
 `local Database = require('lib.database')`
 
-* local res = Database:query(sql) -- 执行数据查询语言DQL,返回结果集
-* local affected_rows, err = Database:execute(sql) -- 执行数据操纵语言DML,返回`受影响的行`或`false`和`错误信息`
+* local res, err = Database:mysql_query(sql) -- 执行 SQL 返回结果集，注意读操作(SELECT)返回的是 `结果集`，写操作(INSERT,UPDATE,DELETE)返回 `受影响的行`
 
 ### 模型间关系
 
@@ -711,10 +710,6 @@ curl "http://localhost:8888/userinfo"
 ## qq群 284519473
 
 ## 联系作者
-
-### mail
-
-#### 13571899655@163.com
 
 ### wechat
 

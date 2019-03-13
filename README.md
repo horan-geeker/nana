@@ -57,8 +57,6 @@
 * 同上执行 `cp env.example.lua env.lua` 并配置其中的 `mysql redis`
 * 配置 `nginx`，将 `content_by_lua_file` 指到框架的入口文件 `bootstrap.lua`，项目中的 `nginx/conf/nginx.conf` 文件主要用于 `docker` 环境，你可以参考来配置 `openresty`
 
-> 如果你需要使用项目自带的登录注册等功能，需配置 `config/app.lua`：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
-
 ## 快速上手
 
 > router.lua
@@ -210,12 +208,12 @@ local data = cjson.decode(res.body)
 
 ### Response
 
-框架使用的 `lib/response.lua` 中的 `json` 方法通过定义数字来代表不同的`response`类型，该方法支持三四个参数
+框架使用的 `lib/response.lua` 中的 `json` 方法通过定义数字来代表不同的`response`类型，该方法支持三四个参数
 
 1. 第一个参数是状态码，16进制状态码对应 `config/status.lua`
 2. 第二个参数是错误码文案，文案根据第一个参数对应 `config/status.lua` 中的文案
 3. 第三个参数是需要向前端返回的数据，可省略
-4. 第四个参数是返回的 `http 状态码`，可省略，默认是200
+4. 第四个参数是返回的 `http 状态码`，可省略，默认是200
 
 ```lua
 response:json(0x000000, 'success message', data, 200)
@@ -272,7 +270,7 @@ get_cookie(key)
 ### 数据库操作 ORM
 
 > 默认的数据库操作都使用了 `ngx.quote_sql_str` 处理了 `sql注入问题`
-以下增删改查都需要先获取模型 `table` 可类比 `class`
+以下增删改查都需要先获取模型 `table` 可类比 `class`
 
 ```lua
 -- 获取模型，模型的表名对应 `models/user.lua` 中 `Model:new()` 的第一个参数 `users`  
@@ -366,8 +364,7 @@ local userPages = User:paginate(1)
 > 使用原生 sql 时需要注意自己去处理 `sql 注入`  
 `local Database = require('lib.database')`
 
-* local res = Database:query(sql) -- 执行数据查询语言DQL,返回结果集
-* local affected_rows, err = Database:execute(sql) -- 执行数据操纵语言DML,返回`受影响的行`或`false`和`错误信息`
+* local res, err = Database:mysql_query(sql) -- 执行 SQL 返回结果集，注意读操作(SELECT)返回的是 `结果集`，写操作(INSERT,UPDATE,DELETE)返回 `受影响的行`
 
 ### 模型间关系
 
@@ -541,7 +538,7 @@ end
 
 ## 用户 Auth API 接口说明
 
-> 所有接口均返回json数据，第一次会有二到三个参数
+> 所有接口均返回json数据，你也可以自定义 `config/app.lua`：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ```json
 {
@@ -713,10 +710,6 @@ curl "http://localhost:8888/userinfo"
 ## qq群 284519473
 
 ## 联系作者
-
-### mail
-
-#### 13571899655@163.com
 
 ### wechat
 

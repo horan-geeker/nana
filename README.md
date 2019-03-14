@@ -5,7 +5,7 @@
 
 [English Document](README_en.md)
 
-`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 为了更好的使用 `openresty` 而诞生，适用于 `restful api` 的微服务框架，项目集成了多个组件，目前支持丰富的功能。
+`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 是基于 `openresty` 的 `restful api` 的 `MVC` 框架，项目集成了多个组件，目前支持丰富的功能。
 
 目录
 

@@ -1,7 +1,7 @@
 local request = require('lib.request')
 local response = require('lib.response')
 local validator = require('lib.validator')
-local auth = require("providers.auth_service_provider")
+local auth = require("lib.auth_service_provider")
 local User = require("models.user")
 local Post = require("models.post")
 local Comment = require("models.comment")
@@ -15,7 +15,7 @@ function _M:count()
 end
 
 function _M:top()
-    response:json(0, 'comments', table_remove(User:orderby('created_at', 'desc'):get(5), {'password', 'phone'}))
+    response:json(0, 'top', table_remove(User:orderby('created_at', 'desc'):get(5), {'password', 'phone'}))
 end
 
 function _M:show(id)

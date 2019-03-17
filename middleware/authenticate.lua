@@ -1,4 +1,4 @@
-local auth_service = require("providers.auth_service_provider")
+local auth_service = require("lib.auth_service_provider")
 local _M = {}
 
 function _M:handle()

@@ -8,7 +8,7 @@ local response = require('lib.response')
 local Comment = require('models.comment')
 local Favor = require('models.favor')
 local Tag = require('models.tag')
-local Auth = require("providers.auth_service_provider")
+local Auth = require("lib.auth_service_provider")
 
 local _M = {}
 

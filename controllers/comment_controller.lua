@@ -3,7 +3,7 @@ local response = require('lib.response')
 local Comment = require('models.comment')
 local Post = require('models.post')
 local validator = require('lib.validator')
-local Auth = require('providers.auth_service_provider')
+local Auth = require('lib.auth_service_provider')
 
 local _M = {}
 

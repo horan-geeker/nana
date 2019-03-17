@@ -1,4 +1,4 @@
-local route = require('providers.route_service_provider')
+local route = require('lib.route_service_provider')
 
 local _M = {}
 

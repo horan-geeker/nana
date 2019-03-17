@@ -13,10 +13,6 @@ The entrance of this framework is bootstrap.lua, and you can write your routes i
 
 Middleware can be used in `router.lua` and you can write middleware in `middleware` directory, there is a demo as `example_middleware.lua`
 
-#### service provider
-
-There are auth_service and route_service in `providers` directory.
-
 ## install
 
 * We already have a nginx.conf in project, you can see it.

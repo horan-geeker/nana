@@ -1,5 +1,5 @@
-local auth = require('providers.auth_service_provider')
-local ip_location = require('lib.ip_location')
+local auth = require('lib.auth_service_provider')
+local ip_location = require('services.location_service')
 local AccountLog = require('models.account_log')
 local redis = require('lib.redis')
 

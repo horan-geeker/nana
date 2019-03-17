@@ -1,4 +1,4 @@
-local Model = require("models.model")
+local Model = require("lib.model")
 local config = require("config.app")
 
 local Tag = Model:new('post_tags')

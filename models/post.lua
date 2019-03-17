@@ -1,4 +1,4 @@
-local Model = require("models.model")
+local Model = require("lib.model")
 local User = require('models.user')
 local config = require("config.app")
 

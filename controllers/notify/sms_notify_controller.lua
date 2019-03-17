@@ -4,7 +4,7 @@ local random = require('lib.random')
 local config = require('config.app')
 local sms_service = require('services.sms_service')
 local request = require('lib.request')
-local auth = require('providers.auth_service_provider')
+local auth = require('lib.auth_service_provider')
 
 local _M = {}
 

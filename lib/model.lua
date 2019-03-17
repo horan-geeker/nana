@@ -204,7 +204,7 @@ function _M:paginate(page_num, per_page)
 		sql = 'select * from '..self.table .. ' '..self.query_sql .. ' limit '..per_page*(page_num-1)..','..per_page
 		count_sql = 'select count(*) from '..self.table..' '..self.query_sql
 	end
-	total = self:query(count_sql)
+	total = self:query(count_sql, READ)
 	if not total then
 	else
 		data['total'] = tonumber(total[1]['count(*)'])

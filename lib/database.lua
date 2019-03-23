@@ -55,7 +55,7 @@ function _M.get_connect(self)
     end
 
     ngx.ctx.MYSQL = client
-    ngx.log(ngx.INFO,'mysql connect')
+    ngx.log(ngx.DEBUG,'mysql connect')
     return ngx.ctx.MYSQL, nil
 end
 
@@ -67,7 +67,7 @@ function _M.close(self)
     if ngx.ctx.MYSQL then
         ngx.ctx.MYSQL:set_keepalive(self.db_pool_timeout,self.db_pool_size)
         ngx.ctx.MYSQL = nil
-        ngx.log(ngx.INFO,'mysql pooled')
+        ngx.log(ngx.DEBUG,'mysql pooled')
     end
 end
 

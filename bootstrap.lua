@@ -92,7 +92,6 @@ function Core:helpers()
             domain = config.app_domain,
             httponly = true,
         }
-        log(config.app_domain)
         if expires ~= nil then
             cookie_payload.expires = ngx.cookie_time(expires)
         end

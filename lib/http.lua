@@ -790,6 +790,7 @@ function _M.request_pipeline(self, requests)
 end
 
 function _M.request_uri(self, uri, params)
+    ngx.log(ngx.INFO, uri, params)
     params = tbl_copy(params or {})  -- Take by value
 
     local parsed_uri, err = self:parse_uri(uri, false)

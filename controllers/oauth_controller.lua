@@ -46,9 +46,10 @@ function _M:github_login()
         response:json(0x050001)
     end
     local user = User:where('oauth_id', '=', data.id):first()
+    local name = data.name or data.login
     if not user then
         local user_obj = {
-            name = data.name,
+            name = name,
             password = '',
             phone = data.id,
             email = data.email,

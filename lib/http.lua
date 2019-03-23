@@ -1,4 +1,5 @@
 local http_headers = require("lib.http_headers")
+local cjson = require("cjson")
 
 local ngx = ngx
 local ngx_socket_tcp = ngx.socket.tcp
@@ -790,7 +791,7 @@ function _M.request_pipeline(self, requests)
 end
 
 function _M.request_uri(self, uri, params)
-    ngx.log(ngx.INFO, uri, params)
+    ngx.log(ngx.INFO, uri, cjson.encode(params))
     params = tbl_copy(params or {})  -- Take by value
 
     local parsed_uri, err = self:parse_uri(uri, false)

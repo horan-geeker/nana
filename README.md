@@ -59,11 +59,11 @@
 
 ## 快速上手
 
-> router.lua
+> routes.lua
 
 ```lua
 
-function _M:routes()
+function _M:match(route)
     -- add below
     route:get('/index', 'index_controller', 'index')
 end
@@ -124,7 +124,7 @@ Time per request:       31.992 [ms] (mean)
 * DELETE
 * HEAD
 
-> 路由文件在项目根目录 `router.lua`，如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：
+> 路由文件在项目根目录 `routes.lua`，如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：
 
 ```lua
 route:post('/login', 'auth_controller', 'login')
@@ -156,7 +156,7 @@ function _M:comments(user_id, comment_id)
 end
 ```
 
-可以参考`router.lua`里边已有的路由，也可以任意修改里边已有的东西
+可以参考`routes.lua`里边已有的路由，也可以任意修改里边已有的东西
 
 ### 中间件
 
@@ -260,7 +260,7 @@ local ok,msg = validator:check(args, {
 
 ### Cookie
 
-在 `helper.lua` 中包含了 `cookie` 的辅助方法，全局已经引用了该文件，可以直接使用函数
+在 `lib/helpers.lua` 中包含了 `cookie` 的辅助方法，全局已经引用了该文件，可以直接使用函数
 
 ```lua
 set_cookie(key, value, expire) -- expire 是可选参数，单位是时间戳，精确到秒
@@ -505,7 +505,7 @@ end
 
 ### Helper Function
 
-系统在 `bootstrap.lua` 默认已经全局加载 `Core:helpers()`
+`lib/helpers.lua` 中 `init()` 方法将帮助函数加载到了全局 `_G` 表，你可以在里边自行定义自己的帮助方法
 
 #### 反转 table
 

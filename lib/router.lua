@@ -27,6 +27,12 @@ local function find_action(controller, action)
     return action, nil
 end
 
+function _M:init()
+    ngx.ctx.middleware_group = {}
+    require('routes'):match(self)
+    return ngx.exit(ngx.HTTP_NOT_FOUND)
+end
+
 function _M:call_action(method, uri, controller, action)
     local matched, params = route_match(purge_uri(uri), purge_uri(ngx.var.request_uri))
     if matched then

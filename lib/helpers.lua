@@ -1,0 +1,156 @@
+local cookie_obj = require("lib.cookie")
+local cjson = require("cjson")
+local config = require("config.app")
+
+local _M = {}
+
+function _M:init(G)
+    -- here you need use . not :
+    function G.table_reverse(tbl)
+        for i=1, math.floor(#tbl / 2) do
+            tbl[i], tbl[#tbl - i + 1] = tbl[#tbl - i + 1], tbl[i]
+        end
+        return tbl
+    end
+    -- remove item in table
+    function G.table_remove(tab, rm)
+        local result = tab
+		for k, v in pairs(rm) do
+            for a_k, a_v in pairs(result) do
+                -- array
+                if type(a_k) == 'number' then
+                    -- object
+                    if type(a_v) == 'table' then
+                        result[a_k][v] = nil
+                    elseif v == a_v then
+                        table.remove(result, a_k)
+                    end
+                else
+                -- hash array
+                    if v == a_k then
+                        result[a_k] = nil
+                    end
+				end
+			end
+        end
+        return result
+    end
+    -- unique a array
+    function G.unique(arr)
+        local hash = {}
+        local res = {}
+        for _,v in ipairs(arr) do
+            if not hash[v] then
+                hash[v] = true
+                table.insert(res, v)
+            end
+        end
+        return res
+    end
+    -- make up a string from array
+    function G.implode(arr, symbol)
+        local implode_str = ''
+        symbol = symbol or ','
+        for key, value in pairs(arr) do
+            implode_str = implode_str .. value .. symbol
+        end
+        return string.sub(implode_str, 1, #implode_str - 1)
+    end
+    -- sort a hashTable by key
+    -- use example: for k,v in pairsByKeys(hashTable)
+    function G:pairsByKeys(f)
+        local a = {}
+        for n in pairs(self) do
+            table.insert(a, n)
+        end
+        table.sort(a, f)
+        local i = 0 -- iterator variable
+        local iter = function()
+            -- iterator function
+            i = i + 1
+            if a[i] == nil then
+                return nil
+            else
+                return a[i], self[a[i]]
+            end
+        end
+        return iter
+    end
+
+    function G.set_cookie(key, value, expires)
+        local cookie, err = cookie_obj:new()
+        if not cookie then
+            ngx.log(ngx.ERR, err)
+            return false, err
+        end
+        local cookie_payload = {
+            key = key,
+            value = value,
+            path = '/',
+            domain = config.app_domain,
+            httponly = true,
+        }
+        if expires ~= nil then
+            cookie_payload.expires = ngx.cookie_time(expires)
+        end
+        local ok, err = cookie:set(cookie_payload)
+        if not ok then
+            ngx.log(ngx.ERR, err)
+            return false, err
+        end
+        return true
+    end
+
+    function G:get_cookie()
+        local key = self
+        local cookie, err = cookie_obj:new()
+        if not cookie then
+            ngx.log(ngx.ERR, err)
+            return false
+        end
+        return cookie:get(key)
+    end
+
+    function G:get_local_time()
+        local time_zone = ngx.re.match(config.time_zone, "[0-9]+")
+        if time_zone == nil then
+            local err = "not set time zone or format error, time zone should look like `+8:00` current is: " .. config.time_zone
+            ngx.log(ngx.ERR, err)
+            return false, err
+        end
+        -- ngx.time() return UTC+0 timestamp
+        -- time_zone * 60(sec) * 60(min) + UTC+0 time = current time
+        return time_zone[0] * 3600 + ngx.time()
+    end
+
+    function G.purge_uri(uri)
+        local uri = string.gsub(uri, "?.*", "")
+        local uri_without_slash = remove_slash(uri)
+        return uri_without_slash
+    end
+
+    function G.remove_slash(target)
+        local len = string.len(target)
+        if string.find(target,'/', len) then
+            return string.sub(target, 1, len-1)
+        end
+        return target
+    end
+
+    function G.hash(password)
+        return ngx.md5(password)
+    end
+    
+    -- data not in order
+    function G.log(...)
+        local args = {}
+        if #{...}>1 then
+            args = {...}
+        else
+            args = ...
+        end
+        ngx.log(ngx.WARN, cjson.encode(args))
+    end
+end
+
+return _M

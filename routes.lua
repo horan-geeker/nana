@@ -1,14 +1,6 @@
-local route = require('lib.route_service_provider')
-
 local _M = {}
 
-function _M:init()
-    ngx.ctx.middleware_group = {}
-    self:routes()
-    return ngx.exit(ngx.HTTP_NOT_FOUND)
-end
-
-function _M:routes()
+function _M:match(route)
     route:get('/index', 'index_controller', 'index')
     route:group({
         -- 'locale',

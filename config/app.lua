@@ -1,20 +1,20 @@
-local env = require('../env')
-
 return {
-    env = env.APP_ENV or 'production',
-    app_domain = env.APP_DOMAIN or 'https://api.lua-china.com',
-    web_url = env.WEB_URL or 'https://lua-china.com',
+    env = env('APP_ENV', 'production'),
+    app_domain = env('APP_DOMAIN', 'https://api.lua-china.com'),
+    web_url = 'https://lua-china.com',
+    
     locale = 'zh',
     fallback_locale = 'en',
-    login_id = "phone", -- login method use email/username/phone...etc
+
     time_zone = "+8:00", -- UTC + 8
+    
     session_lifetime = 3600 * 24 * 30, --sec, here means a month
     session_refresh_time = 3600 * 24 * 7, --sec, here means a week
     max_request_per_second = 3000, -- throttle flow request per second
-    user_table_name = "users",
+    
     phone_code_len = 4,
-    per_page = env.per_page or 10,
-    redis_prefix = 'NANA:',
+    per_page = env('per_page', 10),
+
     wechat = {
         web = {
             app_id = "xxxxxxxxxxx",
@@ -24,13 +24,13 @@ return {
     },
     github = {
         client_id = "6162c14c3b7a50abf8ce",
-        client_secret = env.github.CLIENT_SECRET,
+        client_secret = env('github.CLIENT_SECRET'),
         redirect_uri = "https://api.lua-china.com/oauth/github"
     },
     sendcloud = {
         url = "http://www.sendcloud.net/smsapi/send",
-        smsUser = env.sendcloud.SMSUSER,
-        smsKey = env.sendcloud.SMSKEY,
-        templateId = env.sendcloud.TEMPLATEID
+        smsUser = env('sendcloud.SMSUSER'),
+        smsKey = env('sendcloud.SMSKEY'),
+        templateId = env('sendcloud.TEMPLATEID')
     }
 }

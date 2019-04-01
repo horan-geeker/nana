@@ -1,16 +1,42 @@
 local Database = require('lib.database')
 local cjson = require('cjson')
-local env = require('env')
 local config = require('config.app')
+local database_config = require('config.database')
 
 local _M = {}
 
 local mt = { __index = _M }
 
-local WRITE = 'write'
-local READ = 'read'
+local WRITE = 'WRITE'
+local READ = 'READ'
 
-Database = Database:new(env)
+local database_write = Database:new({
+	host = database_config.mysql.write.host,
+	port = database_config.mysql.write.port,
+	user = database_config.mysql.write.user,
+	password = database_config.mysql.write.password,
+	db_name = database_config.mysql.db_name,
+	charset = database_config.mysql.charset,
+	timeout = database_config.mysql.timeout,
+	db_pool_timeout = database_config.mysql.pool_timeout,
+	db_pool_size = database_config.mysql.pool_size,
+	time_zone = config.time_zone,
+	db_type = WRITE
+})
+
+local database_read = Database:new({
+	host = database_config.mysql.read.host,
+	port = database_config.mysql.read.port,
+	user = database_config.mysql.read.user,
+	password = database_config.mysql.read.password,
+	db_name = database_config.mysql.db_name,
+	charset = database_config.mysql.charset,
+	timeout = database_config.mysql.timeout,
+	db_pool_timeout = database_config.mysql.pool_timeout,
+	db_pool_size = database_config.mysql.pool_size,
+	time_zone = config.time_zone,
+	db_type = READ
+})
 
 local function transform_value(value)
 	if value == ngx.null then
@@ -327,15 +353,21 @@ function _M:query(sql, type)
 		return ngx.log(ngx.ERR,'query() function need sql to query')
 	end
 	self.query_sql = nil
-	local result, err = Database:mysql_query(sql, type)
-	if err ~= nil then
-		ngx.log(ngx.ERR, "query db error. res: " .. (err or "no reason"))
-		ngx.exit(500)
-		return
-	end
 	if type == READ then
+		local result, err = database_read:mysql_query(sql)
+		if err ~= nil then
+			ngx.log(ngx.ERR, "read db error. res: " .. (err or "no reason"))
+			ngx.exit(500)
+			return
+		end
 		return result
 	elseif type == WRITE then
+		local result, err = database_write:mysql_query(sql)
+		if err ~= nil then
+			ngx.log(ngx.ERR, "write db error. res: " .. (err or "no reason"))
+			ngx.exit(500)
+			return
+		end
 		return result.affected_rows
 	else
 		ngx.log(ngx.ERR, 'type invalid, need ' .. READ .. ' or '..WRITE)

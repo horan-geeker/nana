@@ -17,12 +17,12 @@ function _M:wechat_login()
         'state'
         })
     if not ok then
-        response:json(1, msg)
+        return response:json(1, msg)
     end
     
     local ok, msg, user = wechat_service:web_login(args.code, args.state)
     if not ok then
-        response:json(ok, msg)
+        return response:json(ok, msg)
     end
     user_service:authorize(user)
     -- ngx.redirect(config.app_url)
@@ -38,12 +38,12 @@ function _M:github_login()
         'code',
         })
     if not ok then
-        response:json(1, msg)
+        return response:json(1, msg)
     end
     local data, err = github_service:github_auth(args)
     if err ~= nil then
         ngx.log(ngx.ERR, err)
-        response:json(0x050001)
+        return response:json(0x050001)
     end
     local user = User:where('oauth_id', '=', data.id):first()
     local name = data.login
@@ -63,17 +63,17 @@ function _M:github_login()
         }
         local ok = User:create(user_obj)
         if not ok then
-            response:json(0x000005)
+            return response:json(0x000005)
         end
         user = User:where('oauth_id', '=', data.id):first()
         if not user then
-            response:json(0x000005)
+            return response:json(0x000005)
         end
     end
     local ok, err = user_service:authorize(user)
     if not ok then
         ngx.log(ngx.ERR, err)
-        response:json(0x050002)
+        return response:json(0x050002)
     end
     ngx.redirect(config.web_url)
 end

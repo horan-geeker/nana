@@ -17,12 +17,12 @@ function _M:create(post_id)
         }
     )
     if not ok then
-        response:json(0x000001, msg)
+        return response:json(0x000001, msg)
     end
     local user = Auth:user()
     local post = Post:find(post_id)
     if not post then
-        response:json(0x040002)
+        return response:json(0x040002)
     end
     local comment = Comment:create({
         user_id = user.id,
@@ -30,7 +30,7 @@ function _M:create(post_id)
         content = args.content
     })
     if not comment then
-        return response:error(0x000005)
+        return response:error('database create error')
     end
     return response:json(0)
 end

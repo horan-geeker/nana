@@ -14,10 +14,10 @@ function generate_token(user_payload)
 end
 
 function _M:authorize(user)
-    local token = generate_token(user[config.login_id]..user.id)
+    local token = generate_token(user.phone..user.id)
     local ok,err = redis:set(token_name..':'..token, cjson.encode(user), config.session_lifetime*60)
     if not ok then
-        response:error('cannot set redis key, error_msg:'..err)
+        return response:error('cannot set redis key, error_msg:'..err)
     end
     local ok, err = set_cookie(token_name, token, get_local_time() + config.session_lifetime)
     if not ok then

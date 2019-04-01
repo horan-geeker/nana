@@ -25,16 +25,16 @@ function _M:login()
         }
     )
     if not ok then
-        response:json(0x000001, msg)
+        return response:json(0x000001, msg)
     end
     local user = User:where('phone', '=', args.phone):first()
     if not user then
-        response:json(0x010003)
+        return response:json(0x010003)
     end
     if args.smscode then
         ok = user_service:verify_checkcode(args.phone, args.smscode)
         if not ok then
-            response:json(0x000001, 'invalidate sms code')
+            return response:json(0x000001, 'invalidate sms code')
         else
             user_service:authorize(user)
         end
@@ -42,19 +42,19 @@ function _M:login()
         ok, err = user_service:verify_password(args.password, user.password)
         if not ok then
             -- login fail
-            response:json(0x010002)
+            return response:json(0x010002)
         else
             ok, err = user_service:authorize(user)
             if not ok then
                 -- @todo should render only error message
-                response:json(0x000001, err)
+                return response:json(0x000001, err)
             end
         end
     else
-        response:json(0x000001, 'need sms or password')
+        return response:json(0x000001, 'need sms or password')
     end
     
-    response:json(0, 'ok', table_remove(user, {'password'}))
+    return response:json(0, 'ok', table_remove(user, {'password'}))
 end
 
 function _M:register()
@@ -68,12 +68,12 @@ function _M:register()
         }
     )
     if not ok then
-        response:json(0x000001, msg)
+        return response:json(0x000001, msg)
     end
     -- 检测是否重复
     local user = User:where('phone', '=', args.phone):first()
     if user then
-        response:json(0x010001)
+        return response:json(0x010001)
     end
     local name = args.name
     if name == nil or name == '' then
@@ -91,18 +91,18 @@ function _M:register()
 
     ok = User:create(user_obj)
     if not ok then
-        response:json(0x000005)
+        return response:json(0x000005)
     end
     local user = User:where('phone', '=', args.phone):first()
     user_service:authorize(user)
-    response:json(0, 'ok', table_remove(user, {'password'}))
+    return response:json(0, 'ok', table_remove(user, {'password'}))
 end
 
 function _M:logout()
     local ok, err = auth:clear_token()
     if not ok then
         ngx.log(ngx.ERR, err)
-        response:json(0x00000A)
+        return response:json(0x00000A)
     end
     return response:json(0)
 end
@@ -114,29 +114,29 @@ function _M:reset_password()
         'new_password'
         })
     if not ok then
-        response:json(0x000001, msg)
+        return response:json(0x000001, msg)
     end
     if args.old_password == args.new_password then
-        response:json(0x010007)
+        return response:json(0x010007)
     end
     local user = auth:user()
     local password = args.old_password
     ok = user_service:verify_password(args.old_password, user.password)
     if not ok then
         -- password error
-        response:json(0x010005)
+        return response:json(0x010005)
     end
     local ok, err = User:where('id', '=', user.id):update({
         password=hash(args.new_password)
     })
     if not ok then
-        response:json(0x000005)
+        return response:json(0x000005)
     end
     ok, err = auth:clear_token()
     if not ok then
-        response:json(0x010006)
+        return response:json(0x010006)
     end
-    response:json(0)
+    return response:json(0)
 end
 
 -- use sms verify
@@ -147,7 +147,7 @@ function _M:forget_password()
         'new_password'
         })
     if not ok then
-        response:json(0x000001, msg)
+        return response:json(0x000001, msg)
     end
     local user = auth:user()
     local ok, err = User:where('phone', '=', args.phone):update({
@@ -155,9 +155,9 @@ function _M:forget_password()
     })
     if not ok then
         ngx.log(ngx.ERR, err)
-        response:json(0x010006)
+        return response:json(0x010006)
     end
-    response:json(0)
+    return response:json(0)
 end
 
 return _M

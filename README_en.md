@@ -16,7 +16,7 @@ Middleware can be used in `router.lua` and you can write middleware in `middlewa
 ## install
 
 * We already have a nginx.conf in project, you can see it.
-* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `user_table_name` that represents the table name which you want store user data, `login_id` is a column name which is used for authentication.
+* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `user_table_name` that represents the table name which you want store user data, `phone` is a column name which is used for authentication.
 * Write your routes in router.lua.
 
 ## database schema

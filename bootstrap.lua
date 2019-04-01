@@ -6,7 +6,7 @@ local Core = {}
 function Core:bootstrap()
     --get helper function
     require('lib.helpers'):init(_G)
-    require("lib.dispatcher"):run()
+    require("lib.application"):init():run()
 end
 
 Core:bootstrap()

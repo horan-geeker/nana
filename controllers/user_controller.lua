@@ -11,11 +11,11 @@ local user_service = require('services.user_service')
 local _M = {}
 
 function _M:count()
-    response:json(0, 'show', User:count())
+    return response:json(0, 'show', User:count())
 end
 
 function _M:top()
-    response:json(0, 'top', table_remove(User:orderby('created_at', 'desc'):get(5), {'password', 'phone'}))
+    return response:json(0, 'top', table_remove(User:orderby('created_at', 'desc'):get(5), {'password', 'phone'}))
 end
 
 function _M:show(id)

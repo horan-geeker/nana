@@ -1,16 +1,16 @@
 return {
-    APP_ENV = "prod", -- dev/prod
-    APP_DOMAIN = 'api.lua-china.com',
-    mysql_host = "10.31.231.178", -- mysql host
-    mysql_port = 3306, -- mysql port
-    mysql_user = "root", -- mysql user
-    mysql_password = "root", -- mysql password
-    mysql_pool_timeout = 10000, -- mysql pool timeout
-    mysql_pool_size = 10000, -- mysql pool size
-    db_name = "lua_china", -- mysql database name
-    db_timeout = 10000, -- mysql timeout
+    APP_ENV = "dev", -- dev/prod
+    APP_DOMAIN = 'api.lua-china.local',
+
+    mysql_config = {
+        db_name = "lua_china",
+        write = {host="10.31.231.178", port=3306, user="root", password="root"}, -- mysql write database
+        read = {host="10.31.231.178", port=3307, user="root", password="root"}, -- mysql read database
+    },
+
     redis_host = "10.31.231.178", -- redis host
     redis_port = 6379, -- redis port
+
     sendcloud = {
         SMSKEY = "",
         SMSUSER = "LuaChina",

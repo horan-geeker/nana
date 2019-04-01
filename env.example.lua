@@ -1,6 +1,6 @@
 return {
     APP_ENV = "production", -- dev/production
-    APP_DOMAIN = 'https://api.lua-china.com',
+    APP_DOMAIN = 'api.lua-china.com',
 
     mysql_config = {
         db_name = "lua_china",

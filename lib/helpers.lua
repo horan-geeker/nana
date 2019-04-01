@@ -123,8 +123,7 @@ function _M:init(G)
         return true
     end
 
-    function G:get_cookie()
-        local key = self
+    function G.get_cookie(key)
         local cookie, err = cookie_obj:new()
         if not cookie then
             ngx.log(ngx.ERR, err)

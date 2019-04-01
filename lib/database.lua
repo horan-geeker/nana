@@ -44,7 +44,6 @@ function _M:get_connection()
         ngx.log(ngx.ERR, res, err, errcode, sqlstate)
         return nil, err
     end
-    log(self.db_type)
     ngx.ctx.MYSQL = {
         [self.db_type] = db
     }

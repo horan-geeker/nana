@@ -55,13 +55,13 @@ you can use `Dockerfile` to build nana that located
 * execute `cp env.example.lua env.lua` configure `mysql redis`
 * config `content_by_lua_file` point to `bootstrap.lua`(at project root directory) in your `nginx conf file` and run nginx.
 
-> Note: if you want to use login/register function in nana framework, you need to configure `config/app.lua`: `user_table_name` name of user table in database, `login_id` name of user table's column for login as username and execute `chmod 755 install.sh && ./install.sh` to migrate database structure.
+> Note: if you want to use login/register function in nana framework, you need to configure `config/app.lua`: `users` is the name of user table in database, `phone` of user table's column for login as username and execute `chmod 755 install.sh && ./install.sh` to migrate database structure.
 
 ## Document
 
 ### Config
 
-* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `user_table_name` that represents the table name which you want store user data, `login_id` is a column name which is used for authentication.
+* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `users` that represents the table name which you want store user data, `phone` is a column name which is used for authentication.
 * Write your routes in router.lua.
 
 ### middleware

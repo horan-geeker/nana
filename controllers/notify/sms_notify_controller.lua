@@ -14,26 +14,26 @@ function _M:guest_send_sms()
         validator:check(
         args,
         {
-            config.login_id
+            'phone'
         }
     )
     if not ok then
-        response:json(1, err)
+        return response:json(1, err)
     end
     local res = sms_service:sendSMS(args['phone'])
     if res ~= true then
-        response:json(res)
+        return response:json(res)
     end
-    response:json(0)
+    return response:json(0)
 end
 
 function _M:user_send_sms()
     local user = auth:user()
     local res = sms_service:sendSMS(user.phone)
     if res ~= true then
-        response:json(res)
+        return response:json(res)
     end
-    response:json(0)
+    return response:json(0)
 end
 
 return _M

@@ -1,18 +1,18 @@
 return {
-    env = "dev", -- dev/prod
-    mysql_host = "127.0.0.1", -- mysql host
-    mysql_port = 3306, -- mysql port
-    mysql_user = "root", -- mysql user
-    mysql_password = "root", -- mysql password
-    mysql_pool_timeout = 1000, -- mysql pool timeout
-    mysql_pool_size = 10000, -- mysql pool size
-    db_name = "nana", -- mysql database name
-    db_timeout = 1000, -- mysql timeout
-    redis_host = "127.0.0.1", -- redis host
+    APP_ENV = "dev", -- dev/prod
+
+    mysql_config = {
+        db_name = "nana",
+        write = {host="10.200.10.1", port=3306, user="root", password="root"},
+        read = {host="10.200.10.1", port=3307, user="root", password="root"},
+    },
+
+    redis_host = "10.200.10.1", -- redis host
     redis_port = 6379, -- redis port
+    
     sendcloud = {
         SMSKEY = "",
-        SMSUSER = "LuaChina",
+        SMSUSER = "",
         TEMPLATEID = 13265
     }
 }

@@ -11,7 +11,7 @@ function _M:verify_password(password, user_password)
     return false
 end
 
-function _M:notify(login_id)
+function _M:notify(phone)
     -- you can send a message to message queue
     -- consider queue need a long live consumer but ngx.time_at not need
     return true

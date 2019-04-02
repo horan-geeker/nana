@@ -1,10 +1,31 @@
 local cookie_obj = require("lib.cookie")
 local cjson = require("cjson")
-local config = require("config.app")
 
 local _M = {}
 
 function _M:init(G)
+    -- splite str to arr by symbol 
+    function G.explode(str, symbol)
+        local rt= {}
+        string.gsub(str, '[^'..symbol..']+', function(w) table.insert(rt, w) end )
+        return rt
+    end
+    -- get env config
+    function G.env(key, default)
+        local env_config = require("env")
+        local arr = explode(key, '.')
+        local tmp_config = env_config
+        for _, v in pairs(arr) do
+            if not tmp_config[v] then
+                return default
+            end
+            if type(tmp_config[v]) == 'table' then
+                tmp_config = tmp_config[v]
+            else
+                return tmp_config[v]
+            end
+        end
+    end
     -- here you need use . not :
     function G.table_reverse(tbl)
         for i=1, math.floor(#tbl / 2) do
@@ -78,6 +99,7 @@ function _M:init(G)
     end
 
     function G.set_cookie(key, value, expires)
+        local config = require("config.app")
         local cookie, err = cookie_obj:new()
         if not cookie then
             ngx.log(ngx.ERR, err)
@@ -112,6 +134,7 @@ function _M:init(G)
     end
 
     function G:get_local_time()
+        local config = require("config.app")
         local time_zone = ngx.re.match(config.time_zone, "[0-9]+")
         if time_zone == nil then
             local err = "not set time zone or format error, time zone should look like `+8:00` current is: " .. config.time_zone

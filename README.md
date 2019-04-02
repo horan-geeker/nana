@@ -34,6 +34,7 @@
     * [排序](#排序)
     * [分页](#分页)
     * [使用原生 sql](#使用原生-sql)
+    * [读写分离](#读写分离)
   * [Redis](#Redis)
   * [综合](#综合)
     * [Random](#Random)
@@ -79,7 +80,7 @@ local _M = {}
 
 function _M:index()
     local args = request:all() -- get all args
-    response:json(0, 'request args', args) -- return response 200 and json content
+    return response:json(0, 'request args', args) -- return response 200 and json content
 end
 
 return _M
@@ -152,7 +153,7 @@ route:group({
 ```lua
 function _M:comments(user_id, comment_id)
     ngx.log(ngx.ERR, user_id, comment_id)
-    common:response(0, 'comments', {user_id=user_id, comment_id=comment_id})
+    return:response:json(0, 'comments', {user_id=user_id, comment_id=comment_id})
 end
 ```
 
@@ -166,12 +167,13 @@ end
 ```lua
 function _M:handle()
     if not auth_service:check() then
-        common:response(4,'no authorized in authenticate')
+        return false, response:json(4,'no authorized in authenticate')
     end
 end
 
 ```
-你可以把你自定义的中间件写到 `middleware` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
+
+当返回 false 的时候会直接返回第二个 `response` 参数，从而不再执行 `controller` 的内容，当返回 true 的时候继续执行，你可以把你自定义的中间件写到 `middleware` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
 
 ### 控制器
 
@@ -216,7 +218,7 @@ local data = cjson.decode(res.body)
 4. 第四个参数是返回的 `http 状态码`，可省略，默认是200
 
 ```lua
-response:json(0x000000, 'success message', data, 200)
+return response:json(0x000000, 'success message', data, 200)
 --[[
 {
 "msg": "success message",
@@ -229,7 +231,7 @@ response:json(0x000000, 'success message', data, 200)
 或者返回错误信息
 
 ```lua
-response:json(0x000001)
+return response:json(0x000001)
 --[[
 {
 "msg": "验证错误",
@@ -382,21 +384,15 @@ local userPages = User:paginate(1)
 -- user.lua
 local Model = require("models.model")
 local Post = require('models.post')
-
 local User = Model:new('users')
-
 function User:posts()
     return User:has_many(Post, 'user_id', 'id')
 end
-
 return User
 
 -- post.lua
 local Model = require("models.model")
-local config = require("config.app")
-
 local Post = Model:new('posts')
-
 return Post
 
 -- controller 调用
@@ -430,8 +426,6 @@ local user_and_post = User:where('id', '=', user_id):with('posts'):get()
 -- post.lua
 local Model = require("models.model")
 local Tag = require('models.tag')
-local config = require("config.app")
-
 local Post = Model:new('posts')
 
 function Post:tag()
@@ -440,12 +434,10 @@ end
 
 return Post
 
+
 -- tag.lua
 local Model = require("models.model")
-local config = require("config.app")
-
 local Tag = Model:new('tags')
-
 return Tag
 
 -- controller 调用
@@ -464,6 +456,10 @@ local posts_with_tag = Post:where('id', '=', 1):with('tag'):first()
 }
 --]]
 ```
+
+#### 读写分离
+
+通过配置 `config/database.lua` 文件中 `mysql_config.READ` 和 `mysql_config.WRITE` 框架会根据 model 的操作自动分配读写，如果不做分离则配置为相同的
 
 ### Redis
 
@@ -538,7 +534,7 @@ end
 
 ## 用户 Auth API 接口说明
 
-> 所有接口均返回json数据，你也可以自定义 `config/app.lua`：`user_table_name` 用户表名，`login_id` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
+> 所有接口均返回json数据，(你也可以更加你已有的数据库更改模型) `users` 是用户表名，`phone` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ```json
 {

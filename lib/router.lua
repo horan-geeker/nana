@@ -1,5 +1,6 @@
 local cjson = require('cjson')
 local response = require('lib.response')
+local database = require('lib.database')
 local controller_prefix = 'controllers.'
 local middleware_prefix = 'middleware.'
 
@@ -33,25 +34,33 @@ function _M:init()
     return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
+function _M:send_response(content, status)
+    database:close()
+    if content ~= nil then
+        ngx.say(content)
+    end
+    ngx.exit(status)
+end
+
 function _M:call_action(method, uri, controller, action)
     local matched, params = route_match(purge_uri(uri), purge_uri(ngx.var.request_uri))
     if matched then
         if method == ngx.var.request_method then
             if ngx.ctx.middleware_group then
                 for _,middleware in ipairs(table_reverse(ngx.ctx.middleware_group)) do
-                    local result, status, message = require(middleware_prefix..middleware):handle()
+                    local result, response_content, resposne_status = require(middleware_prefix..middleware):handle()
                     if result == false then
-                        response:json(status, message)
+                        return self:send_response(response_content, resposne_status)
                     end
                 end
             end
             if controller then
                 called_action, err = find_action(controller, action)
                 if err ~= nil then
-                    response:error(err)
-                    return
+                    return self:send_response(response:error(err))
                 end
-                called_action(nil, table.unpack(params))
+                local response_content, resposne_status = called_action(nil, table.unpack(params))
+                return self:send_response(response_content, resposne_status)
             else
                 return ngx.log(ngx.WARN, 'upsteam api')
             end
@@ -59,10 +68,9 @@ function _M:call_action(method, uri, controller, action)
             if ngx.var.request_method == 'OPTIONS' then
                 called_action, err = find_action(controller, action)
                 if err ~= nil then
-                    response:error(err)
-                    return
+                    return self:send_response(response:error(err))
                 end
-                ngx.exit(ngx.OK)
+                return self:send_response(nil, ngx.OK)
             end
         end
     -- router will throw 404 in router.lua

@@ -172,7 +172,8 @@ function _M:handle()
 end
 
 ```
-你可以把你自定义的中间件写到 `middleware` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
+
+当返回 false 的时候会直接返回第二个 `response` 参数，从而不再执行 `controller` 的内容，当返回 true 的时候继续执行，你可以把你自定义的中间件写到 `middleware` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
 
 ### 控制器
 

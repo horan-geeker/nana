@@ -384,21 +384,15 @@ local userPages = User:paginate(1)
 -- user.lua
 local Model = require("models.model")
 local Post = require('models.post')
-
 local User = Model:new('users')
-
 function User:posts()
     return User:has_many(Post, 'user_id', 'id')
 end
-
 return User
 
 -- post.lua
 local Model = require("models.model")
-local config = require("config.app")
-
 local Post = Model:new('posts')
-
 return Post
 
 -- controller 调用
@@ -432,8 +426,6 @@ local user_and_post = User:where('id', '=', user_id):with('posts'):get()
 -- post.lua
 local Model = require("models.model")
 local Tag = require('models.tag')
-local config = require("config.app")
-
 local Post = Model:new('posts')
 
 function Post:tag()
@@ -442,12 +434,10 @@ end
 
 return Post
 
+
 -- tag.lua
 local Model = require("models.model")
-local config = require("config.app")
-
 local Tag = Model:new('tags')
-
 return Tag
 
 -- controller 调用
@@ -544,7 +534,7 @@ end
 
 ## 用户 Auth API 接口说明
 
-> 所有接口均返回json数据，你也可以自定义 `config/app.lua`：`users` 是用户表名，`phone` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
+> 所有接口均返回json数据，(你也可以更加你已有的数据库更改模型) `users` 是用户表名，`phone` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 
 ```json
 {

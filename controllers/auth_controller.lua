@@ -1,7 +1,7 @@
 local request = require('lib.request')
 local response = require('lib.response')
 local User = require('models.user')
-local AccountLog = require('models.account_log')
+local UserLog = require('models.user_log')
 local validator = require('lib.validator')
 local config = require('config.app')
 local auth = require('lib.auth_service_provider')
@@ -31,27 +31,24 @@ function _M:login()
     if not user then
         return response:json(0x010003)
     end
-    if args.smscode then
-        ok = user_service:verify_checkcode(args.phone, args.smscode)
+    if args.sms_code then
+        local ok = sms_service:verify_sms_code(args.phone, args.sms_code)
         if not ok then
-            return response:json(0x000001, 'invalidate sms code')
-        else
-            user_service:authorize(user)
+            return response:json(0x01000A)
         end
     elseif args.password then
-        ok, err = user_service:verify_password(args.password, user.password)
+        local ok, err = user_service:verify_password(args.password, user.password)
         if not ok then
             -- login fail
             return response:json(0x010002)
-        else
-            ok, err = user_service:authorize(user)
-            if not ok then
-                -- @todo should render only error message
-                return response:json(0x000001, err)
-            end
         end
     else
         return response:json(0x000001, 'need sms or password')
+    end
+    local ok, err = user_service:authorize(user)
+    if not ok then
+        -- @todo should render only error message
+        return response:json(0x000001, err)
     end
     
     return response:json(0, 'ok', table_remove(user, {'password'}))
@@ -139,7 +136,7 @@ function _M:reset_password()
     return response:json(0)
 end
 
--- use sms verify
+-- @middleware: verify_guest_sms_code
 function _M:forget_password()
     local args = request:all()
     local ok, msg = validator:check(args, {
@@ -150,12 +147,15 @@ function _M:forget_password()
         return response:json(0x000001, msg)
     end
     local user = auth:user()
-    local ok, err = User:where('phone', '=', args.phone):update({
+    local affected_rows, err = User:where('phone', '=', args.phone):update({
         password=hash(args.new_password)
     })
-    if not ok then
+    if not affected_rows then
         ngx.log(ngx.ERR, err)
         return response:json(0x010006)
+    end
+    if affected_rows ~= 1 then
+        return response:json(0x010009)
     end
     return response:json(0)
 end

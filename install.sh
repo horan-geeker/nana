@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS \`users\` (\
   \`updated_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\
   PRIMARY KEY (\`id\`)\
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-CREATE TABLE IF NOT EXISTS \`account_log\` (
+CREATE TABLE IF NOT EXISTS \`user_logs\` (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
   \`ip\` varchar(255) NOT NULL DEFAULT '',
   \`city\` varchar(10) NOT NULL DEFAULT '',

@@ -1,6 +1,6 @@
 local auth = require('lib.auth_service_provider')
 local ip_location = require('services.location_service')
-local AccountLog = require('models.account_log')
+local UserLog = require('models.user_log')
 local redis = require('lib.redis')
 local request = require('lib.request')
 
@@ -31,8 +31,9 @@ function _M:authorize(user)
             country = '',
         }
     end
-    AccountLog:create({
-        ip = request:header('x-forwarded-for') or '',
+    UserLog:create({
+        ip = request:header('x-forwarded-for') or ngx.var.remote_addr,
+        user_id = user.id,
         city = location.city,
         country = location.country,
         type = 'login'

@@ -31,10 +31,10 @@ function _M:login()
     if not user then
         return response:json(0x010003)
     end
-    if args.smscode then
+    if args.sms_code then
         local ok = sms_service:verify_sms_code(args.phone, args.sms_code)
         if not ok then
-            return response:json(0x000001, 'invalidate sms code')
+            return response:json(0x000001, 'invalid sms code')
         end
     elseif args.password then
         local ok, err = user_service:verify_password(args.password, user.password)
@@ -88,7 +88,7 @@ function _M:register()
         password = hash(args.password),
         phone = args.phone
     }
-    
+
     local ok = User:create(user_obj)
     if not ok then
         return response:json(0x000005)

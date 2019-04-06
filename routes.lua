@@ -11,7 +11,7 @@ function _M:match(route)
         route:get('/oauth/wechat/web', 'wechat_controller', 'webLogin')
         route:get('/users/{id}', 'user_controller', 'show')
         route:group({
-            -- 'verify_guest_sms_code'
+            'verify_guest_sms_code'
         }, function()
             route:post('/register', 'auth_controller', 'register')
             route:patch('/forget-password', 'auth_controller', 'forget_password')

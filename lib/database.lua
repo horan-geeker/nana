@@ -79,7 +79,7 @@ end
     @return bool, data, err
 --]]
 function _M.mysql_query(self, sql)
-    ngx.log(ngx.ERR, self.db_type, sql)
+    ngx.log(ngx.WARN, self.db_type, sql)
     local db, err = self:get_connection()
     if err ~= nil then
         return nil, err

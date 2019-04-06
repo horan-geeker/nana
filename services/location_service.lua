@@ -118,7 +118,7 @@ end
 function _M.new(self, address, token)
     -- @todo fix file path
     -- ngx.log(ngx.ERR, cjson.encode(ngx.var.realpath_root))
-    return setmetatable({ _ipAddress = address, _token = token, _ipBinaryFilePath = '/var/www/nana/storage/17monipdb.dat' }, mt)
+    return setmetatable({ _ipAddress = address, _token = token, _ipBinaryFilePath = '/app/storage/17monipdb.dat' }, mt)
 end
 
 -- 从文件获取地区信息

@@ -461,6 +461,8 @@ local posts_with_tag = Post:where('id', '=', 1):with('tag'):first()
 
 通过配置 `config/database.lua` 文件中 `mysql_config.READ` 和 `mysql_config.WRITE` 框架会根据 model 的操作自动分配读写，如果不做分离则配置为相同的
 
+> 由于主从同步是异步的，业务中先写后读的话，默认都会去主库查询，保证数据写入后能立即查询
+
 ### Redis
 
 ```lua

@@ -1,7 +1,7 @@
 local request = require('lib.request')
 local response = require('lib.response')
 local User = require('models.user')
-local AccountLog = require('models.account_log')
+local UserLog = require('models.user_log')
 local validator = require('lib.validator')
 local config = require('config.app')
 local auth = require('lib.auth_service_provider')
@@ -32,28 +32,28 @@ function _M:login()
         return response:json(0x010003)
     end
     if args.smscode then
-        ok = user_service:verify_checkcode(args.phone, args.smscode)
+        local ok = sms_service:verify_sms_code(args.phone, args.sms_code)
         if not ok then
             return response:json(0x000001, 'invalidate sms code')
-        else
-            user_service:authorize(user)
         end
     elseif args.password then
-        ok, err = user_service:verify_password(args.password, user.password)
+        local ok, err = user_service:verify_password(args.password, user.password)
         if not ok then
             -- login fail
             return response:json(0x010002)
-        else
-            ok, err = user_service:authorize(user)
-            if not ok then
-                -- @todo should render only error message
-                return response:json(0x000001, err)
-            end
         end
     else
         return response:json(0x000001, 'need sms or password')
     end
-    
+    -- login success
+    auth:authorize(user)
+    UserLog:create({
+            user_id = user.id,
+            ip = request:header('x-forwarded-for') or ngx.var.remote_addr,
+            city = '',
+            country = '',
+            type = 'login'
+        })
     return response:json(0, 'ok', table_remove(user, {'password'}))
 end
 
@@ -88,13 +88,17 @@ function _M:register()
         password = hash(args.password),
         phone = args.phone
     }
-
-    ok = User:create(user_obj)
+    
+    local ok = User:create(user_obj)
     if not ok then
         return response:json(0x000005)
     end
     local user = User:where('phone', '=', args.phone):first()
-    user_service:authorize(user)
+    if not user then
+        log('not found user')
+        return response:json(0x010001)
+    end
+    auth:authorize(user)
     return response:json(0, 'ok', table_remove(user, {'password'}))
 end
 
@@ -139,7 +143,7 @@ function _M:reset_password()
     return response:json(0)
 end
 
--- use sms verify
+-- @middleware: verify_guest_sms_code
 function _M:forget_password()
     local args = request:all()
     local ok, msg = validator:check(args, {
@@ -149,13 +153,14 @@ function _M:forget_password()
     if not ok then
         return response:json(0x000001, msg)
     end
-    local user = auth:user()
-    local ok, err = User:where('phone', '=', args.phone):update({
+    local affected_rows, err = User:where('phone', '=', args.phone):update({
         password=hash(args.new_password)
     })
-    if not ok then
-        ngx.log(ngx.ERR, err)
+    if not affected_rows then
         return response:json(0x010006)
+    end
+    if affected_rows ~= 1 then
+        return response:json(0x010009)
     end
     return response:json(0)
 end

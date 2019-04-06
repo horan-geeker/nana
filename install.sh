@@ -8,12 +8,12 @@
 # do
 #     echo $line
 # done
-MYSQL_HOST="mysql-host"
+MYSQL_HOST="127.0.0.1"
 MYSQL_USER="root"
 MYSQL_PASSWORD="root"
 mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWORD -e "\
-CREATE DATABASE IF NOT EXISTS lua_china;
-USE lua_china;
+CREATE DATABASE IF NOT EXISTS nana;
+USE nana;
 CREATE TABLE IF NOT EXISTS \`users\` (\
   \`id\` int(10) unsigned NOT NULL AUTO_INCREMENT,\
   \`nickname\` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',\
@@ -25,8 +25,9 @@ CREATE TABLE IF NOT EXISTS \`users\` (\
   \`updated_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\
   PRIMARY KEY (\`id\`)\
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-CREATE TABLE IF NOT EXISTS \`account_log\` (
+CREATE TABLE IF NOT EXISTS \`user_logs\` (
   \`id\` int(11) NOT NULL AUTO_INCREMENT,
+  \`user_id\` int(10) unsigned NOT NULL,
   \`ip\` varchar(255) NOT NULL DEFAULT '',
   \`city\` varchar(10) NOT NULL DEFAULT '',
   \`country\` varchar(10) NOT NULL DEFAULT '',

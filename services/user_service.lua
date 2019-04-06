@@ -1,5 +1,4 @@
 local auth = require('lib.auth_service_provider')
-local AccountLog = require('models.account_log')
 local redis = require('lib.redis')
 
 local _M = {}
@@ -14,19 +13,6 @@ end
 function _M:notify(phone)
     -- you can send a message to message queue
     -- consider queue need a long live consumer but ngx.time_at not need
-    return true
-end
-
-function _M:authorize(user)
-    -- login success
-    auth:authorize(user)
-    -- write log when user login
-    AccountLog:create({
-        ip = ngx.var.remote_addr,
-        city = '',
-        country = '',
-        type = 'login'
-    })
     return true
 end
 

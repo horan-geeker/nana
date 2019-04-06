@@ -95,10 +95,11 @@ id | nickname | email | password | avatar | created_at | updated_at
 ---| -------- | ----- | -------- | ------ | ---------- | ----------
  1 | horan | 13571899655@163.com|3be64**| http://avatar.com | 2017-11-28 07:46:46 | 2017-11-28 07:46:46
 
-account_log
+user_logs
 ```
-CREATE TABLE `account_log` (
+CREATE TABLE `user_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
   `ip` varchar(255) NOT NULL DEFAULT '',
   `city` varchar(10) NOT NULL DEFAULT '',
   `type` varchar(255) NOT NULL DEFAULT '',

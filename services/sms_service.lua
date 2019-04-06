@@ -77,9 +77,9 @@ function _M:sendSMS(phone)
                                         end
                                     end,
                                 phone, smscode)
-        if not ok then
-            common:response(0x00000B, err)
-        end
+    if not ok then
+        return 0x00000B
+    end
     return true
 end
 

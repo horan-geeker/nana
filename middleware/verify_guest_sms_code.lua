@@ -9,11 +9,11 @@ function _M:handle()
     local args = request:all()
     local ok, msg = validator:check(args,{'sms_code', 'phone'})
     if not ok then
-        return response:json(0x000001, msg)
+        return false, response:json(0x000001, msg)
     end
     ok = sms_service:verify_sms_code(args['phone'], args.sms_code)
     if not ok then
-        return response:json(0x010004)
+        return false, response:json(0x010004)
     end
     return true
 end

@@ -87,7 +87,37 @@ return _M
 
 ```
 
+> 访问结果
+
+```shell
+curl https://api.lua-china.com/index?id=1&foo=bar
+
+{
+    "msg": "request args",
+    "status": 0,
+    "data": {
+        "foo": "bar",
+        "id": "1"
+    }
+}
+```
+
 ## 压力测试
+
+### 不使用数据库单纯输出
+
+#### 阿里云单核4G内存
+
+```shell
+ab -c 100 -n 10000 api.lua-china.com/index
+
+---
+Requests per second:    2220.06 [#/sec] (mean)
+Time per request:       45.044 [ms] (mean)
+---
+```
+
+> 内存基本没有变化，单核 CPU 打满
 
 ### 单次 mysql 数据库查询
 
@@ -213,7 +243,7 @@ local data = cjson.decode(res.body)
 框架使用的 `lib/response.lua` 中的 `json` 方法通过定义数字来代表不同的`response`类型，该方法支持三四个参数
 
 1. 第一个参数是状态码，16进制状态码对应 `config/status.lua`
-2. 第二个参数是错误码文案，文案根据第一个参数对应 `config/status.lua` 中的文案
+2. 第二个参数是错误码文案，默认值是根据第一个参数对应 `config/status.lua` 中的文案
 3. 第三个参数是需要向前端返回的数据，可省略
 4. 第四个参数是返回的 `http 状态码`，可省略，默认是200
 

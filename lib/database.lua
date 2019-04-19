@@ -34,7 +34,6 @@ function _M:get_connection()
         user = self.user,
         password = self.password,
         database = self.db_name,
-        charset = self.charset,
         max_packet_size = 1024 * 1024,
     })
     if not ok then
@@ -101,7 +100,6 @@ function _M.new(self, opts)
             user = opts.user or 'root',
             password = opts.password or ' ',
             db_name = opts.db_name or 'test',
-            charset = opts.charset or 'utf8',
             timeout = opts.timeout,
             max_packet_size = 1024 * 1024,
             db_pool_timeout = opts.pool_timeout or 1000,

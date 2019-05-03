@@ -28,4 +28,11 @@ function _M:error(error_message)
 	ngx.exit(500)
 end
 
+function _M:send(content, status)
+    if content ~= nil and content ~= '' then
+        ngx.say(content)
+    end
+    ngx.exit(status)
+end
+
 return _M

@@ -20,7 +20,6 @@ local database_write = Database:new({
 	timeout = database_config.mysql.timeout,
 	db_pool_timeout = database_config.mysql.pool_timeout,
 	db_pool_size = database_config.mysql.pool_size,
-	time_zone = config.time_zone,
 	db_type = WRITE
 })
 
@@ -34,7 +33,6 @@ local database_read = Database:new({
 	timeout = database_config.mysql.timeout,
 	db_pool_timeout = database_config.mysql.pool_timeout,
 	db_pool_size = database_config.mysql.pool_size,
-	time_zone = config.time_zone,
 	db_type = READ
 })
 

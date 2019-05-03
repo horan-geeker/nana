@@ -7,6 +7,9 @@ local _M = {}
 
 function _M:show(id)
     local user = User:find(id)
+    if not user then
+        return response:json(0x01000B)
+    end
     return response:json(0, '', user)
 end
 

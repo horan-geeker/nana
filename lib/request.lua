@@ -42,4 +42,12 @@ function _M:headers()
 	return ngx.req.get_headers()
 end
 
+function _M:get_uri()
+	return string.gsub(ngx.var.request_uri, '?.*$', '')
+end
+
+function _M:get_method()
+	return ngx.var.request_method
+end
+
 return _M

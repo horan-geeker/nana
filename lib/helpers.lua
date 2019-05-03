@@ -1,6 +1,3 @@
-local cookie_obj = require("lib.cookie")
-local cjson = require("cjson")
-
 local _M = {}
 
 function _M:init(G)
@@ -36,7 +33,7 @@ function _M:init(G)
     -- remove item in table
     function G.table_remove(tab, rm)
         local result = tab
-		for k, v in pairs(rm) do
+        for k, v in pairs(rm) do
             for a_k, a_v in pairs(result) do
                 -- array
                 if type(a_k) == 'number' then
@@ -51,8 +48,8 @@ function _M:init(G)
                     if v == a_k then
                         result[a_k] = nil
                     end
-				end
-			end
+                end
+            end
         end
         return result
     end
@@ -78,21 +75,20 @@ function _M:init(G)
         return string.sub(implode_str, 1, #implode_str - 1)
     end
     -- sort a hashTable by key
-    -- use example: for k,v in pairsByKeys(hashTable)
-    function G:pairsByKeys(f)
+    function G.sort_by_key(tab)
         local a = {}
-        for n in pairs(self) do
+        for n in pairs(tab) do
             table.insert(a, n)
         end
-        table.sort(a, f)
+        table.sort(a)
         local i = 0 -- iterator variable
         local iter = function()
             -- iterator function
             i = i + 1
-            if a[i] == nil then
-                return nil
+            if a[i] then
+                return a[i], tab[a[i]]
             else
-                return a[i], self[a[i]]
+                return nil
             end
         end
         return iter
@@ -100,7 +96,7 @@ function _M:init(G)
 
     function G.set_cookie(key, value, expires)
         local config = require("config.app")
-        local cookie, err = cookie_obj:new()
+        local cookie, err = require("lib.cookie"):new()
         if not cookie then
             ngx.log(ngx.ERR, err)
             return false, err
@@ -124,7 +120,7 @@ function _M:init(G)
     end
 
     function G.get_cookie(key)
-        local cookie, err = cookie_obj:new()
+        local cookie, err = require("lib.cookie"):new()
         if not cookie then
             ngx.log(ngx.ERR, err)
             return false
@@ -132,7 +128,7 @@ function _M:init(G)
         return cookie:get(key)
     end
 
-    function G:get_local_time()
+    function G.get_local_time()
         local config = require("config.app")
         local time_zone = ngx.re.match(config.time_zone, "[0-9]+")
         if time_zone == nil then
@@ -145,24 +141,15 @@ function _M:init(G)
         return time_zone[0] * 3600 + ngx.time()
     end
 
-    function G.purge_uri(uri)
-        local uri = string.gsub(uri, "?.*", "")
-        local uri_without_slash = remove_slash(uri)
-        return uri_without_slash
-    end
-
-    function G.remove_slash(target)
-        local len = string.len(target)
-        if string.find(target,'/', len) then
-            return string.sub(target, 1, len-1)
-        end
-        return target
+    function G.trim(str, symbol)
+        symbol = symbol or '%s' -- %s default match space \t \n etc..
+        return (string.gsub(string.gsub(str, '^' .. symbol .. '*', ""), symbol .. '*$', ''))
     end
 
     function G.hash(password)
         return ngx.md5(password)
     end
-    
+
     -- data not in order
     function G.log(...)
         local args = {}
@@ -171,7 +158,7 @@ function _M:init(G)
         else
             args = ...
         end
-        ngx.log(ngx.WARN, cjson.encode(args))
+        ngx.log(ngx.WARN, require("cjson").encode(args))
     end
 end
 

@@ -8,11 +8,11 @@ local _M = {
     SMS_KEY = 'SMS:PHONE:%s'
 }
 
-local function generateSendCloudSignature(phone, code)
+local function generate_sendcloud_signature(phone, code)
     local conf = config.sendcloud
     local signStr = ''
-    local params = {smsUser=conf['smsUser'],templateId=conf['templateId'],phone=phone,vars={code=code}}
-    for k,v in pairsByKeys(params) do
+    local params = {smsUser=conf.smsUser,templateId=conf.templateId,phone=phone,vars={code=code}}
+    for k,v in sort_by_key(params) do
         local val = ''
         if type(v) == 'table' then
             val = cjson.encode(v)
@@ -25,7 +25,7 @@ local function generateSendCloudSignature(phone, code)
     return ngx.md5(signature), signStr
 end
 
-local function sendMessageToSendCloud(phone, code, signature, signStr)
+local function send_message_to_sendcloud(phone, code, signature, signStr)
     local url = config['sendcloud']['url'] .. '?' .. signStr .. 'signature='..signature
     local httpClient = http.new()
     local res, err = httpClient:request_uri(url, {ssl_verify=false})
@@ -45,7 +45,7 @@ local function sendMessageToSendCloud(phone, code, signature, signStr)
     end
 end
 
-function _M:sendSMS(phone)
+function _M:send_sms(phone)
     local key = string.format(self.SMS_KEY, phone)
     local data, err = redis:get(key)
     if err then
@@ -70,13 +70,13 @@ function _M:sendSMS(phone)
         return 0x000007
     end
     local ok, err = ngx.timer.at(0, function (premature, phone, smscode)
-                                        local signature, signStr = generateSendCloudSignature(tonumber(phone), smscode)
-                                        local ok, err = sendMessageToSendCloud(tonumber(phone), smscode, signature, signStr)
-                                        if not ok then
-                                            ngx.log(ngx.ERR, err)
-                                        end
-                                    end,
-                                phone, smscode)
+                local signature, signStr = generate_sendcloud_signature(tonumber(phone), smscode)
+                local ok, err = send_message_to_sendcloud(tonumber(phone), smscode, signature, signStr)
+                if not ok then
+                    ngx.log(ngx.ERR, err)
+                end
+            end,
+        phone, smscode)
     if not ok then
         return 0x00000B
     end

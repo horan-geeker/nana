@@ -118,8 +118,8 @@ end
 function _M:delete(id)
 	local user = Auth:user()
 	local ok = Post:where('user_id', '=', user.id):where('id', '=', id):soft_delete()
-	if not ok then
-		return response:error('database delete error')
+	if ok ~= 1 then
+		return response:json(0x030004)
 	end
 	return response:json(0, 'ok', post)
 end

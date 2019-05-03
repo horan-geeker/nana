@@ -13,14 +13,14 @@ local mt = { __index = _M }
 --]]
 function _M:get_connection()
     if ngx.ctx[self.db_type] then
-        ngx.log(ngx.WARN, self.db_type, ' mysql reconnect')
+        -- ngx.log(ngx.WARN, self.db_type, ' mysql reconnect')
         -- if write before read, make sure write read connection the same
         if ngx.ctx[WRITE] then
             return ngx.ctx[WRITE], nil
         end
         return ngx.ctx[self.db_type], nil
     end
-    ngx.log(ngx.WARN, 'new mysql connection!')
+    -- ngx.log(ngx.WARN, 'new mysql connection!')
     local db, err = mysql_c:new()
     if not db then
         ngx.log(ngx.ERR, "failed to instantiate mysql: ", err)
@@ -40,14 +40,7 @@ function _M:get_connection()
         ngx.log(ngx.ERR, "failed to connect: ", err, ": ", errcode, " ", sqlstate)
         return nil, err
     end
-    ngx.log(ngx.WARN, self.db_type, ' mysql connect')
-    -- set time zone
-    local query = 'SET time_zone = "'..self.time_zone..'"'
-    local res, err, errcode, sqlstate = db:query(query)
-    if not res then
-        ngx.log(ngx.ERR, res, err, errcode, sqlstate)
-        return nil, err
-    end
+    -- ngx.log(ngx.WARN, self.db_type, ' mysql connect')
     ngx.ctx[self.db_type] = db
     return db, nil
 end
@@ -78,7 +71,7 @@ end
     @return bool, data, err
 --]]
 function _M.mysql_query(self, sql)
-    ngx.log(ngx.WARN, self.db_type, sql)
+    -- ngx.log(ngx.WARN, self.db_type, sql)
     local db, err = self:get_connection()
     if err ~= nil then
         return nil, err
@@ -104,7 +97,6 @@ function _M.new(self, opts)
             max_packet_size = 1024 * 1024,
             db_pool_timeout = opts.pool_timeout or 1000,
             db_pool_size = opts.pool_size or 1000,
-            time_zone = opts.time_zone or '+8:00',
             db_type = opts.db_type,
             }, mt)
 end

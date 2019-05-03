@@ -104,7 +104,7 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ## 压力测试
 
-### 不使用数据库单纯输出
+### 不使用数据库只输出 json
 
 #### 阿里云单核4G内存
 
@@ -141,8 +141,7 @@ Time per request:       31.992 [ms] (mean)
 
 ### 本地化
 
-通过给 `ngx.ctx.locale` 赋值来更换语言环境，如：
-`ngx.ctx.locale = zh`
+使用 local 的 middleware 加在路由前，该中间件通过给 `ngx.ctx.locale` 赋值来更换语言环境：`ngx.ctx.locale = zh`
 
 ### 路由
 
@@ -554,9 +553,7 @@ table_remove(tab, {'item1', 'item2'})
 > lua 中的`hash table`按`key`排序与其他语言不同，我们需要自己实现一个迭代器来遍历排好序的`table`
 
 ```lua
-for k,v in pairsByKeys(hashTable) do
-    ...
-end
+sort_by_key(hashTable)
 ```
 
 ## 代码规范

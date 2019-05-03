@@ -20,7 +20,7 @@ function _M:guest_send_sms()
     if not ok then
         return response:json(1, err)
     end
-    local res = sms_service:sendSMS(args['phone'])
+    local res = sms_service:send_sms(args['phone'])
     if res ~= true then
         return response:json(res)
     end
@@ -29,7 +29,7 @@ end
 
 function _M:user_send_sms()
     local user = auth:user()
-    local res = sms_service:sendSMS(user.phone)
+    local res = sms_service:send_sms(user.phone)
     if res ~= true then
         return response:json(res)
     end

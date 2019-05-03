@@ -42,13 +42,6 @@ function _M:get_connection()
         return nil, err
     end
     -- ngx.log(ngx.WARN, self.db_type, ' mysql connect')
-    -- set time zone
-    local query = 'SET time_zone = "'..self.time_zone..'"'
-    local res, err, errcode, sqlstate = db:query(query)
-    if not res then
-        ngx.log(ngx.ERR, res, err, errcode, sqlstate)
-        return nil, err
-    end
     ngx.ctx[self.db_type] = db
     return db, nil
 end
@@ -79,7 +72,7 @@ end
     @return bool, data, err
 --]]
 function _M.mysql_query(self, sql)
-    -- ngx.log(ngx.ERR, self.db_type, sql)
+    -- ngx.log(ngx.WARN, self.db_type, sql)
     local db, err = self:get_connection()
     if err ~= nil then
         return nil, err
@@ -106,7 +99,6 @@ function _M.new(self, opts)
             max_packet_size = 1024 * 1024,
             db_pool_timeout = opts.pool_timeout or 1000,
             db_pool_size = opts.pool_size or 1000,
-            time_zone = opts.time_zone or '+8:00',
             db_type = opts.db_type,
             }, mt)
 end

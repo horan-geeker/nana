@@ -101,7 +101,10 @@ function _M:show(id)
 	else
 		post.comments = Comment:where('post_id', '=', id):where('deleted_at', 'is', 'null'):with('user'):get()
 		post.favor_count = Favor:where('post_id', '=', id):count()
-		Post:where('id', '=', post.id):update({read_count = post.read_count+1})
+		Post:where('id', '=', post.id):update({
+        		    read_count = post.read_count+1,
+        		    updated_at = post.updated_at
+        		})
 		return response:json(0, 'ok', post)
 	end
 end

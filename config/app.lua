@@ -13,7 +13,7 @@ return {
     max_request_per_second = 3000, -- throttle flow request per second
     
     phone_code_len = 4,
-    per_page = env('per_page', 10),
+    per_page = env('per_page', 20),
 
     wechat = {
         web = {

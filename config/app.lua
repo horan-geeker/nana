@@ -31,6 +31,9 @@ return {
         url = "http://www.sendcloud.net/smsapi/send",
         smsUser = env('sendcloud.SMSUSER'),
         smsKey = env('sendcloud.SMSKEY'),
-        templateId = env('sendcloud.TEMPLATEID')
+        templateId = env('sendcloud.TEMPLATEID'),
+        email_url = 'http://api.sendcloud.net/apiv2/mail/sendtemplate',
+        email_api_user = 'luachina',
+        email_api_key = env('sendcloud.EMAIL_API_KEY')
     }
 }

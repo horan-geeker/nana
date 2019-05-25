@@ -14,7 +14,8 @@ return {
     sendcloud = {
         SMSKEY = "",
         SMSUSER = "LuaChina",
-        TEMPLATEID = 13265
+        TEMPLATEID = 13265,
+        EMAIL_API_KEY = ""
     },
     github = {
         CLIENT_SECRET = ""

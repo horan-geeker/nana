@@ -41,7 +41,9 @@ return {
 
         -- oauth module
         [0x050001] = 'github 授权失败，请返回 https://lua-china.com/login 重新操作',
-        [0x050002] = 'github 授权失败，系统错误，请返回 https://lua-china.com/login 重新操作'
+        [0x050002] = 'github 授权失败，系统错误，请返回 https://lua-china.com/login 重新操作',
+        [0x050003] = 'github 获取用户邮箱失败，请返回 https://lua-china.com/login 重新操作',
+        [0x050004] = 'github 获取用户基础信息失败，请返回 https://lua-china.com/login 重新操作',
     },
     en = {
         -- system code    

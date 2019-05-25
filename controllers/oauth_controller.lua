@@ -40,10 +40,24 @@ function _M:github_login()
     if not ok then
         return response:json(1, msg)
     end
-    local data, err = github_service:github_auth(args)
+    local access_token, err = github_service:get_access_token(args)
     if err ~= nil then
         ngx.log(ngx.ERR, err)
         return response:json(0x050001)
+    end
+    local data, err = github_service:get_userinfo(access_token)
+    if err ~= nil then
+        ngx.log(ngx.ERR, err)
+        return response:json(0x050004)
+    end
+    local email = data.email
+    -- 主动获取邮箱信息
+    if email == ngx.null then
+        email, err = github_service:get_emails(access_token)
+        if err ~= nil then
+            ngx.log(ngx.ERR, err)
+            return response:json(0x050003)
+        end
     end
     local user = User:where('oauth_id', '=', data.id):first()
     local name = data.login
@@ -55,7 +69,7 @@ function _M:github_login()
             name = name,
             password = '',
             phone = data.id,
-            email = data.email,
+            email = email,
             city = data.location,
             oauth_id = data.id,
             oauth_from = 'github',
@@ -68,6 +82,12 @@ function _M:github_login()
         user = User:where('oauth_id', '=', data.id):first()
         if not user then
             return response:json(0x000005)
+        end
+    else
+        -- 每次都更新用户邮箱，之后增加个人中心的设置之后取消掉这里
+        local res = User:where('oauth_id', '=', data.id):update({email = email})
+        if res ~= 1 then
+            log('update not work', res)
         end
     end
     local ok, err = user_service:authorize(user)

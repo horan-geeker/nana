@@ -37,7 +37,9 @@ function _M:create(post_id)
     end
     -- 本人评论自己的文章不发邮件通知
     if post_author.id ~= user.id then
-        email_service:notify_comment(post_author.email, post_author.name, user.name, args.content)
+        if post_author.email ~= "" then
+            email_service:notify_comment(post_author.email, post_author.name, user.name, args.content, post.id)
+        end
     end
     return response:json(0)
 end

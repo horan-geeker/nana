@@ -4,16 +4,12 @@ local cjson = require('cjson')
 
 local _M = {}
 
-function _M:notify_comment(to, author, commenter, content)
-    if not to then
-        return
-    end
+function _M:notify_comment(to, author, commenter, content, post_id)
     ngx.timer.at(0,
-            function (premature, to, author, commenter, content)
+            function (premature, to, author, commenter, content, post_id)
                 local httpc = http.new()
                 -- urlencode
-                str = '{"to": ["' .. to .. '"],"sub":{"%author_name%": ["' .. author .. '"], "%comment_content%": ["' .. content .. '"], "%commenter_name%": ["' .. commenter .. '"]}}'
-                ngx.log(ngx.ERR, str)
+                str = '{"to": ["' .. to .. '"],"sub":{"%id%": ["' .. post_id .. '"], "%author_name%": ["' .. author .. '"], "%comment_content%": ["' .. content .. '"], "%commenter_name%": ["' .. commenter .. '"]}}'
                 str = string.gsub (str, "\n", "\r\n")
                 str = string.gsub (str, "([^%w ])",
                     function (c) return string.format ("%%%02X", string.byte(c)) end)
@@ -32,13 +28,12 @@ function _M:notify_comment(to, author, commenter, content)
                     ngx.log(ngx.ERR, err)
                     return
                 end
-                ngx.log(ngx.ERR, response.body, body)
                 local data = cjson.decode(response.body)
                 if data.statusCode ~= 200 then
                     ngx.log(ngx.ERR, response.body)
                 end
             end,
-        to, author, commenter, content)
+        to, author, commenter, content, post_id)
 end
 
 return _M

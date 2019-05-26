@@ -14,7 +14,7 @@ local _M = {}
 function _M:index()
 	local args = request:all()
 	local page = args.page or 1
-	return response:json(0, 'ok', Post:where('deleted_at', 'is', 'null'):orderby('created_at', 'desc'):with('user'):paginate(page))
+	return response:json(0, 'ok', Post:where('deleted_at', 'is', 'null'):orderby('excellent', 'desc'):orderby('created_at', 'desc'):with('user'):paginate(page))
 end
 
 function _M:drafts()

@@ -6,11 +6,11 @@ function _M:init(G)
         if url == nil then
             return
         end
-        url = url:gsub("\n", "\r\n")
-        url = url:gsub (str, "([^%w ])", function (c) 
+        url = string.gsub(url, "\n", "\r\n")
+        url = string.gsub(url, "([^%w ])", function (c) 
             return string.format ("%%%02X", string.byte(c))
         end)
-        url = url:gsub(" ", "+")
+        url = string.gsub(url, " ", "+")
         return url
     end
     -- splite str to arr by symbol 

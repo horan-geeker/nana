@@ -5,12 +5,12 @@ local cjson = require('cjson')
 local _M = {}
 
 function _M:notify_comment(to, author, commenter, content, post_id)
+    local mail_content = urlencode("hi " .. author .. "\n    " .. content .. "\n" .. commenter .. "\n\n点击链接跳转相应文章：" .. config.web_url .. "/posts/" .. post_id)
     ngx.timer.at(0,
-            function (premature, to, author, commenter, content, post_id)
+            function (premature, to, author, commenter, mail_content, post_id)
                 local httpc = http.new()
                 -- urlencode
-                local content = "hi " .. author .. "\n    " .. content .. "\n" .. commenter .. "\n\n点击链接跳转相应文章：" .. config.web_url .. "/posts/" .. post_id
-                local response, err = httpc:request_uri(config.notify_service_url .. '/send/mail?email=' .. to .. '&content=' .. urlencode(content) .. '&title=' .. 'Lua 中国 - 新评论通知' .. '&from=' .. 'Lua 中国')
+                local response, err = httpc:request_uri(config.notify_service_url .. '/send/mail?email=' .. to .. '&content=' .. mail_content .. '&title=' .. 'Lua 中国 - 新评论通知' .. '&from=' .. 'Lua 中国')
                 if err ~= nil then
                     ngx.log(ngx.ERR, err)
                     return

@@ -1,6 +1,16 @@
 local _M = {}
 
 function _M:init(G)
+    -- urlencode
+    function G.urlencode(url)
+        if url == nil then
+            return
+        end
+        url = url:gsub("\n", "\r\n")
+        url = url:gsub("([^%w ])", char_to_hex)
+        url = url:gsub(" ", "+")
+        return url
+    end
     -- splite str to arr by symbol 
     function G.explode(str, symbol)
         local rt= {}

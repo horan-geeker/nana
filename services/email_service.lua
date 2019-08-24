@@ -9,27 +9,14 @@ function _M:notify_comment(to, author, commenter, content, post_id)
             function (premature, to, author, commenter, content, post_id)
                 local httpc = http.new()
                 -- urlencode
-                str = '{"to": ["' .. to .. '"],"sub":{"%id%": ["' .. post_id .. '"], "%author_name%": ["' .. author .. '"], "%comment_content%": ["' .. content .. '"], "%commenter_name%": ["' .. commenter .. '"]}}'
-                str = string.gsub (str, "\n", "\r\n")
-                str = string.gsub (str, "([^%w ])",
-                    function (c) return string.format ("%%%02X", string.byte(c)) end)
-                str = string.gsub (str, " ", "+")
-                -- end
-                local body = 'apiUser=' .. config.sendcloud.email_api_user .. '&apiKey=' .. config.sendcloud.email_api_key .. '&from=support@mail.lua-china.com&templateInvokeName=comment_notify&subject=Lua 中国 - 新评论通知&to=' .. to .. '&xsmtpapi=' .. str
-                local response, err = httpc:request_uri(config.sendcloud.email_url, {
-                    ssl_verify=false,
-                    method = "POST",
-                    body = body,
-                    headers = {
-                        ["Content-Type"] = "application/x-www-form-urlencoded",
-                    },
-                })
+                local content = "hi " .. author .. "\n    " .. content .. "\n" .. commenter .. "\n\n点击链接跳转相应文章：" .. config.web_url .. "/posts/" .. post_id
+                local response, err = httpc:request_uri(config.notify_service_url .. '/send/mail?email=' .. to .. '&content=' .. content .. '&title=' .. 'Lua 中国 - 新评论通知' .. '&from=' .. 'Lua 中国')
                 if err ~= nil then
                     ngx.log(ngx.ERR, err)
                     return
                 end
                 local data = cjson.decode(response.body)
-                if data.statusCode ~= 200 then
+                if data.status ~= 0 then
                     ngx.log(ngx.ERR, response.body)
                 end
             end,

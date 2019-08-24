@@ -25,7 +25,8 @@ local function generate_sendcloud_signature(phone, code)
     return ngx.md5(signature), signStr
 end
 
-local function send_message_to_sendcloud(phone, code, signature, signStr)
+local function send_sms_by_sendcloud(phone, code)
+    local signature, signStr = generate_sendcloud_signature(tonumber(phone), smscode)
     local url = config['sendcloud']['url'] .. '?' .. signStr .. 'signature='..signature
     local httpClient = http.new()
     local res, err = httpClient:request_uri(url, {ssl_verify=false})
@@ -70,10 +71,17 @@ function _M:send_sms(phone)
         return 0x000007
     end
     local ok, err = ngx.timer.at(0, function (premature, phone, smscode)
-                local signature, signStr = generate_sendcloud_signature(tonumber(phone), smscode)
-                local ok, err = send_message_to_sendcloud(tonumber(phone), smscode, signature, signStr)
-                if not ok then
+                local httpClient = http.new()
+                local res, err = httpClient:request_uri(config.notify_service_url .. '/send/sms?phone='..tonumber(phone) .. '&code=' .. smscode)
+                if err ~= nil then
                     ngx.log(ngx.ERR, err)
+                else
+                    local response = cjson.decode(res.body)
+                    if response.status ~= 0 then
+                        log(response.message)
+                    else
+                        return true
+                    end
                 end
             end,
         phone, smscode)

@@ -35,5 +35,6 @@ return {
         email_url = 'http://api.sendcloud.net/apiv2/mail/sendtemplate',
         email_api_user = 'luachina',
         email_api_key = env('sendcloud.EMAIL_API_KEY')
-    }
+    },
+    notify_service_url = "http://10.31.231.178:7777"
 }

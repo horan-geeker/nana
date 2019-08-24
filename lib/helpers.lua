@@ -7,7 +7,9 @@ function _M:init(G)
             return
         end
         url = url:gsub("\n", "\r\n")
-        url = url:gsub("([^%w ])", char_to_hex)
+        url = url:gsub (str, "([^%w ])", function (c) 
+            return string.format ("%%%02X", string.byte(c))
+        end)
         url = url:gsub(" ", "+")
         return url
     end

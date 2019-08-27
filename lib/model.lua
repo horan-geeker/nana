@@ -169,10 +169,15 @@ end
 function _M:orderby(column,operator)
 	local operator = operator or 'asc'
 	if not self.query_sql then
-		self.query_sql = 'order by '.. self.table ..'.'.. column.. ' ' ..operator
+		self.query_sql = 'order by '.. self.table .. '.' .. column .. ' ' ..operator
 	else
-		self.query_sql = self.query_sql..' order by '..column..' '..operator
+		if self.has_order_by then
+			self.query_sql = self.query_sql .. ',' .. column.. ' ' ..operator
+		else
+			self.query_sql = self.query_sql .. ' order by ' .. column.. ' ' ..operator
+		end
 	end
+	self.has_order_by = true
 	return self
 end
 
@@ -351,6 +356,7 @@ function _M:query(sql, type)
 		return ngx.log(ngx.ERR,'query() function need sql to query')
 	end
 	self.query_sql = nil
+	self.has_order_by = false
 	if type == READ then
 		local result, err = database_read:mysql_query(sql)
 		if err ~= nil then
@@ -384,6 +390,7 @@ function _M:new(table, attributes, hidden)
 		attributes = attributes or {},
 		hidden = hidden or {},
 		query_sql = nil,
+		has_order_by = false,
 		relation = {
 			mode = 0
 		},

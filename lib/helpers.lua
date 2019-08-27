@@ -1,6 +1,22 @@
 local _M = {}
 
 function _M:init(G)
+	function G.deepdump( tbl )
+    	local checklist = {}
+    	local function innerdump( tbl, indent )
+    	    checklist[ tostring(tbl) ] = true
+    	    for k,v in pairs(tbl) do
+    	        print(indent..k,v,type(v),checklist[ tostring(tbl) ])
+    	        if (type(v) == "table" and not checklist[ tostring(v) ]) then 
+						innerdump(v,indent.."    ") 
+				end
+    	    end
+    	end
+    	print("=== DEEPDUMP -----")
+    	checklist[ tostring(tbl) ] = true
+    	innerdump( tbl, "" )
+    	print("------------------")
+	end
     -- splite str to arr by symbol 
     function G.explode(str, symbol)
         local rt= {}

@@ -5,6 +5,7 @@ local request = require("lib.request")
 local response = require("lib.response")
 local config = require("config.app")
 local user_service = require("services.user_service")
+local storage_service = require("services.storage_service")
 local cjson = require("cjson")
 local User = require('models.user')
 
@@ -50,6 +51,11 @@ function _M:github_login()
         ngx.log(ngx.ERR, err)
         return response:json(0x050004)
     end
+    -- 保存头像
+    local avatar, err = storage_service:upload_by_url(data.avatar_url)
+    if err ~= nil then
+       ngx.log(ngx.ERR, err)
+    end
     local email = data.email
     -- 主动获取邮箱信息
     if email == ngx.null then
@@ -73,7 +79,7 @@ function _M:github_login()
             city = data.location,
             oauth_id = data.id,
             oauth_from = 'github',
-            avatar = data.avatar_url
+            avatar = avatar
         }
         local ok = User:create(user_obj)
         if not ok then
@@ -85,7 +91,7 @@ function _M:github_login()
         end
     else
         -- 每次都更新用户邮箱，之后增加个人中心的设置之后取消掉这里
-        local res = User:where('oauth_id', '=', data.id):update({email = email})
+        local res = User:where('oauth_id', '=', data.id):update({email = email, avatar = avatar})
         if res ~= 1 then
             log('update not work', res)
         end

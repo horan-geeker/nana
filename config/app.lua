@@ -23,9 +23,9 @@ return {
         }
     },
     github = {
-        client_id = "6162c14c3b7a50abf8ce",
+        client_id = env("github.CLIENT_ID"),
         client_secret = env('github.CLIENT_SECRET'),
-        redirect_uri = "https://api.lua-china.com/oauth/github"
+        redirect_uri = env("github.REDIRECT_URL")
     },
     sendcloud = {
         url = "http://www.sendcloud.net/smsapi/send",
@@ -36,5 +36,6 @@ return {
         email_api_user = 'luachina',
         email_api_key = env('sendcloud.EMAIL_API_KEY')
     },
-    notify_service_url = "http://10.31.231.178:7777"
+    notify_service_url = "http://10.31.231.178:7777",
+    storage_service_url = "http://10.31.231.178:6666",
 }

@@ -222,8 +222,8 @@ function _M:paginate(page_num, per_page)
 	local sql, count_sql, total
 	local data={
 		data = {},
-		next_page = 1,
-		prev_page = 1,
+		next_page = ngx.null,
+		prev_page = ngx.null,
 		total = 0
 	}
 	if not self.query_sql then

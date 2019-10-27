@@ -74,7 +74,7 @@ function _M:send_sms(phone)
                 local httpClient = http.new()
                 local res, err = httpClient:request_uri(config.notify_service_url .. '/send/sms?phone='..tonumber(phone) .. '&code=' .. smscode)
                 if err ~= nil then
-                    ngx.log(ngx.ERR, err)
+                    ngx.log(ngx.ERR, res, err)
                 else
                     local response = cjson.decode(res.body)
                     if response.status ~= 0 then

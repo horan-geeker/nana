@@ -28,6 +28,7 @@ function _M:match(route)
         route:group({
             'authenticate',
         }, function()
+            route:put('/user', 'user_controller', 'update')
             route:get('/posts/drafts', 'post_controller', 'drafts')
             route:get('/posts/{id}/edit', 'post_controller', 'edit')
             route:post('/posts/{id}/comments', 'comment_controller', 'create')

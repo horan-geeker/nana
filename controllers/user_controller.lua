@@ -41,4 +41,23 @@ function _M:comments(user_id)
     return response:json(0, 'ok', comments)
 end
 
+function _M:update()
+    local args = request:all()
+    local ok, msg = validator:check(args, {
+        'avatar',
+        'name',
+        })
+    if not ok then
+        return response:json(0x000001, msg)
+    end
+    local user = auth:user()
+    User:where('id', '=', user.id):update({
+        avatar=args.avatar,
+        name=args.name,
+        city=args.city,
+        email=args.email
+    })
+    return response:json(0, 'ok')
+end
+
 return _M

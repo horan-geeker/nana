@@ -70,23 +70,16 @@ function _M:send_sms(phone)
         ngx.log(ngx.ERR, err)
         return 0x000007
     end
-    local ok, err = ngx.timer.at(0, function (premature, phone, smscode)
-                local httpClient = http.new()
-                local res, err = httpClient:request_uri(config.notify_service_url .. '/send/sms?phone='..tonumber(phone) .. '&code=' .. smscode)
-                if err ~= nil then
-                    ngx.log(ngx.ERR, res, err)
-                else
-                    local response = cjson.decode(res.body)
-                    if response.status ~= 0 then
-                        log(response.message)
-                    else
-                        return true
-                    end
-                end
-            end,
-        phone, smscode)
-    if not ok then
-        return 0x00000B
+    local httpClient = http.new()
+    local res, err = httpClient:request_uri(config.notify_service_url .. '/send/sms?phone='..tonumber(phone) .. '&code=' .. smscode)
+    if err ~= nil then
+        ngx.log(ngx.ERR, res, err)
+        return 0x000007
+    end
+    local response = cjson.decode(res.body)
+    if response.status ~= 0 then
+        log(response.message)
+        return 0x000007
     end
     return true
 end

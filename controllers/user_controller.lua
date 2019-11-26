@@ -28,6 +28,7 @@ end
 
 function _M:userinfo()
     local user = auth:user()
+    user = User:find(user.id)
     return response:json(0, 'ok', table_remove(user, {'password'}))
 end
 

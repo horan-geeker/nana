@@ -3,7 +3,6 @@ local config = require("config.app")
 local cjson = require("cjson")
 local redis = require("lib.redis")
 local cookie_obj = require("lib.cookie")
-local response = require('lib.response')
 
 local _M = {}
 local token_name = 'token'

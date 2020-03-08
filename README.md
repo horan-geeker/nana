@@ -5,7 +5,7 @@
 
 [English Document](README_en.md)
 
-`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 是基于 `openresty` 的 `restful api` 的 `MVC` 框架，项目集成了多个组件，目前支持丰富的功能。
+`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 是基于 `openresty` 的 `restful api` 的 `MVC` 框架。
 
 目录
 
@@ -48,7 +48,7 @@
 
 ### 使用 docker 安装
 
-* 执行 `cp env.example.lua env.lua` 其中 `mysql_host` 是数据库地址，`db_name` 是数据库名， `mysql_user` 是数据库的用户名，`mysql_password` 数据库密码，`env` 用来在项目里判断环境，`env.lua` 不随版本库提交，可以帮助区分线上和本地环境的不同配置
+* 执行 `cp env.example.lua env.lua` 该文件用来在项目中管理区分环境变量不随版本库提交，可以帮助区分线上和本地环境的不同配置
 * 构建 `docker build -t nana .`
 * 运行 `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana` 生产环境不需要 `mount` 到 `/app`，开发环境这样做较方便调试
 
@@ -104,9 +104,7 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ## 压力测试
 
-### 不使用数据库只输出 json
-
-#### 阿里云单核4G内存
+### 阿里云单核4G内存
 
 ```shell
 ab -c 100 -n 10000 api.lua-china.com/index
@@ -118,19 +116,6 @@ Time per request:       45.044 [ms] (mean)
 ```
 
 > 内存基本没有变化，单核 CPU 打满
-
-### 单次 mysql 数据库查询
-
-#### mac 4核 i7 16G 内存 固态硬盘
-
-```shell
-ab -c 100 -n 10000 -k http://nana/user/1
-
----
-Requests per second:    3125.76 [#/sec] (mean)
-Time per request:       31.992 [ms] (mean)
----
-```
 
 ## 文档
 

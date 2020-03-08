@@ -4,14 +4,19 @@
 [![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)
 [中文文档](README.md)
 
-`Nana` is a http restful api framework written in Lua which need be used in `openresty` platform and it's designed reference Laravel framework styles
+`Nana` is a `MVC http restful api framework` written using Lua which need be used in `openresty` platform.
 
 ## Contents
 
+* [Status](#Status)
+* [Synopsis](#Synopsis)
+* [Install](#Install)
+  * [Install by docker](#Install-by-docker)
+  * [Manual install](#Manual-install)
 * [Getting started](#Getting-started)
   * [Use docker](#Use-docker)
   * [Normal install](#Normal-install)
-* [Document](#Document)
+* [Description](#Document)
   * [Config](#Config)
   * [Localization](#Localization)
   * [Route](#Route)
@@ -38,6 +43,68 @@
 * [Telegram](#Telegram)
 * [Contact author](#Contact-author)
 
+## Status
+
+This library is considered production ready.
+
+## Synopsis
+
+> routes.lua
+
+```lua
+
+function _M:match(route)
+    -- add below
+    route:get('/index', 'index_controller', 'index')
+end
+```
+
+> controllers/index_controller.lua
+
+```lua
+local request = require("lib.request")
+local response = require("lib.response")
+
+local _M = {}
+
+function _M:index()
+    local args = request:all() -- get all args
+    return response:json(0, 'request args', args) -- return response 200 and json content
+end
+
+return _M
+
+```
+
+> request this api
+
+```shell
+curl https://api.lua-china.com/index?id=1&foo=bar
+
+{
+    "msg": "request args",
+    "status": 0,
+    "data": {
+        "foo": "bar",
+        "id": "1"
+    }
+}
+```
+
+## Install
+
+### Install by docker
+
+* execute `cp env.example.lua env.lua`, project use this file to manage environment variable and `env.lua` is ignored by git, it can distinguish Test/Prod or Local env convenience.
+* build docker `docker build -t nana .`
+* run docker `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana` mount /app to docker container can help us easier to debug in development environment, at production environment you don't need to mount it to docker container
+
+### Manual install
+
+* `git clone https://github.com/horan-geeker/nana.git`
+* execute `cp env.example.lua env.lua` and config anything else
+* at `nginx/conf/nginx.conf` set `content_by_lua_file` point to project `bootstrap.lua`
+
 ## Getting started
 
 ### Use docker
@@ -45,7 +112,6 @@
 you can use `Dockerfile` to build nana that located
  in project root directory
 
-* for convenience diff QA/Prod env, you need to execute `cp env.example.lua env.lua` and `env.lua` is ignored by git
 * `docker build -t nana .`
 * `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana`, only develop environment need mount volume to `/app` and set `lua_code_cache off` in `docker/nginx/conf/nginx.conf` file
 
@@ -57,7 +123,7 @@ you can use `Dockerfile` to build nana that located
 
 > Note: if you want to use login/register function in nana framework, you need to configure `config/app.lua`: `users` is the name of user table in database, `phone` of user table's column for login as username and execute `chmod 755 install.sh && ./install.sh` to migrate database structure.
 
-## Document
+## Description
 
 ### Config
 

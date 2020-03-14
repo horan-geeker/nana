@@ -42,6 +42,9 @@ function _M:dispatch(http_uri, http_method)
     for uri, route in pairs(self.routes) do
         local is_matched, route_params = self:route_match(uri, http_uri)
         if is_matched then
+            if http_method == 'OPTIONS' then
+                return nil, 200
+            end
             if not route[http_method] then
                 return nil, 405
             end

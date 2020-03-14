@@ -4,17 +4,18 @@
 [![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)
 [中文文档](README.md)
 
-`Nana` is a http restful api framework written in Lua which need be used in `openresty` platform and it's designed reference Laravel framework styles
+`Nana` is a `MVC http restful api framework` written using Lua which need be used in `openresty` platform.
 
 ## Contents
 
-* [Getting started](#Getting-started)
-  * [Use docker](#Use-docker)
-  * [Normal install](#Normal-install)
-* [Document](#Document)
+* [Status](#Status)
+* [Synopsis](#Synopsis)
+* [Install](#Install)
+  * [Install by docker](#Install-by-docker)
+  * [Manual install](#Manual-install)
+* [Description](#Document)
   * [Config](#Config)
-  * [Localization](#Localization)
-  * [Route](#Route)
+  * [Routing](#Routing)
   * [Middleware](#Middleware)
   * [Controller](#Controller)
     * [Service](#Service)
@@ -30,92 +31,146 @@
     * [Pagination](#Pagination)
     * [Original sql](#Original-sql)
   * [Redis](#Redis)
+  * [Localization](#Localization)
   * [Other](#Other)
     * [Random](#Random)
   * [Helper Function](#Helper-Function)
   * [Code specification](#Code-specification)
-* [Auth API instruction](#Auth-API-instruction)
-* [Telegram](#Telegram)
 * [Contact author](#Contact-author)
 
-## Getting started
+## Status
 
-### Use docker
+This project is considered production ready.
 
-you can use `Dockerfile` to build nana that located
- in project root directory
+## Synopsis
 
-* for convenience diff QA/Prod env, you need to execute `cp env.example.lua env.lua` and `env.lua` is ignored by git
-* `docker build -t nana .`
-* `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana`, only develop environment need mount volume to `/app` and set `lua_code_cache off` in `docker/nginx/conf/nginx.conf` file
+> routes.lua
 
-### Normal install
+```lua
+-- add below
+route:get('/index', 'index_controller', 'index')
+```
+
+> controllers/index_controller.lua
+
+```lua
+local request = require("lib.request")
+local response = require("lib.response")
+
+local _M = {}
+
+function _M:index()
+    local args = request:all() -- get all args
+    return response:json(0, 'request args', args) -- return response 200 and json content
+end
+
+return _M
+
+```
+
+> request this api
+
+```shell
+curl https://api.lua-china.com/index?id=1&foo=bar
+
+{
+    "msg": "request args",
+    "status": 0,
+    "data": {
+        "foo": "bar",
+        "id": "1"
+    }
+}
+```
+
+## Install
+
+### Install by docker
+
+1. execute `cp env.example.lua env.lua`
+2. build docker `docker build -t nana .`
+3. run docker `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana` mount /app to docker container can help us easier to debug in development environment, at production environment you don't need to mount it to docker container
+
+### Manual install
 
 * `git clone https://github.com/horan-geeker/nana.git`
-* execute `cp env.example.lua env.lua` configure `mysql redis`
-* config `content_by_lua_file` point to `bootstrap.lua`(at project root directory) in your `nginx conf file` and run nginx.
+* execute `cp env.example.lua env.lua` and make sure right config
+* at `nginx/conf/nginx.conf` set `content_by_lua_file` point to project `bootstrap.lua` file location
 
-> Note: if you want to use login/register function in nana framework, you need to configure `config/app.lua`: `users` is the name of user table in database, `phone` of user table's column for login as username and execute `chmod 755 install.sh && ./install.sh` to migrate database structure.
-
-## Document
+## Description
 
 ### Config
 
-* All of your configuration files for Nana Framework are stored in the app.lua, and it has many config keys in that file, such as `db_name` which represents the database name, `user & password` that represents database username and password, `users` that represents the table name which you want store user data, `phone` is a column name which is used for authentication.
-* Write your routes in router.lua.
+All of your configuration files for Nana Framework are stored in the `config` directory. Each option is documented, so feel free to look through the files and get familiar with the options available to you.
+
+Your `env.lua` file should not be committed to your application's source control, since each Test/Prod using your application could require a different environment configuration. Furthermore, this would be a security risk in the event an intruder gains access to your source control repository, since any sensitive credentials would get exposed.
+
+If you are developing with a team, you may wish to continue including a `env.example.lua` file with your application. By putting placeholder values in the example configuration file, other developers on your team can clearly see which environment variables are needed to run your application.
+
+### Routing
+
+The default route file located at root directory named `routes.lua`.
+
+For most applications, you will begin by defining routes in your routes.lua file.
+
+For example, you may access the following route by navigating to http://your-app.test/user api
+
+```lua
+function _M:match(route)
+  route:get('/user', 'user_controller', 'index')
+end
+```
+
+#### Available Router Methods
+
+The router allows you to register routes that respond to any HTTP verb:
+
+```lua
+route:get(uri, controller, action)
+route:post(uri, controller, action)
+route:patch(uri, controller, action)
+route:put(uri, controller, action)
+route:delete(uri, controller, action)
+route:options(uri, controller, action)
+```
+
+#### Route Parameters
+
+Sometimes you will need to capture segments of the URI within your route. For example, you may need to capture a user's ID from the URL. You may do so by defining route parameters:
+
+```lua
+route:get('/users/{id}', 'user_controller', 'show')
+```
+
+#### Route Groups
+
+Route groups allow you to share route attributes, such as middleware, across a large number of routes without needing to define those attributes on each individual route. Shared attributes are specified in an array format as the first parameter to the route::group method.
+
+```lua
+route:group({
+        'authenticate',
+    }, function()
+        route:post('/logout', 'auth_controller', 'logout') -- http_method/uri/controller/action
+        route:post('/reset-password', 'user_controller', 'resetPassword')
+    end)
+```
 
 ### middleware
 
-It is a middleware to resolve user authenticate, you can use this to login or register user, and use other language(Java PHP) as downstream program to process other business logic at the same time.
-The entrance of this framework is bootstrap.lua, and you can write your routes in `router.lua`. if URL doesn't match any route, it will be processed by downstream program
+Middleware provide a convenient mechanism for filtering HTTP requests entering your application. For example, Nana includes a middleware that verifies the user of your application is authenticated. If the user is not authenticated, the middleware will terminate request and return response with error message. However, if the user is authenticated, the middleware will allow the request to proceed further into the application.
 
-Middleware can be used in `router.lua` and you can write middleware in `middleware` directory, there is a demo as `example_middleware.lua`
+Additional middleware can be written to perform a variety of tasks besides authentication. A CORS middleware might be responsible for adding the proper headers to all responses leaving your application. A logging middleware might log all incoming requests to your application.
 
-#### service provider
+ There are several middleware included in the Nana framework, including middleware for authentication and throttle fuse protection. All of these middleware are located in the middleware directory.
 
-There are auth_service and route_service in `providers` directory.
+### Localization
 
-## database schema
-
-users
-```
-CREATE TABLE `users` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `nickname` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `avatar` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '''''',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-```
-
-id | nickname | email | password | avatar | created_at | updated_at
----| -------- | ----- | -------- | ------ | ---------- | ----------
- 1 | horan | 13571899655@163.com|3be64**| http://avatar.com | 2017-11-28 07:46:46 | 2017-11-28 07:46:46
-
-user_logs
-```
-CREATE TABLE `user_logs` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(10) unsigned NOT NULL,
-  `ip` varchar(255) NOT NULL DEFAULT '',
-  `city` varchar(10) NOT NULL DEFAULT '',
-  `type` varchar(255) NOT NULL DEFAULT '',
-  `time_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
-```
-
-id | ip | city | type | time_at
----| ---| ---- | ---- | -------
- 1 | 1.80.146.218 | Xian | login | 2018-01-04 04:01:02
-
-## Telegram
-
-https://t.me/joinchat/LsEGyxV0FBGJmNbnxDn9jQ
+use `middleware > local.lua` middleware to router, change `ngx.ctx.locale` value to change localization, for example `ngx.ctx.locale = zh`
 
 ## Contact author
 
 fb: https://www.facebook.com/profile.php?id=100004896017774
+
+### wechat
+
+![img](https://github.com/horan-geeker/hexo/blob/master/imgs/wechat-avatar.jpeg?raw=true)

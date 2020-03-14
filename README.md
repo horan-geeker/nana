@@ -18,7 +18,6 @@
 * [压力测试](#压力测试)
 * [文档](#文档)
   * [配置](#配置)
-  * [本地化](#本地化)
   * [路由](#路由)
   * [中间件](#中间件)
   * [控制器](#控制器)
@@ -36,6 +35,7 @@
     * [使用原生 sql](#使用原生-sql)
     * [读写分离](#读写分离)
   * [Redis](#Redis)
+  * [本地化](#本地化)
   * [综合](#综合)
     * [Random](#Random)
   * [Helper Function](#Helper-Function)
@@ -122,13 +122,16 @@ Time per request:       45.044 [ms] (mean)
 ### 项目配置
 
 * 项目的配置文件主要放在 `config/app.lua`
-* 状态码的配置文件主要放在 `config/status.lua`
-
-### 本地化
-
-使用 local 的 middleware 加在路由前，该中间件通过给 `ngx.ctx.locale` 赋值来更换语言环境：`ngx.ctx.locale = zh`
+* 数据库配置文件 `config/database.lua`
+* 接口状态码的配置文件 `config/status.lua`
 
 ### 路由
+
+> 路由配置文件在项目根目录 `routes.lua`，如使用`POST`请求访问 `http://your-app.test/login` 的时，交给 `auth_controller` 下的 `login()` 函数来处理：
+
+```lua
+route:post('/login', 'auth_controller', 'login')
+```
 
 #### 支持 http 请求类型
 
@@ -139,15 +142,33 @@ Time per request:       45.044 [ms] (mean)
 * DELETE
 * HEAD
 
-> 路由文件在项目根目录 `routes.lua`，如使用`POST`请求访问 `/login` 的 uri 时，交给 `auth_controller` 下的 `login()` 函数来处理：
+#### 路由参数
+
+当需要使用 restful 分格的 url 来获取参数时，你可以这样写路由配置，id 会传到对应的 show() 方法里
 
 ```lua
-route:post('/login', 'auth_controller', 'login')
+route:get('/users/{id}', 'user_controller', 'show')
+```
+
+#### 多个参数
+
+使用花括号来代表传递的参数，如：  
+
+```lua
+route:get("/users/{user_id}/comments/{comment_id}", 'user_controller', 'comments')
+```
+
+可匹配`/users/1/comments/2`，在`comments action`里，直接写上两个参数即可，命名不进行约束
+
+```lua
+function _M:comments(user_id, comment_id)
+    ...
+end
 ```
 
 #### 路由群组
 
-路由群组目前主要的作用是使用中间件来解决一些问题，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在路由群组的地方写一句就ok了，这样就会在调用 `controller` 之前先调用 `middleware > authenticate.lua` 的 `handle()` 方法：
+路由群组目前主要的作用是使用中间件来解决一些问题，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在路由群组的地方集中配置中间件就会对群组下的所有路由起作用，这样在调用 `controller` 之前先调用 `middleware > authenticate.lua` 的 `handle()` 方法：
 
 ```lua
 route:group({
@@ -157,21 +178,6 @@ route:group({
         route:post('/reset-password', 'user_controller', 'resetPassword')
     end)
 ```
-
-#### 动态路由
-
-使用花括号来代表传递的参数，如：  
-`route:get("/users/{user_id}/comments/{comment_id}", 'user_controller', 'comments')`
-可匹配`/users/1/comments/2`，在`comments action`里，直接写上两个参数即可，命名不进行约束
-
-```lua
-function _M:comments(user_id, comment_id)
-    ngx.log(ngx.ERR, user_id, comment_id)
-    return:response:json(0, 'comments', {user_id=user_id, comment_id=comment_id})
-end
-```
-
-可以参考`routes.lua`里边已有的路由，也可以任意修改里边已有的东西
 
 ### 中间件
 
@@ -500,6 +506,10 @@ end
 
 系统也引用了`resty redis`
 `local restyRedis = require('lib.resty_redis')`
+
+### 本地化
+
+使用 `middleware > local.lua` 路由中间件，该中间件通过给 `ngx.ctx.locale` 赋值来更换语言环境：`ngx.ctx.locale = zh`
 
 ### 综合
 

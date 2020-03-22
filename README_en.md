@@ -10,8 +10,8 @@
 
 * [Status](#Status)
 * [Synopsis](#Synopsis)
+* [Benchmark](#Benchmark)
 * [Install](#Install)
-  * [Install by docker](#Install-by-docker)
   * [Manual install](#Manual-install)
 * [Description](#Document)
   * [Config](#Config)
@@ -54,14 +54,12 @@ route:get('/index', 'index_controller', 'index')
 > controllers/index_controller.lua
 
 ```lua
-local request = require("lib.request")
 local response = require("lib.response")
 
 local _M = {}
 
-function _M:index()
-    local args = request:all() -- get all args
-    return response:json(0, 'request args', args) -- return response 200 and json content
+function _M:index(request)
+    return response:json(0, 'request args', request.params) -- return response 200 and json content
 end
 
 return _M
@@ -83,19 +81,26 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 }
 ```
 
+## Benchmark
+
+### ab test
+
+```shell
+ab -c 100 -n 10000 api.lua-china.com/index
+
+---
+Requests per second:    4621.10 [#/sec] (mean)
+Time per request:       21.640 [ms] (mean)
+---
+```
+
 ## Install
-
-### Install by docker
-
-1. execute `cp env.example.lua env.lua`
-2. build docker `docker build -t nana .`
-3. run docker `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana` mount /app to docker container can help us easier to debug in development environment, at production environment you don't need to mount it to docker container
 
 ### Manual install
 
 * `git clone https://github.com/horan-geeker/nana.git`
 * execute `cp env.example.lua env.lua` and make sure right config
-* at `nginx/conf/nginx.conf` set `content_by_lua_file` point to project `bootstrap.lua` file location
+* at `nginx/conf/nginx.conf` set `lua_package_path '/path/to/nana/?.lua;;';` point to nana dir, set `content_by_lua_file` point to project `/path/to/nana/bootstrap.lua` file location
 
 ## Description
 
@@ -113,12 +118,10 @@ The default route file located at root directory named `routes.lua`.
 
 For most applications, you will begin by defining routes in your routes.lua file.
 
-For example, you may access the following route by navigating to http://your-app.test/user api
+For example, you may access the following route by navigating to http://your-app.test/users api
 
 ```lua
-function _M:match(route)
-  route:get('/user', 'user_controller', 'index')
-end
+route:get('/users', 'user_controller', 'index')
 ```
 
 #### Available Router Methods
@@ -161,11 +164,85 @@ Middleware provide a convenient mechanism for filtering HTTP requests entering y
 
 Additional middleware can be written to perform a variety of tasks besides authentication. A CORS middleware might be responsible for adding the proper headers to all responses leaving your application. A logging middleware might log all incoming requests to your application.
 
- There are several middleware included in the Nana framework, including middleware for authentication and throttle fuse protection. All of these middleware are located in the middleware directory.
+ There are several middleware included in the Nana framework, example middleware for authentication. All of these middleware are located in the middleware directory.
 
-### Localization
+```lua
+function _M:handle()
+    if not auth_service:check() then
+        return false, response:json(4,'no authorized in authenticate')
+    end
+end
+```
 
-use `middleware > local.lua` middleware to router, change `ngx.ctx.locale` value to change localization, for example `ngx.ctx.locale = zh`
+### Controller
+
+all controllers are located in `controllers` dir，when router match `uri`，the second param is controller name, the third param is action name in this controller，we should return response:json() or response:raw() to render output
+
+### Request
+
+nana will inject request as last param to controller action function, we can retrieve this props
+
+* request.params
+* request.headers
+* request.method
+* request.uri
+
+#### request params
+
+```lua
+local request = require("lib.request")
+local args = request:all() -- get all params，not only uri args but also post json body
+args.username -- get username prop
+```
+
+### Response
+
+framework return response to bootstrap by `lib/response.lua` > `json()` function, `response` structure has status,message,data three args
+
+1. status are in `config/status.lua`
+2. message will match status code in `config/status.lua`
+3. data can custom by yourself
+
+```lua
+return response:json(0x000000, 'success message', data, 200)
+--[[
+{
+    "msg": "success message",
+    "status": 0,
+    "data": {}
+}
+--]]
+```
+
+return error message:
+
+```lua
+return response:json(0x000001)
+--[[
+{
+    "msg": "arguments invalid",
+    "status": 1,
+    "data": {}
+}
+--]]
+```
+
+#### custom response json protocol
+
+you can custom `{"status":0,"message":"ok","data":{}}` key in `lib/response.lua` > `json` function, or other error code in `config/status.lua`
+
+### validate data
+
+```lua
+local validator = require('lib.validator')
+local request = require("lib.request")
+local args = request:all() -- get all arguments
+local ok,msg = validator:check(args, {
+    name = {max=6,min=4}, -- validate name should in 4-6 length
+    'password', -- validate password cannot empty
+    id = {included={1,2,3}} -- validate id should be 1 or 2 or 3
+    })
+```
 
 ## Contact author
 

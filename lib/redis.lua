@@ -3,7 +3,7 @@ local env = require('env')
 
 local _M = setmetatable({}, {__index=function(self, key)
 	local red = redis:new()
-	local ok,err = red:connect(env.redis_host, env.redis_port)
+	local ok,err = red:connect(env.redis.host, env.redis.port)
 	if not ok then
 		ngx.log(ngx.ERR, err)
 	end

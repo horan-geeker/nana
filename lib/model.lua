@@ -1,5 +1,4 @@
 local Database = require('lib.database')
-local cjson = require('cjson')
 local config = require('config.app')
 local database_config = require('config.database')
 

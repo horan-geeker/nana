@@ -10,6 +10,7 @@
 
 * [Status](#Status)
 * [Synopsis](#Synopsis)
+* [Benchmark](#Benchmark)
 * [Install](#Install)
   * [Manual install](#Manual-install)
 * [Description](#Document)
@@ -78,6 +79,19 @@ curl https://api.lua-china.com/index?id=1&foo=bar
         "id": "1"
     }
 }
+```
+
+## Benchmark
+
+### ab test
+
+```shell
+ab -c 100 -n 10000 api.lua-china.com/index
+
+---
+Requests per second:    4621.10 [#/sec] (mean)
+Time per request:       21.640 [ms] (mean)
+---
 ```
 
 ## Install
@@ -150,7 +164,85 @@ Middleware provide a convenient mechanism for filtering HTTP requests entering y
 
 Additional middleware can be written to perform a variety of tasks besides authentication. A CORS middleware might be responsible for adding the proper headers to all responses leaving your application. A logging middleware might log all incoming requests to your application.
 
- There are several middleware included in the Nana framework, including middleware for authentication and throttle fuse protection. All of these middleware are located in the middleware directory.
+ There are several middleware included in the Nana framework, example middleware for authentication. All of these middleware are located in the middleware directory.
+
+```lua
+function _M:handle()
+    if not auth_service:check() then
+        return false, response:json(4,'no authorized in authenticate')
+    end
+end
+```
+
+### Controller
+
+all controllers are located in `controllers` dir，when router match `uri`，the second param is controller name, the third param is action name in this controller，we should return response:json() or response:raw() to render output
+
+### Request
+
+nana will inject request as last param to controller action function, we can retrieve this props
+
+* request.params
+* request.headers
+* request.method
+* request.uri
+
+#### request params
+
+```lua
+local request = require("lib.request")
+local args = request:all() -- get all params，not only uri args but also post json body
+args.username -- get username prop
+```
+
+### Response
+
+framework return response to bootstrap by `lib/response.lua` > `json()` function, `response` structure has status,message,data three args
+
+1. status are in `config/status.lua`
+2. message will match status code in `config/status.lua`
+3. data can custom by yourself
+
+```lua
+return response:json(0x000000, 'success message', data, 200)
+--[[
+{
+    "msg": "success message",
+    "status": 0,
+    "data": {}
+}
+--]]
+```
+
+return error message:
+
+```lua
+return response:json(0x000001)
+--[[
+{
+    "msg": "arguments invalid",
+    "status": 1,
+    "data": {}
+}
+--]]
+```
+
+#### custom response json protocol
+
+you can custom `{"status":0,"message":"ok","data":{}}` key in `lib/response.lua` > `json` function, or other error code in `config/status.lua`
+
+### validate data
+
+```lua
+local validator = require('lib.validator')
+local request = require("lib.request")
+local args = request:all() -- get all arguments
+local ok,msg = validator:check(args, {
+    name = {max=6,min=4}, -- validate name should in 4-6 length
+    'password', -- validate password cannot empty
+    id = {included={1,2,3}} -- validate id should be 1 or 2 or 3
+    })
+```
 
 ## Contact author
 

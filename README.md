@@ -11,11 +11,11 @@
 
 ====
 
+* [快速上手](#快速上手)
+* [压力测试](#压力测试)
 * [安装](#安装)
   * [使用 docker 安装](#使用-docker-安装)
   * [手动安装](#手动安装)
-* [快速上手](#快速上手)
-* [压力测试](#压力测试)
 * [文档](#文档)
   * [配置](#配置)
   * [路由](#路由)
@@ -42,15 +42,6 @@
 * [用户 Auth API 接口说明](#用户-Auth-API-接口说明)
 * [联系作者](#联系作者)
 
-## 安装
-
-### 手动安装
-
-* `git clone https://github.com/horan-geeker/nana.git`
-* 执行 `cp env.example.lua env.lua`
-* 配置 `nginx`，配置 `lua_package_path '/path/to/nana/?.lua;;';` 指向 nana 的根目录， `content_by_lua_file` 指到框架的入口文件 `/path/to/nana/bootstrap.lua`
-
-
 ## 快速上手
 
 > routes.lua
@@ -67,7 +58,7 @@ local response = require("lib.response")
 local _M = {}
 
 function _M:index(request)
-    return response:json(0, 'request args', request) -- return response 200 and parse request params to json output
+    return response:json(0, 'request args', request.params) -- return response 200 and parse request params to json output
 end
 
 return _M
@@ -103,6 +94,14 @@ Time per request:       21.640 [ms] (mean)
 ```
 
 > 内存基本没有变化，单核 CPU 打满
+
+## 安装
+
+### 手动安装
+
+* `git clone https://github.com/horan-geeker/nana.git`
+* 执行 `cp env.example.lua env.lua`
+* 配置 `nginx`，配置 `lua_package_path '/path/to/nana/?.lua;;';` 指向 nana 的根目录， `content_by_lua_file` 指到框架的入口文件 `/path/to/nana/bootstrap.lua`
 
 ## 文档
 

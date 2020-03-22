@@ -53,14 +53,12 @@ route:get('/index', 'index_controller', 'index')
 > controllers/index_controller.lua
 
 ```lua
-local request = require("lib.request")
 local response = require("lib.response")
 
 local _M = {}
 
-function _M:index()
-    local args = request:all() -- get all args
-    return response:json(0, 'request args', args) -- return response 200 and json content
+function _M:index(request)
+    return response:json(0, 'request args', request.params) -- return response 200 and json content
 end
 
 return _M

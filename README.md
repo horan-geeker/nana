@@ -67,7 +67,7 @@ local response = require("lib.response")
 local _M = {}
 
 function _M:index(request)
-    return response:json(0, 'request args', requests) -- return response 200 and parse request params to json output
+    return response:json(0, 'request args', request) -- return response 200 and parse request params to json output
 end
 
 return _M
@@ -97,8 +97,8 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 ab -c 100 -n 10000 api.lua-china.com/index
 
 ---
-Requests per second:    2220.06 [#/sec] (mean)
-Time per request:       45.044 [ms] (mean)
+Requests per second:    4621.10 [#/sec] (mean)
+Time per request:       21.640 [ms] (mean)
 ---
 ```
 
@@ -114,7 +114,7 @@ Time per request:       45.044 [ms] (mean)
 
 ### 路由
 
-> 路由配置文件在项目根目录 `routes.lua`，如使用`POST`请求访问 `http://your-app.test/login` 的时，交给 `auth_controller` 下的 `login()` 函数来处理：
+> 路由配置文件在项目根目录 `routes.lua`，如使用`POST`请求访问 `http://your-app.test/login` 的时，交给 `auth_controller` 下的 `login(request)` 函数来处理，并且会将 `request` 注入 `login` 方法：
 
 ```lua
 route:post('/login', 'auth_controller', 'login')
@@ -145,10 +145,10 @@ route:get('/users/{id}', 'user_controller', 'show')
 route:get("/users/{user_id}/comments/{comment_id}", 'user_controller', 'comments')
 ```
 
-可匹配`/users/1/comments/2`，在`comments action`里，直接写上两个参数即可，命名不进行约束
+可匹配`/users/1/comments/2`，在`comments action`里，直接写上两个参数即可，命名不进行约束，最后一个参数是框架注入的 request
 
 ```lua
-function _M:comments(user_id, comment_id)
+function _M:comments(user_id, comment_id, request)
     ...
 end
 ```
@@ -186,13 +186,14 @@ end
 
 在路由匹配的`uri`，第二个参数就是控制器的路径，默认都是在`controllers`文件夹下的文件名称，第三个参数是对应该文件的方法，可在方法中返回 response 响应。
 
-#### Service
-
-在项目逻辑较为复杂的情况下，可复用的情况也比较普遍，`controller`里如果有可以抽离出来的逻辑，我们可以把这部分写在`service`里（对应项目中`services文件夹`），其实如果严格规范的开发`controller`只对http请求进行处理，例如对参数的验证，返回`json`的格式等，而不用去处理商业逻辑，商业逻辑可以写在 `service` 里，再从 `controller` 中调用，可以写出更清晰的代码，也方便将来单元测试
-
 ### Request
 
-默认情况下框架会将 request 注入到 controller 的 action 中的最后一个参数
+默认情况下框架会将 request 注入到 controller 的 action 中的最后一个参数，目前包含
+
+* request.params 请求参数
+* request.headers 请求头集合
+* request.method 请求方法类型
+* request.uri 请求 uri
 
 #### 参数获取
 
@@ -215,9 +216,9 @@ args.username -- 拿到username参数
 return response:json(0x000000, 'success message', data, 200)
 --[[
 {
-"msg": "success message",
-"status": 0,
-"data": {}
+    "msg": "success message",
+    "status": 0,
+    "data": {}
 }
 --]]
 ```
@@ -228,9 +229,9 @@ return response:json(0x000000, 'success message', data, 200)
 return response:json(0x000001)
 --[[
 {
-"msg": "验证错误",
-"status": 1,
-"data": {}
+    "msg": "验证错误",
+    "status": 1,
+    "data": {}
 }
 --]]
 ```
@@ -256,7 +257,7 @@ local ok,msg = validator:check(args, {
 
 ### Cookie
 
-在 `lib/helpers.lua` 中包含了 `cookie` 的辅助方法，全局已经引用了该文件，可以直接使用函数
+在 `lib/helpers.lua` 中包含了 `cookie` 的辅助方法
 
 ```lua
 set_cookie(key, value, expire) -- expire 是可选参数，单位是时间戳，精确到秒
@@ -266,7 +267,6 @@ get_cookie(key)
 ### 数据库操作 ORM
 
 > 默认的数据库操作都使用了 `ngx.quote_sql_str` 处理了 `sql注入问题`
-以下增删改查都需要先获取模型 `table` 可类比 `class`
 
 ```lua
 -- 获取模型，模型的表名对应 `models/user.lua` 中 `Model:new()` 的第一个参数 `users`  
@@ -479,11 +479,7 @@ end
 #### resty redis
 
 系统也引用了`resty redis`
-`local restyRedis = require('lib.resty_redis')`
-
-### 本地化
-
-使用 `middleware > local.lua` 路由中间件，该中间件通过给 `ngx.ctx.locale` 赋值来更换语言环境：`ngx.ctx.locale = zh`
+`local resty_redis = require('lib.resty_redis')`
 
 ### 综合
 
@@ -500,8 +496,6 @@ end
 `random.number(1000, 9999)`
 
 ### Helper Function
-
-`lib/helpers.lua` 中 `init()` 方法将帮助函数加载到了全局 `_G` 表，你可以在里边自行定义自己的帮助方法
 
 #### 反转 table
 
@@ -527,6 +521,12 @@ sort_by_key(hashTable)
 
 ## 代码规范
 
+### Service
+
+在项目逻辑较为复杂的情况下，可复用的情况也比较普遍，`controller`里如果有可以抽离出来的逻辑，我们可以把这部分写在`service`里（放置在项目根目录 `services` 文件夹），其实如果严格规范的开发`controller`只对http请求进行处理，例如对参数的验证，返回`json`的格式等，而不用去处理商业逻辑，商业逻辑可以写在 `service` 里，再从 `controller` 中调用，可以写出更清晰的代码，也方便将来单元测试
+
+### 命名规范
+
 * 变量名和函数名均使用下划线风格
 * 与数据库相关模型变量名采用大写字母开头的驼峰
 
@@ -539,12 +539,8 @@ route:group({
 }, function()
     route:post('/login', 'auth_controller', 'login')
     route:get('/users/{id}', 'user_controller', 'show')
-    route:group({
-        'verify_guest_sms_code'
-    }, function()
-        route:post('/register', 'auth_controller', 'register')
-        route:patch('/forget-password', 'auth_controller', 'forget_password')
-    end)
+    route:post('/register', 'auth_controller', 'register')
+    route:patch('/forget-password', 'auth_controller', 'forget_password')
     route:group({
         'authenticate',
     }, function()
@@ -559,7 +555,21 @@ route:group({
 end)
 ```
 
-为了方便快速建立一套用户中心服务，框架自带了完整的 mysql 数据表，模型，控制器和路由配置，你也可以在路由中移除该配置
+为了方便快速建立一套用户中心服务，框架自带了完整的 mysql 数据表，模型，控制器和路由配置（参考 auth 分支）
+
+```mysql
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nickname` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `phone` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `avatar` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
 
 > 所有接口均返回json数据，(你也可以更加你已有的数据库更改模型) `users` 是用户表名，`phone` 用于登录的列名，并且在根目录执行 `chmod 755 install.sh && ./install.sh` 迁移数据库结构。
 

@@ -179,5 +179,11 @@ _M.trim = trim
 _M.get_cookie = get_cookie
 _M.set_cookie = set_cookie
 _M.get_local_time = get_local_time
+_M.sort_by_key = sort_by_key
+_M.implode = implode
+_M.unique = unique
+_M.explode = explode
+_M.table_reverse = table_reverse
+_M.table_remove = table_remove
 
 return _M

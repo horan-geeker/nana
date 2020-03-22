@@ -11,7 +11,6 @@
 * [Status](#Status)
 * [Synopsis](#Synopsis)
 * [Install](#Install)
-  * [Install by docker](#Install-by-docker)
   * [Manual install](#Manual-install)
 * [Description](#Document)
   * [Config](#Config)
@@ -85,17 +84,11 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ## Install
 
-### Install by docker
-
-1. execute `cp env.example.lua env.lua`
-2. build docker `docker build -t nana .`
-3. run docker `docker run -p 80:80 --name=nana -v /host/path/nana:/app -d nana` mount /app to docker container can help us easier to debug in development environment, at production environment you don't need to mount it to docker container
-
 ### Manual install
 
 * `git clone https://github.com/horan-geeker/nana.git`
 * execute `cp env.example.lua env.lua` and make sure right config
-* at `nginx/conf/nginx.conf` set `content_by_lua_file` point to project `bootstrap.lua` file location
+* at `nginx/conf/nginx.conf` set `lua_package_path '/path/to/nana/?.lua;;';` point to nana dir, set `content_by_lua_file` point to project `/path/to/nana/bootstrap.lua` file location
 
 ## Description
 
@@ -113,12 +106,10 @@ The default route file located at root directory named `routes.lua`.
 
 For most applications, you will begin by defining routes in your routes.lua file.
 
-For example, you may access the following route by navigating to http://your-app.test/user api
+For example, you may access the following route by navigating to http://your-app.test/users api
 
 ```lua
-function _M:match(route)
-  route:get('/user', 'user_controller', 'index')
-end
+route:get('/users', 'user_controller', 'index')
 ```
 
 #### Available Router Methods
@@ -162,10 +153,6 @@ Middleware provide a convenient mechanism for filtering HTTP requests entering y
 Additional middleware can be written to perform a variety of tasks besides authentication. A CORS middleware might be responsible for adding the proper headers to all responses leaving your application. A logging middleware might log all incoming requests to your application.
 
  There are several middleware included in the Nana framework, including middleware for authentication and throttle fuse protection. All of these middleware are located in the middleware directory.
-
-### Localization
-
-use `middleware > local.lua` middleware to router, change `ngx.ctx.locale` value to change localization, for example `ngx.ctx.locale = zh`
 
 ## Contact author
 

@@ -1,6 +1,5 @@
-local request = require('lib.request')
 local response = require('lib.response')
-local auth = require("lib.auth_service_provider")
+local auth = require("services.auth_service")
 local User = require("models.user")
 
 local _M = {}
@@ -15,7 +14,7 @@ end
 
 function _M:userinfo()
     local user = auth:user()
-    return response:json(0, 'ok', table_remove(user, {'password'})) -- hidden password field
+    return response:json(0, 'ok', user)
 end
 
 return _M

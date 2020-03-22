@@ -1,4 +1,5 @@
 local mysql_c = require("resty.mysql")
+local ngx = ngx
 
 local _M = {}
 local WRITE = 'WRITE'
@@ -6,9 +7,9 @@ local READ = 'READ'
 
 local mt = { __index = _M }
 
---[[    
+--[[
     Get mysql connection from connection pool
-        
+
     @return bool, mysql_context, err
 --]]
 function _M:get_connection()
@@ -28,7 +29,8 @@ function _M:get_connection()
     end
 
     db:set_timeout(self.timeout or 1000)
-    local ok, err, errcode, sqlstate = db:connect({
+    local ok, errcode, sqlstate
+    ok, err, errcode, sqlstate = db:connect({
         host = self.host,
         port = self.port,
         user = self.user,
@@ -46,7 +48,7 @@ function _M:get_connection()
     return db, nil
 end
 
---[[    
+--[[
     把连接返回到连接池
     用set_keepalive代替close() 将开启连接池特性,可以为每个nginx工作进程，指定连接最大空闲时间，和连接池最大连接数
 
@@ -77,8 +79,8 @@ function _M.mysql_query(self, sql)
     if err ~= nil then
         return nil, err
     end
-
-    local res, err, errcode, sqlstate = db:query(sql)
+    local res, errcode, sqlstate
+    res, err, errcode, sqlstate = db:query(sql)
     if not res then
         ngx.log(ngx.ERR, err, errcode, sqlstate)
         return nil, err

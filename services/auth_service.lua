@@ -2,19 +2,20 @@ local random = require("lib.random")
 local config = require("config.app")
 local cjson = require("cjson")
 local redis = require("lib.redis")
-local cookie_obj = require("lib.cookie")
-local response = require('lib.response')
+local helpers = require('lib.helpers')
+local get_cookie = helpers.get_cookie
+local set_cookie = helpers.set_cookie
+local get_local_time = helpers.get_local_time
 
 local _M = {}
 local token_name = 'token'
 
-function generate_token(user_payload)
-    -- 防止猜测token内容，加上随机数
+local function generate_token()
     return random.token(40);
 end
 
 function _M:authorize(user)
-    token = generate_token(user['phone']..user.id)
+    local token = generate_token(user['phone']..user.id)
     local ok,err = redis:set(token_name..':'..token, cjson.encode(user), config.session_lifetime*60)
     if not ok then
         log('cannot set redis key, error_msg:'..err)
@@ -81,6 +82,13 @@ function _M:user()
         return nil
     end
     return cjson.decode(userinfo)
+end
+
+function _M:verify_password(password, user_password)
+    if ngx.md5(password) == user_password then
+        return true
+    end
+    return false
 end
 
 return _M

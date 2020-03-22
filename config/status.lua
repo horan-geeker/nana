@@ -28,9 +28,6 @@ return {
         [0x01000A] = '获取用户信息失败，用户未登录',
         [0x01000B] = '获取用户信息失败，用户不存在',
 
-        -- notify module
-        [0x020001] = '发送短信验证码失败，请在60秒之后重试',
-
     },
     en = {
         -- system code    
@@ -58,7 +55,5 @@ return {
         [0x010007] = 'fail to reset password, new password cannot equal to old password',
         [0x010008] = 'fail to get user info, system error',
 
-        -- notify module
-        [0x020001] = 'Fail to send SMS, please try again after 60 secs',
     }
 }

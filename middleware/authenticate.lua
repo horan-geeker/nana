@@ -1,4 +1,4 @@
-local auth_service = require("lib.auth_service_provider")
+local auth_service = require("services.auth_service")
 local response = require("lib.response")
 
 local _M = {}

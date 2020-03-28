@@ -5,7 +5,11 @@ local _M = {}
 -- todo controller extends
 
 function _M:index(request)
-	return response:json(0, 'request args', request.params)
+	return response:json(0, 'index args', request.params)
+end
+
+function _M:store(request)
+	return response:json(0, 'post args', request.params)
 end
 
 return _M

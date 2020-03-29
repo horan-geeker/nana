@@ -167,8 +167,8 @@ end
 
 function _M:group(group_property, func)
     local current_middlewares = {}
-    if group_property.middlewares then
-        current_middlewares = group_property.middlewares
+    if group_property.middleware then
+        current_middlewares = group_property.middleware
     end
     -- append tail one by one
     for _,middleware in ipairs(current_middlewares) do

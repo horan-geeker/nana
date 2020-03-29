@@ -83,15 +83,19 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ## Benchmark
 
-### ab test
+### wrk test one worker in nginx
 
 ```shell
-ab -c 100 -n 10000 api.lua-china.com/index
+wrk -t10 -c 100 -d10s http://localhost:60000/index
 
----
-Requests per second:    4621.10 [#/sec] (mean)
-Time per request:       21.640 [ms] (mean)
----
+Running 10s test @ http://localhost:60000/index
+  10 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     3.87ms    4.42ms 170.11ms   97.75%
+    Req/Sec     2.84k   308.14     5.77k    85.09%
+  282184 requests in 10.04s, 63.50MB read
+Requests/sec:  28105.03
+Transfer/sec:      6.32MB
 ```
 
 ## Install
@@ -151,7 +155,7 @@ Route groups allow you to share route attributes, such as middleware, across a l
 
 ```lua
 route:group({
-        'authenticate',
+        middleware = 'authenticate',
     }, function()
         route:post('/logout', 'auth_controller', 'logout') -- http_method/uri/controller/action
         route:post('/reset-password', 'user_controller', 'resetPassword')

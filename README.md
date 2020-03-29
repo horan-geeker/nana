@@ -123,6 +123,8 @@ Transfer/sec:      6.32MB
 route:post('/login', 'auth_controller', 'login')
 ```
 
+> 框架内核使用 `trie` 字典树实现路由结构，算法复杂度 O(1)，可以高效的匹配定义路由
+
 #### 支持 http 请求类型
 
 * GET
@@ -158,11 +160,11 @@ end
 
 #### 路由群组
 
-路由群组目前主要的作用是使用中间件来解决一些问题，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在路由群组的地方集中配置中间件就会对群组下的所有路由起作用，这样在调用 `controller` 之前先调用 `middleware > authenticate.lua` 的 `handle()` 方法来对用户进行鉴权：
+路由群组主要用来定义一群 uri 的公共属性，目前支持群组中间件，比如下边需要在 `注销` 和 `重置密码` 的时候验证用户需要处于登录态，利用路由中间件只需要在中间件进行鉴权，这里会在调用 `controller` 之前先调用 `middleware > authenticate.lua` 的 `handle()` 方法来对用户进行鉴权，这样就不用在每个 `controller` 的方法里都进行鉴权操作了：
 
 ```lua
 route:group({
-        'authenticate',
+        middleware = {'authenticate'},
     }, function()
         route:post('/logout', 'auth_controller', 'logout') -- route:http_method(uri, controller, action)
         route:post('/reset-password', 'user_controller', 'resetPassword')
@@ -171,8 +173,7 @@ route:group({
 
 ### 中间件
 
-> 中间件都需要写在 `middleware` 文件夹下，并且需要写上命名为 `handle()` 的方法
-`中间件` 的设计模式解决了代码的复用，我们可以在中间件中自定义自己的东西，如`middleware > authenticate.lua`
+> 中间件都需要写在 `middleware` 文件夹下，并且需要写上命名为 `handle()` 的方法 `中间件` 的设计模式解决了代码的复用，我们可以在中间件中自定义自己的逻辑，如`middleware > authenticate.lua`
 
 ```lua
 function _M:handle()
@@ -262,8 +263,8 @@ local ok,msg = validator:check(args, {
 在 `lib/helpers.lua` 中包含了 `cookie` 的辅助方法
 
 ```lua
-set_cookie(key, value, expire) -- expire 是可选参数，单位是时间戳，精确到秒
-get_cookie(key)
+helpers.set_cookie(key, value, expire) -- expire 是可选参数，单位是时间戳，精确到秒
+helpers.get_cookie(key)
 ```
 
 ### 数据库操作 ORM

@@ -14,14 +14,12 @@ local mt = { __index = _M }
 --]]
 function _M:get_connection()
     if ngx.ctx[self.db_type] then
-        -- ngx.log(ngx.WARN, self.db_type, ' mysql reconnect')
         -- if write before read, make sure write read connection the same
         if ngx.ctx[WRITE] then
             return ngx.ctx[WRITE], nil
         end
         return ngx.ctx[self.db_type], nil
     end
-    -- ngx.log(ngx.WARN, 'new mysql connection!')
     local db, err = mysql_c:new()
     if not db then
         ngx.log(ngx.ERR, "failed to instantiate mysql: ", err)
@@ -43,7 +41,6 @@ function _M:get_connection()
         ngx.log(ngx.ERR, "failed to connect: ", err, ": ", errcode, " ", sqlstate)
         return nil, err
     end
-    -- ngx.log(ngx.WARN, self.db_type, ' mysql connect')
     ngx.ctx[self.db_type] = db
     return db, nil
 end
@@ -58,12 +55,10 @@ function _M.close(self)
     if ngx.ctx[READ] then
         ngx.ctx[READ]:set_keepalive(self.db_pool_timeout,self.db_pool_size)
         ngx.ctx[READ] = nil
-        -- ngx.log(ngx.WARN,'read mysql close')
     end
     if ngx.ctx[WRITE] then
         ngx.ctx[WRITE]:set_keepalive(self.db_pool_timeout,self.db_pool_size)
         ngx.ctx[WRITE] = nil
-        -- ngx.log(ngx.WARN,'write mysql close')
     end
 end
 
@@ -74,7 +69,6 @@ end
     @return bool, data, err
 --]]
 function _M.mysql_query(self, sql)
-    -- ngx.log(ngx.WARN, self.db_type, sql)
     local db, err = self:get_connection()
     if err ~= nil then
         return nil, err

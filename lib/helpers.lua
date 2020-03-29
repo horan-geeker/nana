@@ -3,23 +3,6 @@ local ngx_re = require('ngx.re')
 local cjson = require("cjson.safe")
 local _M = {}
 
--- get env config
-local function env(key, default)
-    local env_config = require("env")
-    local arr = ngx_re.split(key, '.')
-    local tmp_config = env_config
-    for _, v in pairs(arr) do
-        if not tmp_config[v] then
-            return default
-        end
-        if type(tmp_config[v]) == 'table' then
-            tmp_config = tmp_config[v]
-        else
-            return tmp_config[v]
-        end
-    end
-end
-
 
 -- here you need use . not :
 local function table_reverse(tbl)
@@ -169,7 +152,6 @@ local function log(...)
 end
 
 _M.log = log
-_M.env = env
 _M.trim = trim
 _M.get_cookie = get_cookie
 _M.set_cookie = set_cookie

@@ -85,9 +85,9 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 ### 单 worker 绑定一个 CPU：
 
 ```shell
-wrk -t10 -c 100 -d10s http://localhost:60000/index
+wrk -t10 -c 100 -d10s http://localhost:60000/
 
-Running 10s test @ http://localhost:60000/index
+Running 10s test @ http://localhost:60000/
   10 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
     Latency     3.87ms    4.42ms 170.11ms   97.75%

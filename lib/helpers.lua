@@ -151,14 +151,15 @@ local function get_local_time()
 end
 
 
-local function trim_uri(str)
-    return (string.gsub(string.gsub(str, '^/*', ""),  '/*$', ''))
+local function trim(str, symbol)
+    symbol = symbol or '%s' -- %s default match space \t \n etc..
+    return (string.gsub(string.gsub(str, '^' .. symbol .. '*', ""), symbol .. '*$', ''))
 end
 
 
 -- data not in order
 local function log(...)
-    local args = {}
+    local args
     if #{...}>1 then
         args = {...}
     else
@@ -169,7 +170,7 @@ end
 
 _M.log = log
 _M.env = env
-_M.trim_uri = trim_uri
+_M.trim = trim
 _M.get_cookie = get_cookie
 _M.set_cookie = set_cookie
 _M.get_local_time = get_local_time

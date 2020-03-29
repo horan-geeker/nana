@@ -1,9 +1,7 @@
 local ngx_re = require("ngx.re")
 local ngx = ngx
 local new_tab = require('table.new')
-local helpers = require("lib.helpers")
 local response = require("lib.response")
-local trim_uri = helpers.trim_uri
 local trie = require("lib.trie")
 
 local CONTROLLER_PREFIX = 'controllers'
@@ -22,7 +20,6 @@ local _M = {
 }
 
 local function split_uri(uri)
-    uri = trim_uri(uri, '/')
     if uri == '/' or uri == '' then
         return {'/'}
     end

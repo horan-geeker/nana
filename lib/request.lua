@@ -14,12 +14,7 @@ local function parse_body_params()
 	ngx.req.read_body() -- open read body
 	local body = ngx.req.get_body_data()
 	if not body then
-		-- body may get buffered in a temp file:
-		body = ngx.req.get_body_file()
-		if body then
-			ngx.log(ngx.ERR, "client body was too big, try to increase client_body_buffer_size")
-			return nil
-		end
+		return
 	end
 	local result = cjson.decode(body) -- use cjson.safe instead of pcall
 	if result then

@@ -1,13 +1,15 @@
-local request = require('lib.request')
+local http_request = require('lib.request')
+local http_response = require('lib.response')
 local router = require('routes')
 local database = require('lib.database')
 local ngx = ngx
 
-local _M = {}
-
 
 -- process middlewares in order
 local function run_middlewares(middlewares)
+    if type(middlewares) ~= 'table' then
+        return false, http_response:error(500, {}, 'system error: middleware is not a table, please read readme about middleware usage')
+    end
     for _, middleware in ipairs(middlewares) do
         local result, err_response = middleware:handle()
         if result == false then
@@ -27,17 +29,24 @@ local function handle(request, context, route_param)
     -- run controller action
     local controller = context.required_controller
     local action = context.action
+    local response
     if #route_param ~= 0 then
-        return controller[action](nil, table.unpack(route_param), request)
+        table.insert(route_param, request)
+        response = controller[action](nil, table.unpack(route_param))
+    else
+        response = controller[action](nil, request)
     end
-    return controller[action](nil, request)
+    if type(response) ~= 'table' then
+        return http_response:error(500, {}, 'system error: controller return response is not a table, please read readme about controller usage')
+    end
+    return response
 end
 
 
 -- run application kernel
-function _M:run()
+local function run()
     -- get http request infomation
-    local request_capture = request:capture()
+    local request_capture = http_request:capture()
     -- match route, get target controller and action
     local context, route_param, err_response = router:match(request_capture.uri, request_capture.method)
     if err_response ~= nil then
@@ -48,10 +57,13 @@ function _M:run()
 end
 
 
-function _M:terminate()
+local function terminate()
     database:close()
     ngx.exit(ngx.OK)
 end
 
 
-return _M
+return {
+    run = run,
+    terminate = terminate,
+}

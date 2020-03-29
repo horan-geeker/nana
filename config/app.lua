@@ -1,8 +1,7 @@
-local helpers = require("lib.helpers")
-local env = helpers.env
+local env = require('env')
 
 return {
-    env = env('APP_ENV', 'production'),
+    env = env.APP_ENV,
 
     locale = 'en',
     fallback_locale = 'zh',

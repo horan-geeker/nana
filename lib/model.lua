@@ -1,6 +1,10 @@
 local Database = require('lib.database')
 local config = require('config.app')
 local database_config = require('config.database')
+local helpers = require('lib.helpers')
+local implode = helpers.implode
+local unique = helpers.unique
+local table_remove = helpers.table_remove
 
 local _M = {}
 
@@ -68,7 +72,7 @@ end
 
 -- return current parent node
 function _M:merge_one_relation(parent, relations)
-	for index, item in pairs(relations) do
+	for _, item in pairs(relations) do
 		if (parent[self.relation.local_key] == item[self.relation.foreign_key]) then
 			parent[self.relation.key_name] = item
 		end

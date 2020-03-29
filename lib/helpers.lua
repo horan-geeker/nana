@@ -1,29 +1,7 @@
+local ngx = ngx
+local ngx_re = require('ngx.re')
+local cjson = require("cjson.safe")
 local _M = {}
-
--- splite str to arr by symbol
-local function explode(str, symbol)
-    local rt= {}
-    string.gsub(str, '[^'..symbol..']+', function(w) table.insert(rt, w) end )
-    return rt
-end
-
-
--- get env config
-local function env(key, default)
-    local env_config = require("env")
-    local arr = explode(key, '.')
-    local tmp_config = env_config
-    for _, v in pairs(arr) do
-        if not tmp_config[v] then
-            return default
-        end
-        if type(tmp_config[v]) == 'table' then
-            tmp_config = tmp_config[v]
-        else
-            return tmp_config[v]
-        end
-    end
-end
 
 
 -- here you need use . not :
@@ -164,17 +142,16 @@ end
 
 -- data not in order
 local function log(...)
-    local args = {}
+    local args
     if #{...}>1 then
         args = {...}
     else
         args = ...
     end
-    ngx.log(ngx.WARN, require("cjson.safe").encode(args))
+    ngx.log(ngx.WARN, cjson.encode(args))
 end
 
 _M.log = log
-_M.env = env
 _M.trim = trim
 _M.get_cookie = get_cookie
 _M.set_cookie = set_cookie
@@ -182,7 +159,6 @@ _M.get_local_time = get_local_time
 _M.sort_by_key = sort_by_key
 _M.implode = implode
 _M.unique = unique
-_M.explode = explode
 _M.table_reverse = table_reverse
 _M.table_remove = table_remove
 

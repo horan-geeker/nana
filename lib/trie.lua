@@ -1,14 +1,13 @@
 local _M = {}
 
-function _M:new(k)
+function _M:new()
     return setmetatable({
-        key = k,
         children = {},
     }, {__index = self})
 end
 
-function _M:append_child(hash_table)
-    table.insert(self.children, hash_table)
+function _M:append_child(child_key, hash_table)
+    self.children[child_key] = hash_table
 end
 
 function _M:set_value(value)
@@ -16,14 +15,14 @@ function _M:set_value(value)
 end
 
 function _M:find_child_by_key(key)
-    for _, child in ipairs(self.children) do
-        if string.char(string.byte(child.key)) == '{' then
-            return child, key
+    if not self.children[key] then
+        for child_key, child in pairs(self.children) do
+            if string.char(string.byte(child_key)) == '{' then
+                return child, key
+            end
         end
-        if child.key == key then
-            return child
-        end
+        return nil
     end
-    return nil
+    return self.children[key]
 end
 return _M

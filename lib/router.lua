@@ -11,12 +11,12 @@ local MIDDLEWARE_PREFIX = 'middleware'
 
 local _M = {
     routes = {
-        GET = trie:new('root'),
-        POST = trie:new('root'),
-        PUT = trie:new('root'),
-        DELETE = trie:new('root'),
-        PATCH = trie:new('root'),
-        OPTIONS = trie:new('root'),
+        GET = trie:new(),
+        POST = trie:new(),
+        PUT = trie:new(),
+        DELETE = trie:new(),
+        PATCH = trie:new(),
+        OPTIONS = trie:new(),
     },
     middlewares = new_tab(1000, 0) -- table.new performance better than `{}` dynamic array at most case
 }
@@ -107,8 +107,8 @@ local function generate_route(root_tree, route_uri, route_info)
     for _, uri in ipairs(sub_uris) do
         local node = current_tree:find_child_by_key(uri)
         if node == nil then
-            node = trie:new(uri)
-            current_tree:append_child(node)
+            node = trie:new()
+            current_tree:append_child(uri, node)
         end
         current_tree = node
     end

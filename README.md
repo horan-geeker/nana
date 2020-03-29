@@ -82,18 +82,22 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ## 压力测试
 
-### 阿里云单核4G内存
+### 单 worker 绑定一个 CPU：
 
 ```shell
-ab -c 100 -n 10000 api.lua-china.com/index
+wrk -t10 -c 100 -d10s http://localhost:60000/index
 
----
-Requests per second:    4621.10 [#/sec] (mean)
-Time per request:       21.640 [ms] (mean)
----
+Running 10s test @ http://localhost:60000/index
+  10 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     3.87ms    4.42ms 170.11ms   97.75%
+    Req/Sec     2.84k   308.14     5.77k    85.09%
+  282184 requests in 10.04s, 63.50MB read
+Requests/sec:  28105.03
+Transfer/sec:      6.32MB
 ```
 
-> 内存基本没有变化，单核 CPU 打满
+> 内存基本没有变化，单 CPU 打满
 
 ## 安装
 

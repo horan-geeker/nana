@@ -1,4 +1,4 @@
-local request = require('lib.request')
+local http_request = require('lib.request')
 local router = require('routes')
 local database = require('lib.database')
 local ngx = ngx
@@ -28,7 +28,8 @@ local function handle(request, context, route_param)
     local controller = context.required_controller
     local action = context.action
     if #route_param ~= 0 then
-        return controller[action](nil, table.unpack(route_param), request)
+        table.insert(route_param, request)
+        return controller[action](nil, table.unpack(route_param))
     end
     return controller[action](nil, request)
 end
@@ -37,7 +38,7 @@ end
 -- run application kernel
 function _M:run()
     -- get http request infomation
-    local request_capture = request:capture()
+    local request_capture = http_request:capture()
     -- match route, get target controller and action
     local context, route_param, err_response = router:match(request_capture.uri, request_capture.method)
     if err_response ~= nil then

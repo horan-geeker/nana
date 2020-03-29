@@ -7,7 +7,7 @@ route:group({
     middlewares = {'throttle'},
 }, function()
     route:post('/auth/login', 'auth_controller', 'login')
-    route:get('/users/{id}', 'user_controller', 'show')
+    route:get('/users/{id}/posts/{post_id}', 'user_controller', 'show')
     route:group({
     }, function()
         route:post('/register', 'auth_controller', 'register')

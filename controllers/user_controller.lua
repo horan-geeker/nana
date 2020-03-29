@@ -4,8 +4,8 @@ local _M = {}
 
 -- todo controller extends
 
-function _M:show(id, request)
-	return response:json(0, 'user args', {id = id, params = request.params})
+function _M:show(user_id, post_id, request)
+	return response:json(0, 'user args', {user_id, post_id, request})
 end
 
 function _M:userinfo(request)

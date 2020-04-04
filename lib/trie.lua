@@ -25,4 +25,20 @@ function _M:find_child_by_key(key)
     end
     return self.children[key]
 end
+
+
+function _M:find_child_with_pattern(key)
+    if string.char(string.byte(key)) == '{' then
+        for child_key, child in pairs(self.children) do
+            if string.char(string.byte(child_key)) == '{' then
+                return child, key
+            end
+        end
+    end
+    if not self.children[key] then
+        return nil
+    end
+    return self.children[key]
+end
+
 return _M

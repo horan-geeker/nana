@@ -4,7 +4,7 @@
 [![license](https://img.shields.io/github/license/horan-geeker/nana.svg)](https://github.com/horan-geeker/nana/blob/master/LICENSE)
 [中文文档](README.md)
 
-`Nana` is a `MVC http restful api framework` written using Lua which need be used in `openresty` platform.
+`Nana` is a `api framework` written using Lua which need be used in `openresty` platform.
 
 ## Contents
 
@@ -83,20 +83,55 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ## Benchmark
 
-### wrk test one worker in nginx
+### bind one cpu in nginx
+
+worker_cpu_affinity 0001;
+
+wrk -t1 -c 100 -d10s http://localhost:60000/index
 
 ```shell
-wrk -t10 -c 100 -d10s http://localhost:60000/
-
-Running 10s test @ http://localhost:60000/
-  10 threads and 100 connections
+Running 10s test @ http://localhost:60000/index
+  1 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     3.87ms    4.42ms 170.11ms   97.75%
-    Req/Sec     2.84k   308.14     5.77k    85.09%
-  282184 requests in 10.04s, 63.50MB read
-Requests/sec:  28105.03
-Transfer/sec:      6.32MB
+    Latency     2.85ms  754.67us  17.82ms   95.45%
+    Req/Sec    35.60k     2.74k   38.48k    88.00%
+  353891 requests in 10.02s, 79.65MB read
+Requests/sec:  35303.74
+Transfer/sec:      7.95MB
 ```
+
+#### compare with lor framework
+
+wrk -t1 -c 100 -d10s http://localhost:60004/hello
+
+```
+Running 10s test @ http://localhost:60004/hello
+  1 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     5.01ms  621.83us  14.66ms   92.35%
+    Req/Sec    20.02k     0.96k   21.35k    78.00%
+  199275 requests in 10.01s, 46.94MB read
+Requests/sec:  19898.67
+Transfer/sec:      4.69MB
+```
+
+#### compare with golang gin framework
+
+```shell
+wrk -t10 -c 100 -d10s http://localhost:60002/ping
+
+Running 10s test @ http://localhost:60002/ping
+  1 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     8.05ms   10.04ms  78.14ms   85.71%
+    Req/Sec    20.39k     3.19k   26.53k    68.00%
+  203091 requests in 10.02s, 27.31MB read
+Requests/sec:  20260.14
+Transfer/sec:      2.72MB
+```
+
+> 使用 docker 限制使用一颗 cpu
+> docker run -d -p 60002:8080 --cpus=1 -e "GIN_MODE=release" horan/go-gin
 
 ## Install
 

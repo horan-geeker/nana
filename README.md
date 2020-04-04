@@ -5,7 +5,7 @@
 
 [English Document](README_en.md)
 
-`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 是基于 `openresty` 的 `restful api` 的 `MVC` 框架。
+`openresty` 是一个为高并发设计的异步非阻塞架构，而 `nana` 是基于 `openresty` 的 `api` 框架。
 
 目录
 
@@ -82,22 +82,57 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ## 压力测试
 
-### 单 worker 绑定一个 CPU：
+### 绑定一个 CPU
+
+worker_cpu_affinity 0001;
+
+wrk -t1 -c 100 -d10s http://localhost:60000/index
 
 ```shell
-wrk -t10 -c 100 -d10s http://localhost:60000/
-
-Running 10s test @ http://localhost:60000/
-  10 threads and 100 connections
+Running 10s test @ http://localhost:60000/index
+  1 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     3.87ms    4.42ms 170.11ms   97.75%
-    Req/Sec     2.84k   308.14     5.77k    85.09%
-  282184 requests in 10.04s, 63.50MB read
-Requests/sec:  28105.03
-Transfer/sec:      6.32MB
+    Latency     2.85ms  754.67us  17.82ms   95.45%
+    Req/Sec    35.60k     2.74k   38.48k    88.00%
+  353891 requests in 10.02s, 79.65MB read
+Requests/sec:  35303.74
+Transfer/sec:      7.95MB
 ```
 
-> 内存基本没有变化，单 CPU 打满
+内存基本没有变化，单 CPU 打满
+
+#### 对比 lor 框架
+
+wrk -t1 -c 100 -d10s http://localhost:60004/hello
+
+```
+Running 10s test @ http://localhost:60004/hello
+  1 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     5.01ms  621.83us  14.66ms   92.35%
+    Req/Sec    20.02k     0.96k   21.35k    78.00%
+  199275 requests in 10.01s, 46.94MB read
+Requests/sec:  19898.67
+Transfer/sec:      4.69MB
+```
+
+#### 对比 golang gin 框架
+
+```shell
+wrk -t10 -c 100 -d10s http://localhost:60002/ping
+
+Running 10s test @ http://localhost:60002/ping
+  1 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     8.05ms   10.04ms  78.14ms   85.71%
+    Req/Sec    20.39k     3.19k   26.53k    68.00%
+  203091 requests in 10.02s, 27.31MB read
+Requests/sec:  20260.14
+Transfer/sec:      2.72MB
+```
+
+> 使用 docker 限制使用一颗 cpu
+> docker run -d -p 60002:8080 --cpus=1 -e "GIN_MODE=release" horan/go-gin
 
 ## 安装
 
@@ -117,13 +152,13 @@ Transfer/sec:      6.32MB
 
 ### 路由
 
-> 路由配置文件在项目根目录 `routes.lua`，如使用`POST`请求访问 `http://your-app.test/login` 的时，交给 `auth_controller` 下的 `login(request)` 函数来处理，并且会将 `request` 注入 `login` 方法：
+> 路由配置文件在项目根目录 `routes.lua`，如使用`POST`请求访问 `http://your-app.test/login` 时，会交给 `auth_controller` 下的 `login(request)` 函数来处理，并且会将 `request` 注入 `login` 方法：
 
 ```lua
 route:post('/login', 'auth_controller', 'login')
 ```
 
-> 框架内核使用 `trie` 字典树实现路由结构，算法复杂度 O(1)，可以高效的匹配定义路由
+> 框架内核使用 `trie` 字典树实现路由结构，算法复杂度 O(1)，可以高效的匹配路由
 
 #### 支持 http 请求类型
 
@@ -136,7 +171,7 @@ route:post('/login', 'auth_controller', 'login')
 
 #### 路由参数
 
-当需要使用 restful 分格的 url 来获取参数时，你可以这样写路由配置，id 会传到对应的 show() 方法里
+当需要使用 url 来获取参数时，你可以这样写路由配置，id 会传到对应的 show() 方法里
 
 ```lua
 route:get('/users/{id}', 'user_controller', 'show')

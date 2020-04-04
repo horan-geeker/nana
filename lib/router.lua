@@ -116,7 +116,7 @@ local function generate_route(root_tree, route_uri, route_info)
     local sub_uris = split_uri(route_uri)
     local current_tree = root_tree
     for _, uri in ipairs(sub_uris) do
-        local node = current_tree:find_child_by_key(uri)
+        local node = current_tree:find_child_with_pattern(uri)
         if node == nil then
             node = trie:new()
             current_tree:append_child(uri, node)

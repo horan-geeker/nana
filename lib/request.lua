@@ -6,9 +6,6 @@ local _M = {
 	params = new_tab(0, 1000)
 }
 
-local function parse_uri_params()
-	return ngx.req.get_uri_args()
-end
 
 local function parse_body_params()
 	ngx.req.read_body() -- open read body
@@ -24,7 +21,7 @@ local function parse_body_params()
 end
 
 function _M:capture()
-	self.params = parse_uri_params()
+	self.params = ngx.req.get_uri_args()
 	local body_params = parse_body_params()
 	if body_params then
 		for k,v in pairs(body_params) do
@@ -32,7 +29,7 @@ function _M:capture()
 		end
 	end
 	return {
-		uri = self:get_uri(),
+		uri = ngx.var.uri,
 		method = self:get_method(),
 		params = self.params,
 		headers = self:get_headers()
@@ -48,12 +45,6 @@ end
 function _M:get_headers()
 	return ngx.req.get_headers()
 end
-
-
-function _M:get_uri()
-	return ngx.re.sub(ngx.var.request_uri, '[?].*$', '') -- use ngx.re.sub insteat of string.sub
-end
-
 
 function _M:get_method()
 	return ngx.var.request_method

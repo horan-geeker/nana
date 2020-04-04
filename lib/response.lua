@@ -48,8 +48,10 @@ end
 
 function _M:send(response)
 	ngx.status = response.status
-	for name, value in pairs(response.headers) do
-		ngx.header[name] = value
+	if response.headers ~= nil then
+		for name, value in pairs(response.headers) do
+			ngx.header[name] = value
+		end
 	end
     if response.body ~= nil then
         ngx.say(response.body)

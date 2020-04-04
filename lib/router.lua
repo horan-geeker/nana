@@ -72,6 +72,12 @@ end
 
 -- require controller
 local function require_controller(controller, action)
+    if controller == nil then
+        return nil, 'system error, define controller can not empty'
+    end
+    if action == nil then
+        return nil, 'system error, define action can not empty'
+    end
     local controller_path = CONTROLLER_PREFIX .. '.' .. controller
     local required_controller = require(controller_path)
     if type(required_controller) ~= 'table' then

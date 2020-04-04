@@ -30,9 +30,9 @@ function _M:capture()
 	end
 	return {
 		uri = ngx.var.uri,
-		method = self:get_method(),
+		method = ngx.req.get_method(),
 		params = self.params,
-		headers = self:get_headers()
+		headers = ngx.req.get_headers()
 	}
 end
 
@@ -41,13 +41,5 @@ function _M:all()
 	return self.params
 end
 
-
-function _M:get_headers()
-	return ngx.req.get_headers()
-end
-
-function _M:get_method()
-	return ngx.var.request_method
-end
 
 return _M

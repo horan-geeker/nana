@@ -28,6 +28,14 @@ local function split_uri(uri)
         ngx.log(ngx.ERR, err)
         return {}
     end
+    local result = new_tab(1000, 0)
+    local index = 1
+    for _,v in ipairs(uris) do
+        if v ~= '' then
+            result[index] = v -- use index to add item performance better table.insert
+            index = index + 1
+        end
+    end
     return uris
 end
 
@@ -43,7 +51,7 @@ local function route_match(route_tree, http_uris)
         end
         route_tree = tree
     end
-    if next(route_tree.children) == nil then
+    if route_tree.value ~= nil then
         return true, route_tree.value, params
     end
     return false
@@ -72,6 +80,12 @@ end
 
 -- require controller
 local function require_controller(controller, action)
+    if controller == nil then
+        return nil, 'system error, define controller can not empty'
+    end
+    if action == nil then
+        return nil, 'system error, define action can not empty'
+    end
     local controller_path = CONTROLLER_PREFIX .. '.' .. controller
     local required_controller = require(controller_path)
     if type(required_controller) ~= 'table' then

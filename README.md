@@ -86,17 +86,17 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 worker_cpu_affinity 0001;
 
-wrk -t1 -c 100 -d10s http://localhost:60000/index
+wrk -t1 -c 100 -d10s http://localhost:60000/
 
 ```shell
-Running 10s test @ http://localhost:60000/index
+Running 10s test @ http://localhost:60000/
   1 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     2.85ms  754.67us  17.82ms   95.45%
-    Req/Sec    35.60k     2.74k   38.48k    88.00%
-  353891 requests in 10.02s, 79.65MB read
-Requests/sec:  35303.74
-Transfer/sec:      7.95MB
+    Latency     3.70ms    4.23ms  29.84ms   82.74%
+    Req/Sec    43.31k     2.63k   48.61k    82.00%
+  431043 requests in 10.02s, 97.01MB read
+Requests/sec:  43024.54
+Transfer/sec:      9.68MB
 ```
 
 内存基本没有变化，单 CPU 打满
@@ -119,7 +119,7 @@ Transfer/sec:      4.69MB
 #### 对比 golang gin 框架
 
 ```shell
-wrk -t10 -c 100 -d10s http://localhost:60002/ping
+wrk -t1 -c 100 -d10s http://localhost:60002/ping
 
 Running 10s test @ http://localhost:60002/ping
   1 threads and 100 connections

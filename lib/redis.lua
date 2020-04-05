@@ -1,9 +1,9 @@
 local redis = require("lib.resty_redis")
-local env = require('env')
+local db_config = require('config.database')
 
 local _M = setmetatable({}, {__index=function(self, key)
 	local red = redis:new()
-	local ok,err = red:connect(env.redis_host, env.redis_port)
+	local ok,err = red:connect(db_config.redis.host, db_config.redis.port)
 	if not ok then
 		ngx.log(ngx.ERR, err)
 	end

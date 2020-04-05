@@ -1,13 +1,12 @@
 local auth = require('lib.auth_service_provider')
 local ip_location = require('services.location_service')
 local UserLog = require('models.user_log')
-local redis = require('lib.redis')
 local request = require('lib.request')
 
 local _M = {}
 
 function _M:verify_password(password, user_password)
-    if hash(password) == user_password then
+    if ngx.md5(password) == user_password then
         return true
     end
     return false

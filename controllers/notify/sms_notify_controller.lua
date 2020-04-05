@@ -1,7 +1,5 @@
 local response = require('lib.response')
 local validator = require('lib.validator')
-local random = require('lib.random')
-local config = require('config.app')
 local sms_service = require('services.sms_service')
 local request = require('lib.request')
 local auth = require('lib.auth_service_provider')

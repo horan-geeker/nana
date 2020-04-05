@@ -11,15 +11,9 @@ return {
     redis_host = "10.31.231.178", -- redis host
     redis_port = 6379, -- redis port
 
-    sendcloud = {
-        SMSKEY = "",
-        SMSUSER = "LuaChina",
-        TEMPLATEID = 13265,
-        EMAIL_API_KEY = ""
-    },
     github = {
         CLIENT_ID = "6162c14c3b7a50abf8ce",
-        CLIENT_SECRET = "6f145c75740b7c674c6429bf88b670d0ed5023ae",
+        CLIENT_SECRET = "",
         REDIRECT_URL = "https://api.lua-china.com/oauth/github",
     }
 }

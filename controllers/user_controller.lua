@@ -7,6 +7,8 @@ local Post = require("models.post")
 local Comment = require("models.comment")
 local config = require("config.app")
 local user_service = require('services.user_service')
+local helpers = require("lib.helpers")
+local table_remove = helpers.table_remove
 
 local _M = {}
 

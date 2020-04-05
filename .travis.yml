@@ -8,7 +8,7 @@ before_install:
   - chmod 600 ~/.ssh/id_rsa
 
 script:
-  - sed "s/SMSKEY = \"\"/SMSKEY = \"$SMS_KEY\"/;s/CLIENT_SECRET = \"\"/CLIENT_SECRET = \"$GITHUB_CLIENT_SECRET\"/;s/EMAIL_API_KEY = \"\"/EMAIL_API_KEY = \"$EMAIL_API_KEY\"/" env.example.lua > env.lua
+  - sed "s/CLIENT_SECRET = \"\"/CLIENT_SECRET = \"$GITHUB_CLIENT_SECRET\"/" env.example.lua > env.lua
   - docker build -t horan/lua-china-api:$TRAVIS_COMMIT .
   - docker login -u horan -p $docker_password
   - docker push horan/lua-china-api:$TRAVIS_COMMIT

@@ -1,99 +1,148 @@
-local request = require('lib.request')
+local ngx_re = require("ngx.re")
+local ngx = ngx
+local new_tab = require('table.new')
+local response = require("lib.response")
+local trie = require("lib.trie")
+local log = require('lib.helpers').log
 
-local controller_prefix = 'controllers'
-local middleware_prefix = 'middleware'
+local CONTROLLER_PREFIX = 'controllers'
+local MIDDLEWARE_PREFIX = 'middleware'
 
 local _M = {
-    routes = {},
-    middlewares = {}
+    routes = {
+        GET = trie:new(),
+        POST = trie:new(),
+        PUT = trie:new(),
+        DELETE = trie:new(),
+        PATCH = trie:new(),
+        OPTIONS = trie:new(),
+    },
+    middlewares = new_tab(1000, 0) -- table.new performance better than `{}` dynamic array at most case
 }
 
-function _M:route_match(route_uri, http_uri)
-    local captures, err = ngx.re.match(http_uri, route_uri, 'jo')
-    if captures then
-        captures[0] = nil;
-        return true, captures
+local function split_uri(uri)
+    if uri == '/' or uri == '' then
+        return {'/'}
+    end
+    local uris, err = ngx_re.split(uri, '/')
+    if err ~= nil then
+        ngx.log(ngx.ERR, err)
+        return {}
+    end
+    local result = new_tab(1000, 0)
+    local index = 1
+    for _,v in ipairs(uris) do
+        if v ~= '' then
+            result[index] = v -- use index to add item performance better table.insert
+            index = index + 1
+        end
+    end
+    return result
+end
+
+local function route_match(route_tree, http_uris)
+    local params = {}
+    for _, uri in ipairs(http_uris) do
+        local tree, param = route_tree:find_child_by_key(uri)
+        if params ~= nil then
+            table.insert(params, param)
+        end
+        if not tree then
+            return false
+        end
+        route_tree = tree
+    end
+    if route_tree.value ~= nil then
+        return true, route_tree.value, params
     end
     return false
 end
 
-function _M:find_action(controller, action)
-    local controller = require(controller_prefix .. '.' .. controller)
-    if type(controller) ~= 'table' then
-        return nil, 'system error, controller not a table'
-    end
-    local action = controller[action]
-    if action == nil then
-        return nil, 'system error, this action function not exist'
-    end
-    return action, nil
+
+local function options_http_process()
+    return nil, nil, response:raw(200)
 end
 
-function _M:run_middlewares(middlewares)
+
+function _M:match(http_uri, http_method)
+    local uris = split_uri(http_uri)
+    local ok, route, route_params = route_match(self.routes[http_method], uris)
+    if ok then
+        if http_method == 'OPTIONS' then
+            return options_http_process()
+        end
+        -- return find route with context
+        return route, route_params
+    end
+    return nil, nil, response:error(404, {}, 'not found uri')
+end
+
+-- below function process only once in a worker
+
+-- require controller
+local function require_controller(controller, action)
+    local controller_path = CONTROLLER_PREFIX .. '.' .. controller
+    local required_controller = require(controller_path)
+    if type(required_controller) ~= 'table' then
+        return nil, 'system error, controller ' .. controller_path .. ' not a table'
+    end
+    if required_controller[action] == nil then
+        return nil, 'system error, this action ' .. action .. ' function not exist' .. ' in ' .. controller_path
+    end
+    return required_controller
+end
+
+-- require middlewares
+local function require_middleware(middlewares)
+    local required_middlewares = {}
     for _, middleware in ipairs(middlewares) do
-        local result, response_content, resposne_status = require(middleware_prefix .. '.' ..middleware):handle()
-        if result == false then
-            return result, response_content, resposne_status
+        local middleware_path = MIDDLEWARE_PREFIX .. '.' .. middleware
+        local required_middleware = require(middleware_path)
+        if type(required_middleware) ~= 'table' then
+            return 'system error, middleware ' .. middleware_path .. ' not a table'
         end
+        table.insert(required_middlewares, required_middleware)
     end
+    return required_middlewares
 end
 
-function _M:dispatch(http_uri, http_method)
-    for uri, route in pairs(self.routes) do
-        local is_matched, route_params = self:route_match(uri, http_uri)
-        if is_matched then
-            if http_method == 'OPTIONS' then
-                return nil, 200
-            end
-            if not route[http_method] then
-                return nil, 405
-            end
-            -- run middlewares
-            local result, response_content, resposne_status = self:run_middlewares(route[http_method].middlewares)
-            if result == false then
-                return response_content, resposne_status
-            end
-            -- run action
-            local action = self:find_action(route[http_method]['controller'], route[http_method]['action'])
-            if not action then
-                return 'not found action in controller', 500
-            end
-            return action(nil, table.unpack(route_params)), ngx.OK
+-- list table route
+local function generate_route(root_tree, route_uri, route_info)
+    local sub_uris = split_uri(route_uri)
+    local current_tree = root_tree
+    for _, uri in ipairs(sub_uris) do
+        local node = current_tree:find_child_with_pattern(uri)
+        if not node then
+            node = trie:new()
+            current_tree:append_child(uri, node)
         end
+        current_tree = node
     end
-    return nil, 404
-end
-
-function _M:run()
-    return self:dispatch(self:trim_uri(request:get_uri()), request:get_method())
-end
-
-function _M:init()
-    self.middlewares = {}
-    require('routes'):match(self)
-end
-
-function _M:trim_uri(uri)
-    return '/' .. trim(trim(uri, ' '), '/') .. '/'
-end
-
-function _M:transform_uri(uri)
-    local trimed_uri = self:trim_uri(uri)
-    local new_router_url, n, err = ngx.re.gsub(trimed_uri, '\\{[\\w]+\\}', '(\\d+)')
-    return '^' .. new_router_url .. '$'
+    current_tree:set_value(route_info)
 end
 
 function _M:add_route(method, uri, controller, action)
-    local pattern_uri = self:transform_uri(uri)
-    if not self.routes[pattern_uri] then
-        self.routes[pattern_uri] = {}
+    local required_controller, required_middlewares, err
+    required_controller, err = require_controller(controller, action)
+    if err ~= nil then
+        ngx.log(ngx.ERR, err)
+        return
     end
-    self.routes[pattern_uri][method] = {
+    required_middlewares, err = require_middleware(self.middlewares)
+    if err ~= nil then
+        ngx.log(ngx.ERR, err)
+        return
+    end
+    local route_info = {
+        required_controller = required_controller,
         controller = controller,
         action = action,
-        middlewares = {table.unpack(self.middlewares)} -- deep copy self.middlewares
+        middlewares = {table.unpack(self.middlewares)}, -- deep copy self.middlewares
+        required_middlewares = required_middlewares,
     }
+    generate_route(self.routes[method], uri, route_info)
 end
+
 
 function _M:get(uri, controller, action)
     self:add_route('GET', uri, controller, action)
@@ -119,14 +168,19 @@ function _M:head(uri, controller, action)
     self:add_route('HEAD', uri, controller, action)
 end
 
-function _M:group(middlewares, func)
-    -- append one by one tail
-    for _,middleware in ipairs(middlewares) do
+
+function _M:group(group_property, func)
+    local current_middlewares = {}
+    if group_property.middleware then
+        current_middlewares = group_property.middleware
+    end
+    -- append tail one by one
+    for _,middleware in ipairs(current_middlewares) do
         table.insert(self.middlewares, middleware)
     end
     func()
-    -- remove tail first
-    for index,_ in ipairs(middlewares) do
+    -- remove tail one by one
+    for _ in ipairs(current_middlewares) do
         table.remove(self.middlewares, #self.middlewares)
     end
 end

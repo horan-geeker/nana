@@ -1,17 +1,12 @@
 local request = require('lib.request')
 local response = require('lib.response')
 local User = require('models.user')
-local UserLog = require('models.user_log')
 local validator = require('lib.validator')
-local config = require('config.app')
 local auth = require('lib.auth_service_provider')
-local cjson = require('cjson')
 local user_service = require('services.user_service')
-local random = require('lib.random')
-local env = require('env')
-local random = require('lib.random')
-local redis = require('lib.redis')
 local sms_service = require('services.sms_service')
+local helpers = require("lib.helpers")
+local table_remove = helpers.table_remove
 
 local _M = {}
 
@@ -82,7 +77,7 @@ function _M:register()
 
     local user_obj = {
         name = name,
-        password = hash(args.password),
+        password = ngx.md5(args.password),
         phone = args.phone
     }
 
@@ -146,7 +141,6 @@ function _M:forget_password()
     if not ok then
         return response:json(0x000001, msg)
     end
-    local user = auth:user()
     local affected_rows, err = User:where('phone', '=', args.phone):update({
         password=hash(args.new_password)
     })

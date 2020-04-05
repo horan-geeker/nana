@@ -8,44 +8,6 @@ local _M = {
     SMS_KEY = 'SMS:PHONE:%s'
 }
 
-local function generate_sendcloud_signature(phone, code)
-    local conf = config.sendcloud
-    local signStr = ''
-    local params = {smsUser=conf.smsUser,templateId=conf.templateId,phone=phone,vars={code=code}}
-    for k,v in sort_by_key(params) do
-        local val = ''
-        if type(v) == 'table' then
-            val = cjson.encode(v)
-        else
-            val = v
-        end
-        signStr = signStr .. k .. '=' .. val .. '&'
-    end
-    local signature = conf['smsKey'] .. '&' .. signStr .. conf['smsKey']
-    return ngx.md5(signature), signStr
-end
-
-local function send_sms_by_sendcloud(phone, code)
-    local signature, signStr = generate_sendcloud_signature(tonumber(phone), smscode)
-    local url = config['sendcloud']['url'] .. '?' .. signStr .. 'signature='..signature
-    local httpClient = http.new()
-    local res, err = httpClient:request_uri(url, {ssl_verify=false})
-    if not res then
-        ngx.log(ngx.ERR, res, err)
-        return res, err
-    end
-    if res.status ~= 200 then
-        return false, res.reason
-    else
-        local response = cjson.decode(res.body)
-        if response.statusCode ~= 200 then
-            return false, response.message
-        else
-            return true
-        end
-    end
-end
-
 function _M:send_sms(phone)
     local key = string.format(self.SMS_KEY, phone)
     local data, err = redis:get(key)

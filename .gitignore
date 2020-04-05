@@ -3,3 +3,4 @@ env.lua
 .vscode
 storage/*
 .env
+.DS_Store

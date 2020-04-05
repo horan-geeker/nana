@@ -1,11 +1,12 @@
 local cjson = require('cjson')
 local conf = require('config.app')
 local error_code = require('config.status')
+local ngx = ngx
 
 local _M = {}
 
 function _M:json(status, message, data, http_status)
-	-- you can modify this resp struct as you favor
+	-- you can modify this response struct as you favor
 	local msg = message
 	local response_status = http_status or ngx.OK
 	if msg == nil or msg == '' then
@@ -19,20 +20,41 @@ function _M:json(status, message, data, http_status)
 		response.status = -1
 		response.message = 'not find status code'
 	end
-	return cjson.encode(response), response_status
+	return {
+		status = response_status,
+		headers = {content_type = 'application/json; charset=UTF-8'},
+		body = cjson.encode(response)
+	}
 end
 
--- server error
-function _M:error(error_message)
-	ngx.log(ngx.ERR, error_message)
-	ngx.exit(500)
+
+function _M:raw(http_status, http_body)
+	return {
+		status = http_status,
+		headers = {},
+		body = http_body
+	}
 end
 
-function _M:send(content, status)
-    if content ~= nil and content ~= '' then
-        ngx.say(content)
-    end
-    ngx.exit(status)
+
+function _M:error(http_status, http_headers, http_body)
+	return {
+		status = http_status,
+		headers = http_headers,
+		body = http_body
+	}
 end
+
+
+function _M:send(response)
+	ngx.status = response.status
+	for name, value in pairs(response.headers) do
+		ngx.header[name] = value
+	end
+    if response.body ~= nil then
+        ngx.say(response.body)
+	end
+end
+
 
 return _M

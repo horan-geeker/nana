@@ -1,11 +1,11 @@
-local request = require("lib.request")
 local response = require("lib.response")
 
 local _M = {}
 
-function _M:index()
-	local args = request:all() -- 拿到所有参数
-	return response:json(0,'request args', args)
+-- todo controller extends
+
+function _M:index(request)
+	return response:json(0, 'index args', request.params)
 end
 
 return _M

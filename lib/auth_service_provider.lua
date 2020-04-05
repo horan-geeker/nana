@@ -2,12 +2,16 @@ local random = require("lib.random")
 local config = require("config.app")
 local cjson = require("cjson")
 local redis = require("lib.redis")
-local cookie_obj = require("lib.cookie")
+local helpers = require("lib.helpers")
+local log = helpers.log
+local get_local_time = helpers.get_local_time
+local set_cookie = helpers.set_cookie
+local get_cookie = helpers.get_cookie
 
 local _M = {}
 local token_name = 'token'
 
-function generate_token(user_payload)
+local function generate_token()
     -- 防止猜测token内容，加上随机数
     return random.token(40);
 end

@@ -36,7 +36,7 @@ local function split_uri(uri)
             index = index + 1
         end
     end
-    return uris
+    return result
 end
 
 local function route_match(route_tree, http_uris)

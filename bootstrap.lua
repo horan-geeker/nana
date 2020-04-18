@@ -1,6 +1,5 @@
 -- Github Document: https://github.com/horan-geeker/nana
 -- Author:          hejunwei
--- Version:         v0.6.0
 
 -- openresty use their own luajit not official luajit at 1.15 version
 -- use ngx api instead of lua api as much as possible

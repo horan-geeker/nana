@@ -84,8 +84,6 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ### 绑定一个 CPU
 
-worker_cpu_affinity 0001;
-
 wrk -t1 -c 100 -d10s http://localhost:60000/
 
 ```shell
@@ -130,9 +128,6 @@ Running 10s test @ http://localhost:60002/ping
 Requests/sec:  20260.14
 Transfer/sec:      2.72MB
 ```
-
-> 使用 docker 限制使用一颗 cpu
-> docker run -d -p 60002:8080 --cpus=1 -e "GIN_MODE=release" horan/go-gin
 
 ## 安装
 

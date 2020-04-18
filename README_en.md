@@ -83,21 +83,21 @@ curl https://api.lua-china.com/index?id=1&foo=bar
 
 ## Benchmark
 
-### bind one cpu in nginx
+### one cpu
 
 worker_cpu_affinity 0001;
 
 wrk -t1 -c 100 -d10s http://localhost:60000/index
 
 ```shell
-Running 10s test @ http://localhost:60000/index
+Running 10s test @ http://localhost:60000/
   1 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency     2.85ms  754.67us  17.82ms   95.45%
-    Req/Sec    35.60k     2.74k   38.48k    88.00%
-  353891 requests in 10.02s, 79.65MB read
-Requests/sec:  35303.74
-Transfer/sec:      7.95MB
+    Latency     3.70ms    4.23ms  29.84ms   82.74%
+    Req/Sec    43.31k     2.63k   48.61k    82.00%
+  431043 requests in 10.02s, 97.01MB read
+Requests/sec:  43024.54
+Transfer/sec:      9.68MB
 ```
 
 #### compare with lor framework
@@ -118,7 +118,7 @@ Transfer/sec:      4.69MB
 #### compare with golang gin framework
 
 ```shell
-wrk -t10 -c 100 -d10s http://localhost:60002/ping
+wrk -t1 -c 100 -d10s http://localhost:60002/ping
 
 Running 10s test @ http://localhost:60002/ping
   1 threads and 100 connections
@@ -129,9 +129,6 @@ Running 10s test @ http://localhost:60002/ping
 Requests/sec:  20260.14
 Transfer/sec:      2.72MB
 ```
-
-> 使用 docker 限制使用一颗 cpu
-> docker run -d -p 60002:8080 --cpus=1 -e "GIN_MODE=release" horan/go-gin
 
 ## Install
 

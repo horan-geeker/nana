@@ -6,8 +6,8 @@ function _M:new()
     }, {__index = self})
 end
 
-function _M:append_child(child_key, hash_table)
-    self.children[child_key] = hash_table
+function _M:append_child(child_key, trie_node)
+    self.children[child_key] = trie_node
 end
 
 function _M:set_value(value)

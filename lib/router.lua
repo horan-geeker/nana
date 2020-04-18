@@ -4,10 +4,9 @@ local new_tab = require('table.new')
 local response = require("lib.response")
 local trie = require("lib.trie")
 
-local CONTROLLER_PREFIX = 'controllers'
-local MIDDLEWARE_PREFIX = 'middleware'
-
 local _M = {
+    controller_prefix = 'controllers',
+    middleware_prefix = 'middleware',
     routes = {
         GET = trie:new(),
         POST = trie:new(),
@@ -79,14 +78,14 @@ end
 -- below function process only once in a worker
 
 -- require controller
-local function require_controller(controller, action)
+function _M:require_controller(controller, action)
     if controller == nil then
         return nil, 'system error, define controller can not empty'
     end
     if action == nil then
         return nil, 'system error, define action can not empty'
     end
-    local controller_path = CONTROLLER_PREFIX .. '.' .. controller
+    local controller_path = self.controller_prefix .. '.' .. controller
     local required_controller = require(controller_path)
     if type(required_controller) ~= 'table' then
         return nil, 'system error, controller ' .. controller_path .. ' not a table'
@@ -98,10 +97,10 @@ local function require_controller(controller, action)
 end
 
 -- require middlewares
-local function require_middleware(middlewares)
+function _M:require_middleware(middlewares)
     local required_middlewares = {}
     for _, middleware in ipairs(middlewares) do
-        local middleware_path = MIDDLEWARE_PREFIX .. '.' .. middleware
+        local middleware_path = self.middleware_prefix .. '.' .. middleware
         local required_middleware = require(middleware_path)
         if type(required_middleware) ~= 'table' then
             return 'system error, middleware ' .. middleware_path .. ' not a table'
@@ -128,12 +127,12 @@ end
 
 function _M:add_route(method, uri, controller, action)
     local required_controller, required_middlewares, err
-    required_controller, err = require_controller(controller, action)
+    required_controller, err = self:require_controller(controller, action)
     if err ~= nil then
         ngx.log(ngx.ERR, err)
         return
     end
-    required_middlewares, err = require_middleware(self.middlewares)
+    required_middlewares, err = self:require_middleware(self.middlewares)
     if err ~= nil then
         ngx.log(ngx.ERR, err)
         return

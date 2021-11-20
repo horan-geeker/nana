@@ -8,7 +8,6 @@
 
 ## Contents
 
-* [Status](#Status)
 * [Synopsis](#Synopsis)
 * [Benchmark](#Benchmark)
 * [Install](#Install)
@@ -26,21 +25,21 @@
     * [Global response structure](#Global-response-structure)
   * [Cookie](#Cookie)
   * [Database ORM](#Database-ORM)
-    * [CURD](#CURD)
+    * [Retrieve Models](#Retrieve-Models)
+    * [Inserting & Updating Models](#Inserting-&-Updating-Models)
     * [Sort](#Sort)
     * [Pagination](#Pagination)
-    * [Original sql](#Original-sql)
+    * [Raw sql](#Raw-sql)
+  * [Model Relationships](#Model-Relationships)
+    * [One to Many](#One-to-Many)
+    * [Many to One](#Many-to-One)
   * [Redis](#Redis)
-  * [Localization](#Localization)
   * [Other](#Other)
     * [Random](#Random)
   * [Helper Function](#Helper-Function)
   * [Code specification](#Code-specification)
 * [Contact author](#Contact-author)
 
-## Status
-
-This project is considered production ready.
 
 ## Synopsis
 
@@ -135,16 +134,19 @@ Transfer/sec:      2.72MB
 ### Manual install
 
 * `git clone https://github.com/horan-geeker/nana.git`
-* execute `cp env.example.lua env.lua` and make sure right config
-* at `nginx/conf/nginx.conf` set `lua_package_path '/path/to/nana/?.lua;;';` point to nana dir, set `content_by_lua_file` point to project `/path/to/nana/bootstrap.lua` file location
+* execute `cp env.example.lua env.lua` look up `Config` chapter for more detail
+* nginx config file `nginx.conf` set `lua_package_path '/path/to/nana/?.lua;;';` point to nana dir, set `content_by_lua_file` point to project `/path/to/nana/bootstrap.lua` file location
 
 ## Description
 
 ### Config
 
-All of your configuration files for Nana Framework are stored in the `config` directory. Each option is documented, so feel free to look through the files and get familiar with the options available to you.
+* `config/app.lua` for project config
+* `config/database.lua` for database config
+* `config/status.lua` for http response data custom by yourself
 
-Your `env.lua` file should not be committed to your application's source control, since each Test/Prod using your application could require a different environment configuration. Furthermore, this would be a security risk in the event an intruder gains access to your source control repository, since any sensitive credentials would get exposed.
+
+> Your `env.lua` file should not be committed to your application's source control, since each Test/Prod using your application could require a different environment configuration. Furthermore, this would be a security risk in the event an intruder gains access to your source control repository, since any sensitive credentials would get exposed.
 
 If you are developing with a team, you may wish to continue including a `env.example.lua` file with your application. By putting placeholder values in the example configuration file, other developers on your team can clearly see which environment variables are needed to run your application.
 
@@ -161,6 +163,13 @@ route:get('/users', 'user_controller', 'index')
 ```
 
 #### Available Router Methods
+
+* GET
+* POST
+* PATCH
+* PUT
+* DELETE
+* HEAD
 
 The router allows you to register routes that respond to any HTTP verb:
 
@@ -179,6 +188,12 @@ Sometimes you will need to capture segments of the URI within your route. For ex
 
 ```lua
 route:get('/users/{id}', 'user_controller', 'show')
+```
+to use it at `user_controller`:
+```lua
+function _M:show(user_id)
+    ...
+end
 ```
 
 #### Route Groups
@@ -209,6 +224,7 @@ function _M:handle()
     end
 end
 ```
+you should define a function named `handle()` at your custom middleware.lua file in middleware dir, return `false` to stop run controller and replace by the second parameter of return response to user
 
 ### Controller
 
@@ -233,11 +249,11 @@ args.username -- get username prop
 
 ### Response
 
-framework return response to bootstrap by `lib/response.lua` > `json()` function, `response` structure has status,message,data three args
+framework return response to bootstrap by `lib/response.lua` > `json()` function, `response` structure has status,message,data, http status code most four parameter
 
 1. status are in `config/status.lua`
 2. message will match status code in `config/status.lua`
-3. data can custom by yourself
+3. data should return response by api
 
 ```lua
 return response:json(0x000000, 'success message', data, 200)
@@ -265,7 +281,7 @@ return response:json(0x000001)
 
 #### custom response json protocol
 
-you can custom `{"status":0,"message":"ok","data":{}}` key in `lib/response.lua` > `json` function, or other error code in `config/status.lua`
+you can custom response `{"status":0,"message":"ok","data":{}}` key in `lib/response.lua` > `json` function, or other error code in `config/status.lua`
 
 ### validate data
 
@@ -278,6 +294,268 @@ local ok,msg = validator:check(args, {
     'password', -- validate password cannot empty
     id = {included={1,2,3}} -- validate id should be 1 or 2 or 3
     })
+```
+
+
+### Cookie
+
+`lib/helpers.lua` contain `set_cookie` `get_cookie` function to operator cookie
+
+```lua
+helpers.set_cookie(key, value, expire) -- expire option parameter, sec
+helpers.get_cookie(key)
+```
+
+### Database ORM
+
+> by default sql use `ngx.quote_sql_str` to prevent `sql reject`
+
+```lua
+-- define a Model at models dir which table named users
+local Model = require("lib.model")
+local User = Model:new('users')
+return User
+```
+
+#### Retrieve Models
+
+```lua
+-- retrieve `id` = 1
+local user = User:find(1)
+
+-- retrieve all data at users table
+local users = User:all()
+
+-- retrieve `username` column which value equel to `cgreen` and `password` column which value equel to `xxxxxx` many rows, use first() function at last to limit 1 row
+local user = User:where('username','=','cgreen'):where('password','=','xxxxxxx'):get()
+
+-- return `name` = `xxx` or `yyy` result
+local users = User:where('name','=','xxx'):orwhere('name','=','yyy'):get()
+```
+
+#### Inserting & Updating Models
+
+```lua
+-- create a user
+User:create({
+    id=3,
+    password='xxxxxx',
+    name='hejunwei',
+    email='heunweimake@gmail.com',
+})
+
+-- update user's name=test and avatar set to NULL which id = 1
+local ok, err = User:where('id', '=', 1):update({
+        name='test',
+        avatar='null'
+  })
+if not ok then
+    ngx.log(ngx.ERR, err)
+end
+```
+
+#### Deleting Models
+
+```lua
+-- delete user id = 1
+local ok, err = User:where('id','=','1'):delete()
+if not ok then
+    ngx.log(ngx.ERR, err)
+end
+
+-- soft delete
+local ok, err = User:where('id','=','1'):soft_delete()
+if not ok then
+    ngx.log(ngx.ERR, err)
+end
+```
+
+> you should create a datetime column named `deleted_at` at your table, soft_delete() will set current time to that row, if you want to change column name, config at `models/model.lua`
+
+#### Sort
+
+`orderby(column, option)`
+first param is column name which want to sort, second param is sort type default is `ASC` you can set `ASC or DESC`(case insensitive)
+for example:
+`Post:orderby('created_at'):get()`
+
+#### Pagination
+
+```lua
+local userPages = User:paginate(1)
+-- return response：
+{
+    "prev_page": null,
+    "total": 64,
+    "data": [
+        {user1_obj},
+        {user2_obj},
+        ...
+    ],
+    "next_page": 2
+}
+```
+
+if it is first or last page, `prev_page` or `next_page`is `null`
+
+#### Raw SQL
+
+> raw sql should resolve `sql reject` by yourself
+`local Database = require('lib.database')`
+
+* local res, err = Database:mysql_query(sql) -- execute SQL, read operation(SELECT) return data set，write operation(INSERT,UPDATE,DELETE) return effective rows count
+
+### Model Relationships
+
+#### One to Many
+
+for example one user has many posts set `has_many` at `user.lua` model:
+
+```lua
+-- user.lua
+local Model = require("models.model")
+local Post = require('models.post')
+local User = Model:new('users')
+function User:posts()
+    return User:has_many(Post, 'user_id', 'id') -- target model, target table id, our table foreign key
+end
+return User
+
+
+-- post.lua
+local Model = require("models.model")
+local Post = Model:new('posts')
+return Post
+
+-- controller
+local user_and_post = User:where('id', '=', user_id):with('posts'):get()
+--[[
+[
+    {
+        "name":"horan",
+        "posts":{
+            "id":67,
+            "user_id":1,
+            "title":"article title",
+            "content":"article content"
+        },
+        "email":"hejunweimake@gmail.com"
+    }
+]
+--]]
+```
+
+#### Many to One
+
+For example one user has many posts, you can set `belongs_to` at `post.lua` model：
+
+```lua
+-- post.lua
+local Model = require("models.model")
+local User = require('models.user')
+local Post = Model:new('posts')
+
+function Post:user()
+    return Post:belongs_to(User, 'id', 'user_id') -- target model, target table id, our table foreign key
+end
+
+return Post
+
+-- user.lua
+local Model = require("models.model")
+local User = Model:new('users')
+return User
+
+-- controller
+local posts_with_user = Post:where('id', '=', 1):with('user'):first()
+--[[
+{
+    "id":1,
+    "user_id":1,
+    "title":"article title",
+    "user":{
+        "id":1,
+        "name":"openresty"
+    },
+    "content":"article content"
+}
+--]]
+```
+
+#### Read and Write separation
+
+At `config/database.lua` file `mysql.read` and `mysql.write` to config database, if you don't want to separation, can config the same
+
+> only can config one read instance and one write instance, if you have many read instance, you can use tcp proxy to your read cluster
+
+### Redis
+
+```lua
+local redis = require("lib.redis")
+local ok,err = redis:set('key', 'value', 60) --seconds
+if not ok then
+    return false, err
+end
+local ok,err = redis:expire('key',60) --seconds delay expire time
+if not ok then
+    return false, err
+end
+local data, err = redis:get('key') --get
+local ok,err = redis:del('key') --delete
+if not ok then
+    return false, err
+end
+```
+
+#### resty redis
+
+framework use `resty redis`
+```lua
+local resty_redis = require('lib.resty_redis')
+```
+
+### Others
+
+#### Random
+
+```lua
+local random = require('lib.random')
+```
+
+##### character and number
+
+```lua
+random.token(10) -- length 10
+```
+
+##### only number
+
+```lua
+random.number(1000, 9999)
+```
+
+### Helper Function
+
+#### reverse table
+
+only for array table
+
+```lua
+table_reverse(tab) -- return reverse table
+```
+
+#### table delete by value
+
+```lua
+table_remove(tab, {'item1', 'item2'})
+```
+
+#### sort by key
+
+> lua `hash table` `key` sort is different with other language
+
+```lua
+sort_by_key(hashTable)
 ```
 
 ## Contact author

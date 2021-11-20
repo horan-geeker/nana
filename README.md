@@ -180,10 +180,9 @@ route:get('/users/{id}', 'user_controller', 'show')
 route:get("/users/{user_id}/comments/{comment_id}", 'user_controller', 'comments')
 ```
 
-可匹配`/users/1/comments/2`，在`comments action`里，直接写上两个参数即可，命名不进行约束，最后一个参数是框架注入的 request
-
+可匹配`/users/1/comments/2`，在`comments action`里，直接写上两个参数即可，命名不进行约束
 ```lua
-function _M:comments(user_id, comment_id, request)
+function _M:comments(user_id, comment_id)
     ...
 end
 ```
@@ -203,7 +202,7 @@ route:group({
 
 ### 中间件
 
-> 中间件都需要写在 `middleware` 文件夹下，并且需要写上命名为 `handle()` 的方法 `中间件` 的设计模式解决了代码的复用，我们可以在中间件中自定义自己的逻辑，如`middleware > authenticate.lua`
+> 中间件都需要写在 `middleware` 文件夹下，并且需要写上命名为 `handle()` 的方法，`中间件` 的设计模式解决了代码的复用，我们可以在中间件中自定义自己的逻辑，如`middleware > authenticate.lua`
 
 ```lua
 function _M:handle()
@@ -213,7 +212,7 @@ function _M:handle()
 end
 ```
 
-当返回 false 的时候会直接返回第二个 `response` 参数，从而不再执行 `controller` 的内容，当返回 true 的时候继续执行，你可以把你自定义的中间件写到 `middleware` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
+当返回 false 的时候会直接返回 `return` 的第二个参数，进而不再执行 `controller` 的内容，当返回 true 的时候继续执行，你可以把你自定义的中间件写到 `middleware` 的文件夹下, 该文件夹下已有了一个示例中间件 `example_middleware.lua`
 
 ### 控制器
 
@@ -221,12 +220,18 @@ end
 
 ### Request
 
-默认情况下框架会将 request 注入到 controller 的 action 中的最后一个参数，目前包含
+local request = require("lib.request")
 
 * request.params 请求参数
 * request.headers 请求头集合
 * request.method 请求方法类型
 * request.uri 请求 uri
+
+```lua
+local request = require("lib.request")
+local args = request:all() -- get all params，not only uri args but also post json body
+args.username -- get username prop
+```
 
 #### 参数获取
 
@@ -238,7 +243,7 @@ args.username -- 拿到username参数
 
 ### Response
 
-框架使用的 `lib/response.lua` 中的 `json` 方法通过定义数字来代表不同的`response`类型，该方法支持三四个参数
+框架使用的 `lib/response.lua` 中的 `json` 方法通过定义数字来代表不同的`response`类型，该方法支持四个参数
 
 1. 第一个参数是状态码，16进制状态码对应 `config/status.lua`
 2. 第二个参数是错误码文案，默认值是根据第一个参数对应 `config/status.lua` 中的文案
@@ -302,8 +307,10 @@ helpers.get_cookie(key)
 > 默认的数据库操作都使用了 `ngx.quote_sql_str` 处理了 `sql注入问题`
 
 ```lua
--- 获取模型，模型的表名对应 `models/user.lua` 中 `Model:new()` 的第一个参数 `users`  
-local User = require("models.user")
+-- 在 models 文件夹里，定义一个表名为 users 的模型, user.lua
+local Model = require("lib.model")
+local User = Model:new('users')
+return User
 ```
 
 #### 检索
@@ -443,7 +450,7 @@ local user_and_post = User:where('id', '=', user_id):with('posts'):get()
 
 #### 多对一
 
-以 post 关联 tag 为例，在 post 模型中定义关系 `belongs_to`，参数：
+如一个用户可以拥有多篇文章，以 post 关联 user，在 post 模型中定义关系 `belongs_to`，参数：
 
 1. 关联模型
 2. 外表 id
@@ -452,32 +459,30 @@ local user_and_post = User:where('id', '=', user_id):with('posts'):get()
 ```lua
 -- post.lua
 local Model = require("models.model")
-local Tag = require('models.tag')
+local User = require('models.user')
 local Post = Model:new('posts')
 
-function Post:tag()
-    return Post:belongs_to(Tag, 'id', 'tag_id')
+function Post:user()
+    return Post:belongs_to(User, 'id', 'user_id')
 end
 
 return Post
 
-
--- tag.lua
+-- user.lua
 local Model = require("models.model")
-local Tag = Model:new('tags')
-return Tag
+local User = Model:new('users')
+return User
 
 -- controller 调用
-local posts_with_tag = Post:where('id', '=', 1):with('tag'):first()
+local posts_with_user = Post:where('id', '=', 1):with('user'):first()
 --[[
 {
     "id":1,
-    "post_tag_id":1,
     "user_id":1,
     "title":"article title",
-    "tag":{
+    "user":{
         "id":1,
-        "type":"openresty"
+        "name":"openresty"
     },
     "content":"article content"
 }
@@ -489,6 +494,7 @@ local posts_with_tag = Post:where('id', '=', 1):with('tag'):first()
 通过配置 `config/database.lua` 文件中 `mysql.READ` 和 `mysql.WRITE` 框架会根据 model 的操作自动分配读写，如果不做分离则配置为相同的
 
 > 由于主从同步是异步的，业务中先写后读的话，默认都会去主库查询，保证数据写入后能立即查询
+> 目前只支持配置一主一从，如有多个从库可以使用四层代理 IP 来解决
 
 ### Redis
 
